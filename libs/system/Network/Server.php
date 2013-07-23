@@ -9,6 +9,7 @@ class Server extends \SwooleServer implements \Swoole_Server_Driver
 {
     static $sw_mode = SWOOLE_PROCESS;
     protected $sw;
+    protected $swooleSetting;
 
     function __construct($host, $port, $timeout=0)
     {
@@ -16,19 +17,22 @@ class Server extends \SwooleServer implements \Swoole_Server_Driver
         $this->host = $host;
         $this->port = $port;
         \Swoole\Error::$stop = false;
+        $this->swooleSetting = array('timeout' => 2.5,  //select and epoll_wait timeout.
+            'poll_thread_num' => 2,  //reactor thread num
+            'writer_num' => 2,       //writer thread num
+            'worker_num' => 2,       //worker process num
+            'backlog' => 128,        //listen backlog
+            'open_cpu_affinity' => 1,
+            'open_tcp_nodelay' => 1,
+        );
     }
-
+    function daemonize()
+    {
+        $this->swooleSetting['daemonize'] = 1;
+    }
     function run($setting = array())
     {
-        $set =  array('timeout' => 2.5,  //select and epoll_wait timeout.
-                'poll_thread_num' => 2,  //reactor thread num
-                'writer_num' => 2,       //writer thread num
-                'worker_num' => 2,       //worker process num
-                'backlog' => 128,        //listen backlog
-                'open_cpu_affinity' => 1,
-                'open_tcp_nodelay' => 1,
-        );
-        $set = array_merge($set, $setting);
+        $set = array_merge($this->swooleSetting, $setting);
         swoole_server_set($this->sw, $set);
         swoole_server_handler($this->sw, 'onStart', array($this->protocol, 'onStart'));
         swoole_server_handler($this->sw, 'onConnect', array($this->protocol, 'onConnect'));

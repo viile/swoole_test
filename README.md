@@ -5,6 +5,9 @@ Swoole应用服务器
 PHP高级Web开发框架，内置应用服务器。提供统一注册树，数据库操作，模板，Cache，日志，队列，上传管理，用户管理等丰富的功能特性。
 使用内置应用服务器，可节省每次请求代码来的额外消耗。连接池技术可以很好的帮助存储系统节省连接资源。
 
+* 支持热部署，代码更新后即刻生效。依赖runkit扩展（https://github.com/zenovich/runkit）
+* 支持MaxRequest进程回收机制，防止内存泄露
+
 赞助Swoole开源项目
 -----
 捐赠地址：http://me.alipay.com/swoole
@@ -32,13 +35,17 @@ sudo make install
 define('DEBUG', 'on');
 define("WEBPATH", str_replace("\\","/", __DIR__));
 require __DIR__.'/libs/lib_config.php';
-//require __DIR__'/phar://swoole.phar';
-Swoole\Config::$debug = true;
-$appserver = new Swoole\Network\Protocol\AppServer();
-$appserver->loadSetting(__DIR__."/swoole.ini");
+
+$AppSvr = new Swoole\Network\Protocol\AppServer();
+$AppSvr->loadSetting(__DIR__."/swoole.ini"); //加载配置文件
+$AppSvr->setAppPath(__DIR__.'/apps/'); //设置应用所在的目录
+$AppSvr->setLogger(new Swoole\Log\EchoLog(false)); //Logger
+
 $server = new \Swoole\Network\Server('0.0.0.0', 8888);
-$server->setProtocol($appserver);
-$server->run(array('worker_num' => 4, 'max_request' => 1000));
+$server->setProtocol($AppSvr);
+$server->daemonize(); //作为守护进程
+$server->run(array('worker_num' => 1, 'max_request' => 5000));
+
 ```
 
 ```shell

@@ -52,6 +52,9 @@ $server->run(array('worker_num' => 1, 'max_request' => 5000));
 php server.php
 [2013-07-09 12:17:05]  Swoole. running. on 0.0.0.0:8888
 ```
+
+在浏览器中打开 http://127.0.0.1:8888/
+
 压测数据
 -----
 ```shell

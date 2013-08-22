@@ -41,6 +41,12 @@ $AppSvr->loadSetting(__DIR__."/swoole.ini"); //加载配置文件
 $AppSvr->setAppPath(__DIR__.'/apps/'); //设置应用所在的目录
 $AppSvr->setLogger(new Swoole\Log\EchoLog(false)); //Logger
 
+/**
+ *如果你没有安装swoole扩展，这里还可选择
+ * BlockTCP 阻塞的TCP
+ * SelectTCP 使用select做事件循环
+ * EventTCP 使用libevent，需要安装libevent扩展
+ */
 $server = new \Swoole\Network\Server('0.0.0.0', 8888);
 $server->setProtocol($AppSvr);
 $server->daemonize(); //作为守护进程
@@ -55,7 +61,7 @@ php server.php
 
 在浏览器中打开 http://127.0.0.1:8888/
 
-压测数据
+压测数据(本测试是使用swoole扩展作为底层Server框架的,其他驱动暂未测试)
 -----
 ```shell
 ab -c 100 -n 100000 http://127.0.0.1:8888/hello/index/

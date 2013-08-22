@@ -33,6 +33,11 @@ class SwooleServer
 	function accept()
 	{
 		$client_socket = stream_socket_accept($this->server_sock, 0);
+        //惊群
+        if($client_socket === false)
+        {
+            return false;
+        }
 		$client_socket_id = (int)$client_socket;
 		stream_set_blocking($client_socket, $this->client_block);
 		$this->client_sock[$client_socket_id] = $client_socket;

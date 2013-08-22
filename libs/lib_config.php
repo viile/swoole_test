@@ -145,7 +145,7 @@ function debug()
 function error($error_id,$stop=true)
 {
     global $php;
-    $error = new Error($error_id);
+    $error = new \Swoole\Error($error_id);
     if(isset($php->error_call[$error_id]))
     {
         call_user_func($php->error_call[$error_id],$error);

@@ -32,9 +32,9 @@ class SwooleServer
 	}
 	function accept()
 	{
-		$client_socket = stream_socket_accept($this->server_sock);
+		$client_socket = stream_socket_accept($this->server_sock, 0);
 		$client_socket_id = (int)$client_socket;
-		stream_set_blocking($client_socket,$this->client_block);
+		stream_set_blocking($client_socket, $this->client_block);
 		$this->client_sock[$client_socket_id] = $client_socket;
 		$this->client_num++;
 		if($this->client_num > $this->max_connect)
@@ -45,10 +45,46 @@ class SwooleServer
 		else
 		{
 			//设置写缓冲区
-			stream_set_write_buffer($client_socket,$this->write_buffer_size);
+			stream_set_write_buffer($client_socket, $this->write_buffer_size);
 			return $client_socket_id;
 		}
 	}
+
+    function spawn($setting)
+    {
+        if(!extension_loaded('pcntl'))
+        {
+            return new Error("Require pcntl extension!");
+        }
+        $num = 0;
+        if(isset($setting['worker_num']))
+        {
+            $num = (int) $setting['worker_num'] - 1;
+        }
+        if($num < 2)
+        {
+            return;
+        }
+        $pids = array();
+        for($i=0; $i<$num; $i++)
+        {
+            $pid = pcntl_fork();
+            if($pid > 0)
+            {
+                $pids[] = $pid;
+            }
+            else
+            {
+                break;
+            }
+        }
+        return $pids;
+    }
+
+    function startWorker()
+    {
+
+    }
 	function onError($errno,$errstr)
 	{
 		exit("$errstr ($errno)");
@@ -67,7 +103,7 @@ class SwooleServer
 
 		if(!$socket) $this->onError($errno,$errstr);
 		//设置socket为非堵塞或者阻塞
-		stream_set_blocking($socket,$block);
+		stream_set_blocking($socket, $block);
 		return $socket;
 	}
 	function create_socket($uri,$block=false)
@@ -144,18 +180,7 @@ function sw_fwrite_stream($fp, $string)
 	return $written;
 }
 
-function sw_spawn($num)
-{
-	if(!extension_loaded('pcntl')) return new Error("Require pcntl extension!");
-	$pids = array();
-	for($i=0;$i<$num;$i++)
-	{
-		$pid = pcntl_fork();
-		if($pid) $pids[] = $pid;
-		else break;
-	}
-	return $pids;
-}
+
 interface Swoole_TCP_Server_Driver
 {
 	function run($num=1);

@@ -9,7 +9,8 @@ $AppSvr->loadSetting(__DIR__."/swoole.ini"); //加载配置文件
 $AppSvr->setAppPath(__DIR__.'/apps/'); //设置应用所在的目录
 $AppSvr->setLogger(new Swoole\Log\EchoLog(true)); //Logger
 
-$server = new \Swoole\Network\Server('0.0.0.0', 8888);
+Swoole\Error::$echo_html = false;
+$server = new \Swoole\Network\EventTCP('0.0.0.0', 8888);
 $server->setProtocol($AppSvr);
 //$server->daemonize(); //作为守护进程
 $server->run(array('worker_num' => 1, 'max_request' => 5000));

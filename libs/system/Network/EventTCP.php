@@ -1,6 +1,6 @@
 <?php
 namespace Swoole\Network;
-class EventTCP extends \SwooleServer implements \Swoole_Server_Driver
+class EventTCP extends \Swoole\Server implements \Swoole\Server_Driver
 {
 	/**
 	 * Server Socket

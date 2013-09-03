@@ -1,7 +1,7 @@
 <?php
 namespace Swoole\Network;
 
-class BlockTCP extends \SwooleServer implements \Swoole_Server_Driver
+class BlockTCP extends \Swoole\Server implements \Swoole\Server_Driver
 {
 	public $server_sock;
 	public $server_socket_id;

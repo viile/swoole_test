@@ -5,7 +5,7 @@ namespace Swoole\Network;
  * Class Server
  * @package Swoole\Network
  */
-class Server extends \SwooleServer implements \Swoole_Server_Driver
+class Server extends \Swoole\Server implements \Swoole\Server_Driver
 {
     static $sw_mode = SWOOLE_PROCESS;
     protected $sw;

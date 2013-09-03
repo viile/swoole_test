@@ -1,6 +1,7 @@
 <?php
 namespace Swoole\Network;
-class SelectTCP extends \SwooleServer implements \Swoole_Server_Driver
+
+class SelectTCP extends \Swoole\Server implements \Swoole\Server_Driver
 {
     public $server_sock;
     public $server_socket_id;

@@ -1,6 +1,6 @@
 <?php
-require LIBPATH.'/class/swoole/net/SwooleServer.class.php';
-class SelectUDP extends SwooleServer implements Swoole_UDP_Server_Driver
+namespace Swoole\Network;
+class SelectUDP extends \Swoole\Server implements \Swoole\UDP_Server_Driver
 {
     public $server_block = 0;
     function __construct($host,$port,$timeout=30)

@@ -113,7 +113,7 @@ class Server
 		stream_set_blocking($socket, $block);
 		return $socket;
 	}
-	function create_socket($uri,$block=false)
+	function create_socket($uri, $block=false)
 	{
 		$set = parse_url($uri);
 		if($uri{0}=='u') $sock = socket_create(AF_INET, SOCK_DGRAM , SOL_UDP);
@@ -123,7 +123,7 @@ class Server
 		else socket_set_nonblock($sock);
 		socket_bind($sock,$set['host'],$set['port']);
 		socket_listen($sock);
-		return $socket;
+		return $sock;
 	}
 	function sendData($sock,$data)
 	{

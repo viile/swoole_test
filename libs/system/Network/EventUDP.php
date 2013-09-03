@@ -1,6 +1,6 @@
 <?php
-require LIBPATH.'/class/swoole/net/SwooleServer.class.php';
-class EventUDP extends SwooleServer implements Swoole_UDP_Server_Driver
+namespace Swoole\Network;
+class EventUDP extends \Swoole\Server implements \Swoole\UDP_Server_Driver
 {
     /**
      * Server Socket

@@ -119,7 +119,7 @@ class Swoole
         if(defined('DEBUG') and DEBUG=='on')
         {
             #捕获错误信息
-            set_error_handler('swoole_error_handler');
+//            set_error_handler('swoole_error_handler');
             #记录运行时间和内存占用情况
             $this->env['runtime']['start'] = microtime(true);
             $this->env['runtime']['mem'] = memory_get_usage();
@@ -301,15 +301,4 @@ class Swoole
         $server->setProtocol($protocol);
         $server->run($server_conf['processor_num']);
     }
-}
-
-interface ILog
-{
-    /**
-     * 写入日志
-     * @param $type 类型
-     * @param $msg  内容
-     * @return unknown_type
-     */
-    function put($type, $msg);
 }

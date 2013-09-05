@@ -1,4 +1,6 @@
 <?php
+namespace Swoole;
+
 class Request
 {
     public $get = array();
@@ -9,6 +11,7 @@ class Request
     public $head = array();
     public $meta = array();
 
+    public $ext_name;
     public $status;
     /**
      * 将原始请求信息转换到PHP超全局变量中

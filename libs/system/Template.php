@@ -31,8 +31,8 @@ class Template extends Smarty
 	}
 	function set_cache($time=3600)
 	{
-        $this->caching = 1;
-        $this->cache_lifetime = $time;
+		$tpl->caching = 1;
+		$tpl->cache_lifetime = $time;
 	}
 	function pagecache()
 	{

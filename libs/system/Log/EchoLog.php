@@ -4,11 +4,11 @@ namespace Swoole\Log;
  * Created by JetBrains PhpStorm.
  * User: htf
  * Date: 13-7-17
- * Time: ионГ9:49
+ * Time: О©╫О©╫О©╫О©╫9:49
  * To change this template use File | Settings | File Templates.
  */
 
-class EchoLog extends \Swoole\Log implements \ILog
+class EchoLog extends \Swoole\Log implements \Swoole\IFace\Log
 {
     static $formart = "[Y-m-d H:i:s]";
 

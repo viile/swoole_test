@@ -3,7 +3,7 @@
 if(defined('SWOOLE_SERVER'))
 {
     require LIBPATH.'/function/compat_func/server.php';
-    Swoole\Error::$stop = false;
+    \Swoole\Error::$stop = false;
 }
 else
 {

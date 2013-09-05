@@ -4,7 +4,7 @@
  * @author Tianfeng.Han
  *
  */
-class FileLog extends \Swoole\Log implements ILog
+class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
 {
     private $log_file;
     static $date_format = 'Y-m-d H:i:s';

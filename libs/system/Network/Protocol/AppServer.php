@@ -61,15 +61,15 @@ class AppServer extends HttpServer
     }
     function onRequest($request)
     {
-        $response = new \Response();
+        $response = new \Swoole\Response();
         $php = \Swoole::getInstance();
         $request->setGlobal();
-        $mvc = $this->urlRouter($request->meta['path']);
-        if($mvc['controller'] == 'static')
+
+        if($this->doStaticRequest($request, $response))
         {
-            $this->process_static($request, $response);
             return $response;
         }
+        $mvc = $this->urlRouter($request->meta['path']);
         $php->env['mvc'] = $mvc;
         /*---------------------加载MVC程序----------------------*/
         $controller_file = $this->config['apps']['apps_path'].'/controllers/'.$mvc['controller'].'.php';

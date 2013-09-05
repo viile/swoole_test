@@ -1,8 +1,6 @@
 <?php
 namespace Swoole\Network\Protocol;
-require_once LIBPATH . '/class/swoole/net/SwooleServer.class.php';
-require_once LIBPATH.'/system/Request.php';
-require_once LIBPATH.'/system/Response.php';
+
 /**
  * HTTP Server
  * @author Tianfeng.Han
@@ -10,7 +8,7 @@ require_once LIBPATH.'/system/Response.php';
  * @package Swoole
  * @subpackage net.protocol
  */
-class HttpServer implements \Swoole_Server_Protocol
+class HttpServer implements \Swoole\Server\Protocol
 {
     public $server;
     public $config = array();
@@ -230,7 +228,7 @@ class HttpServer implements \Swoole_Server_Protocol
         // parts[0] = HTTP头;
         // parts[1] = HTTP主体，GET请求没有body
         $headerLines = explode("\r\n", $parts[0]);
-        $request = new \Request;
+        $request = new \Swoole\Request;
         // HTTP协议头,方法，路径，协议[RFC-2616 5.1]
         list($request->meta['method'], $request->meta['uri'], $request->meta['protocol']) = explode(' ', $headerLines[0], 3);
         //$this->log($headerLines[0]);
@@ -282,7 +280,7 @@ class HttpServer implements \Swoole_Server_Protocol
 
         $response->send_http_status($code);
         $response->head['Content-Type'] = 'text/html';
-        $response->body = \Swoole\Error::info(\Response::$HTTP_HEADERS[$code], "<p>$content</p><hr><address>" . self::SOFTWARE . " at {$this->server->host} Port {$this->server->port}</address>");
+        $response->body = \Swoole\Error::info(\Swoole\Response::$HTTP_HEADERS[$code], "<p>$content</p><hr><address>" . self::SOFTWARE . " at {$this->server->host} Port {$this->server->port}</address>");
     }
 
     /**
@@ -292,27 +290,47 @@ class HttpServer implements \Swoole_Server_Protocol
      */
     function onRequest($request)
     {
-        $response = new \Response;
+        $response = new \Swoole\Response;
         //请求路径
         if ($request->meta['path'][strlen($request->meta['path']) - 1] == '/') {
             $request->meta['path'] .= $this->config['request']['default_page'];
         }
-        $path = explode('/', trim($request->meta['path'], '/'));
-        //扩展名
-        $ext_name = \Upload::file_ext($request->meta['path']);
-        /* 检测是否拒绝访问 */
-        if (isset($this->deny_dir[$path[0]])) {
-            $this->http_error(403, $response, "服务器拒绝了您的访问({$request->meta['path']})");
-        } /* 是否静态目录 */
-        elseif (isset($this->static_dir[$path[0]]) or isset($this->static_ext[$ext_name])) {
-            $this->process_static($request, $response);
-        } /* 动态脚本 */
-        elseif (isset($this->dynamic_ext[$ext_name]) or empty($ext_name)) {
+        if($this->doStaticRequest($request, $response))
+        {
+             //pass
+        }
+        /* 动态脚本 */
+        elseif (isset($this->dynamic_ext[$request->ext_name]) or empty($ext_name))
+        {
             $this->process_dynamic($request, $response);
-        } else {
-            $this->http_error(403, $response);
+        }
+        else
+        {
+            $this->http_error(404, $response, "Http Not Found({($request->meta['path']})");
         }
         return $response;
+    }
+
+    /**
+     * 过滤请求，阻止静止访问的目录，处理静态文件
+     */
+    function doStaticRequest($request, $response)
+    {
+        $path = explode('/', trim($request->meta['path'], '/'));
+        //扩展名
+        $request->ext_name = $ext_name = \Upload::file_ext($request->meta['path']);
+        /* 检测是否拒绝访问 */
+        if (isset($this->deny_dir[$path[0]]))
+        {
+            $this->http_error(403, $response, "服务器拒绝了您的访问({$request->meta['path']})");
+            return true;
+        }
+        /* 是否静态目录 */
+        elseif (isset($this->static_dir[$path[0]]) or isset($this->static_ext[$ext_name]))
+        {
+            return $this->process_static($request, $response);
+        }
+        return false;
     }
 
     /**
@@ -324,11 +342,17 @@ class HttpServer implements \Swoole_Server_Protocol
     function process_static($request, $response)
     {
         $path = $this->document_root . '/' . $request->meta['path'];
-        if (is_file($path)) {
+        if (is_file($path))
+        {
             $ext_name = \Upload::file_ext($request->meta['path']);
             $response->head['Content-Type'] = $this->mime_types[$ext_name];
             $response->body = file_get_contents($path);
-        } else $this->http_error(404, $response, "文件不存在({$path})！");
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /**
@@ -340,18 +364,25 @@ class HttpServer implements \Swoole_Server_Protocol
     function process_dynamic($request, $response)
     {
         $path = $this->document_root . '/' . $request->meta['path'];
-        if (is_file($path)) {
+        if (is_file($path))
+        {
             $request->setGlobal();
             $response->head['Content-Type'] = 'text/html';
             ob_start();
             try {
                 include $path;
-            } catch (Exception $e) {
+            }
+            catch (\Exception $e)
+            {
                 $response->send_http_status(404);
                 $response->body = $e->getMessage() . '!<br /><h1>' . self::SOFTWARE . '</h1>';
             }
             $response->body = ob_get_contents();
             ob_end_clean();
-        } else $this->http_error(404, $response, "页面不存在({$request->meta['path']})！");
+        }
+        else
+        {
+            $this->http_error(404, $response, "页面不存在({$request->meta['path']})！");
+        }
     }
 }

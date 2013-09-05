@@ -29,6 +29,11 @@ class Server
 	 */
 	function setProtocol($protocol)
 	{
+        //初始化事件系统
+        if(!($protocol instanceof \Swoole\Server\Protocol))
+        {
+             throw new \Exception("The protocol is not instanceof \\Swoole\\Server\\Protocol");
+        }
 		$this->protocol = $protocol;
 		$this->protocol->server = $this;
 	}
@@ -216,21 +221,4 @@ interface UDP_Server_Protocol
 	function onStart();
 	function onData($peer,$data);
 	function onShutdown();
-}
-
-interface Server_Protocol
-{
-    function onStart($server);
-    function onConnect($server, $client_id, $from_id);
-    function onReceive($server,$client_id, $from_id, $data);
-    function onClose($server, $client_id, $from_id);
-    function onShutdown($server);
-}
-interface Server_Driver
-{
-    function run($setting);
-    function send($client_id, $data);
-    function close($client_id);
-    function shutdown();
-    function setProtocol($protocol);
 }

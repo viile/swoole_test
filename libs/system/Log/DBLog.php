@@ -4,7 +4,7 @@ namespace Swoole\Log;
  * 数据库日志记录类
  * @author Tianfeng.Han
  */
-class DBLog extends \Swoole\Log implements \ILog
+class DBLog extends \Swoole\Log implements \Swoole\IFace\Log
 {
     public $db;
     public $table;

@@ -4,7 +4,7 @@
  * @author Tianfeng.Han
  *
  */
-class PHPLog extends \Swoole\Log implements ILog
+class PHPLog extends \Swoole\Log implements \Swoole\IFace\Log
 {
     private $logput;
     private $type;

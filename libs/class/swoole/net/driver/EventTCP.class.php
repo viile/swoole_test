@@ -1,6 +1,6 @@
 <?php
-namespace Swoole\Network;
-class EventTCP extends \Swoole\Server implements \Swoole\Server\Driver
+require_once LIBPATH.'/class/swoole/net/SwooleServer.class.php';
+class EventTCP extends SwooleServer implements Swoole_TCP_Server_Driver
 {
 	/**
 	 * Server Socket
@@ -11,7 +11,7 @@ class EventTCP extends \Swoole\Server implements \Swoole\Server\Driver
 	public $server_sock;
 
 	//最大连接数
-	public $max_connect= 10000;
+	public $max_connect=1000;
 
 	//客户端socket列表
 	public $client_sock = array();
@@ -31,18 +31,23 @@ class EventTCP extends \Swoole\Server implements \Swoole\Server\Driver
 	 * 运行服务器程序
 	 * @return unknown_type
 	 */
-	function run($setting)
+	function run($num=1)
 	{
+		//初始化事件系统
+		if(!($this->protocol instanceof Swoole_TCP_Server_Protocol))
+		{
+			return error(902);
+		}
 		$this->init();
 		//建立服务器端Socket
 		$this->server_sock = $this->create("tcp://{$this->host}:{$this->port}");
 
 		//设置事件监听，监听到服务器端socket可读，则有连接请求
-		event_set($this->server_event,$this->server_sock, EV_READ | EV_PERSIST, array($this, "event_connect"));
+		event_set($this->server_event,$this->server_sock, EV_READ | EV_PERSIST, "sw_server_handle_connect",$this);
 		event_base_set($this->server_event,$this->base_event);
 		event_add($this->server_event);
-		$this->spawn($setting);
-		$this->protocol->onStart($this);
+		if(($num-1)>0) sw_spawn($num-1);
+		$this->protocol->onStart();
 		event_base_loop($this->base_event);
 	}
 	/**
@@ -82,7 +87,7 @@ class EventTCP extends \Swoole\Server implements \Swoole\Server\Driver
 		sw_socket_close($this->server_sock,$this->server_event);
 		//关闭事件循环
 		event_base_loopexit($this->base_event);
-		$this->protocol->onShutdown($this);
+		$this->protocol->onShutdown();
 	}
 	/**
 	 * 关闭某个客户端
@@ -92,53 +97,52 @@ class EventTCP extends \Swoole\Server implements \Swoole\Server\Driver
 	{
 		sw_socket_close($this->client_sock[$client_id],$this->client_event[$client_id]);
 		unset($this->client_sock[$client_id],$this->client_event[$client_id]);
-		$this->protocol->onClose($this, $client_id, 0);
+		$this->protocol->onClose($client_id);
 		$this->client_num--;
 	}
-
-    /**
-     * 处理客户端连接请求
-     * @param $server_socket
-     * @param $events
-     * @param $server
-     * @return unknown_type
-     */
-    function event_connect($server_socket, $events)
-    {
-        if($client_id = $this->accept())
-        {
-            $client_socket = $this->client_sock[$client_id];
-            //新的事件监听，监听客户端发生的事件
-            $client_event = event_new();
-            event_set($client_event, $client_socket, EV_READ | EV_PERSIST, array($this, "event_receive"), $client_id);
-            //设置基本时间系统
-            event_base_set($client_event, $this->base_event);
-            //加入事件监听组
-            event_add($client_event);
-            $this->client_event[$client_id] = $client_event;
-            $this->protocol->onConnect($this, $client_id, 0);
-        }
-    }
-
-    /**
-     * 接收到数据后进行处理
-     * @param $client_socket
-     * @param $events
-     * @param $arg
-     * @return unknown_type
-     */
-    function event_receive($client_socket, $events, $client_id)
-    {
-        $data = sw_fread_stream($client_socket, $this->buffer_size);
-
-        if($data !== false)
-        {
-            $this->protocol->onReceive($this, $client_id, 0, $data);
-        }
-        else
-        {
-            $this->close($client_id);
-        }
-    }
 }
+/**
+ * 处理客户端连接请求
+ * @param $server_socket
+ * @param $events
+ * @param $server
+ * @return unknown_type
+ */
+function sw_server_handle_connect($server_socket,$events,$server)
+{
+	if($client_id = $server->accept())
+	{
+		$client_socket = $server->client_sock[$client_id];
+		//新的事件监听，监听客户端发生的事件
+		$client_event = event_new();
+		event_set($client_event, $client_socket, EV_READ | EV_PERSIST, "sw_server_handle_receive", array($server,$client_id));
+		//设置基本时间系统
+		event_base_set($client_event,$server->base_event);
+		//加入事件监听组
+		event_add($client_event);
+		$server->client_event[$client_id] = $client_event;
+		$server->protocol->onConnect($client_id);
+	}
+}
+/**
+ * 接收到数据后进行处理
+ * @param $client_socket
+ * @param $events
+ * @param $arg
+ * @return unknown_type
+ */
+function sw_server_handle_receive($client_socket,$events,$arg)
+{
+	$server = $arg[0];
+	$client_id = $arg[1];
+	$data = sw_fread_stream($client_socket,$server->buffer_size);
 
+	if($data !== false)
+	{
+		$server->protocol->onRecive($client_id,$data);
+	}
+	else
+	{
+		$server->close($client_id);
+	}
+}

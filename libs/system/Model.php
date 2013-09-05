@@ -232,7 +232,7 @@ class Model
 	 * @param $field
 	 * @return unknown_type
 	 */
-	function getMap($gets,$field=null)
+	function getMap($gets, $field=null)
 	{
 	    $list = $this->gets($gets);
 	    $new = array();

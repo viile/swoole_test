@@ -97,6 +97,12 @@ class Server
     {
 
     }
+
+    function daemonize()
+    {
+
+    }
+
 	function onError($errno,$errstr)
 	{
 		exit("$errstr ($errno)");

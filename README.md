@@ -5,8 +5,14 @@ Swoole应用服务器
 PHP高级Web开发框架，内置应用服务器。提供统一注册树，数据库操作，模板，Cache，日志，队列，上传管理，用户管理等丰富的功能特性。
 使用内置应用服务器，可节省每次请求代码来的额外消耗。连接池技术可以很好的帮助存储系统节省连接资源。
 
-* 支持热部署，代码更新后即刻生效。依赖runkit扩展（https://github.com/zenovich/runkit）
-* 支持MaxRequest进程回收机制，防止内存泄露
+Swoole_Framework支持的特性
+
+* 热部署，代码更新后即刻生效。依赖runkit扩展（https://github.com/zenovich/runkit）
+* MaxRequest进程回收机制，防止内存泄露
+* 支持使用Windows作为开发环境
+* http KeepAlive，可节省tcp connect带来的开销
+* 静态文件缓存，节省流量
+* 支持Gzip压缩，节省流量
 
 赞助Swoole开源项目
 -----

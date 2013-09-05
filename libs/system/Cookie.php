@@ -1,4 +1,6 @@
 <?php
+namespace Swoole;
+
 class Cookie
 {
 	public static $path = '/';

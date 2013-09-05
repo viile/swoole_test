@@ -20,7 +20,7 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
     function connect()
     {
         $db_config = &$this->config;
-        parent::connect($db_config['host'],$db_config['user'],$db_config['password'],$db_config['dbname']);
+        parent::connect($db_config['host'],$db_config['user'],$db_config['passwd'],$db_config['name']);
         if(mysqli_connect_errno())  exit("Connect failed: %s\n".mysqli_connect_error());
         $this->set_charset($db_config['charset']);
     }

@@ -6,7 +6,7 @@
     "homepage"   : "http://www.swoole.com/",
     "license"    : "LGPL",
     "autoload": {
-        "psr-0": {"Swoole": "libs/system/"}
+        "psr-0": {"Swoole": "libs/"}
     },
     "authors"    : [
         {

@@ -1,9 +1,4 @@
 <?php
-interface IQueue
-{
-	function put($data);
-	function get();
-}
 class Queue
 {
     public $server;

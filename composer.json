@@ -11,8 +11,5 @@
             "email": "mikan.tenny@gmail.com"
         }
     ],
-    "require": {
-        "hoa/websocket": "*"
-    },
     "minimum-stability": "dev"
 }

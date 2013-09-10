@@ -9,7 +9,6 @@ class WebSocket extends Swoole\Network\Protocol\WebSocket
     {
         $this->log("onMessage: ".$ws['message']);
         $this->send($client_id, "Hello world");
-        $this->close($client_id);
     }
 }
 
@@ -20,7 +19,7 @@ $AppSvr->loadSetting("./swoole.ini"); //加载配置文件
 $AppSvr->setLogger(new \Swoole\Log\EchoLog(true)); //Logger
 
 Swoole\Error::$echo_html = false;
-$server = new \Swoole\Network\SelectTCP('0.0.0.0', 9501);
+$server = new \Swoole\Network\Server('0.0.0.0', 9501);
 $server->setProtocol($AppSvr);
 //$server->daemonize(); //作为守护进程
 $server->run(array('worker_num' => 1, 'max_request' => 5000));

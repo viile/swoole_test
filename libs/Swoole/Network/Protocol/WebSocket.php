@@ -32,9 +32,6 @@ abstract class WebSocket extends HttpServer
      */
     const GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
-    public $buffers = array(); //缓存区
-    public $buffer_length = 1000; //最多1000个buffer，超过后将清理历史数据
-    public $data_max_length = 8192; //最大不得超过8192
     public $ws_list = array();
     public $connections = array();
     public $max_connect = 10000;
@@ -91,6 +88,7 @@ abstract class WebSocket extends HttpServer
      */
     public function onReceive($server, $client_id, $from_id, $data)
     {
+//        $this->log("client_id=$client_id|from_id=$from_id");
         //建立连接
         if(!isset($this->connections[$client_id]))
         {
@@ -111,15 +109,18 @@ abstract class WebSocket extends HttpServer
             {
                 $this->cleanConnection();
             }
+//            $this->log("websocket connected client_id = $client_id");
         }
         //缓存区没有数据
         else if(empty($this->ws_list[$client_id]))
         {
             $ws = $this->parse_wsframe($data);
             $this->opcodeSwitch($client_id, $ws);
+//            $this->log("opcodeSwitch client_id = $client_id");
         }
         else
         {
+//            $this->log("wait_data client_id = $client_id");
             $ws = $this->ws_list[$client_id];
             $ws['message'] .= $data;
             $message_len =  strlen($ws['message']);
@@ -341,9 +342,11 @@ abstract class WebSocket extends HttpServer
     }
     function onConnect($serv, $client_id, $from_id)
     {
+//        $this->log("connected client_id = $client_id");
     }
     function onClose($serv, $client_id, $from_id)
     {
+//        $this->log("close client_id = $client_id");
         unset($this->ws_list[$client_id], $this->connections[$client_id]);
     }
     /**

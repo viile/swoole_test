@@ -18,6 +18,16 @@ Swoole_Framework支持的特性
 -----
 捐赠地址：http://me.alipay.com/swoole
 
+Composer
+-----
+```js
+{
+    "require": {
+        "matyhtf/swoole_framework": "dev-master",
+    }
+}
+```
+
 创建swoole.phar包
 -----
 ```
@@ -38,8 +48,6 @@ sudo make install
 然后修改php.ini加入extension=swoole.so
 ```php
 <?php
-define('DEBUG', 'on');
-define("WEBPATH", str_replace("\\","/", __DIR__));
 require __DIR__.'/libs/lib_config.php';
 
 $AppSvr = new Swoole\Network\Protocol\AppServer();

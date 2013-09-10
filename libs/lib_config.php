@@ -4,16 +4,16 @@
  * @package SwooleSystem
  * @author 韩天峰
  */
-define("LIBPATH",str_replace("\\","/", __DIR__));
+define("LIBPATH", str_replace("\\","/", __DIR__));
 if(PHP_OS=='WINNT') define("NL","\r\n");
 else define("NL","\n");
 define("BL","<br />".NL);
-require_once LIBPATH.'/system/Swoole.php';
-require_once LIBPATH.'/system/Loader.php';
+require_once __DIR__.'/Swoole/Swoole.php';
+require_once __DIR__.'/Swoole/Loader.php';
 /**
  * 注册顶层命名空间到自动载入器
  */
-Swoole\Loader::setRootNS('Swoole', __DIR__.'/system');
+Swoole\Loader::setRootNS('Swoole', __DIR__.'/Swoole');
 spl_autoload_register('\\Swoole\\Loader::autoload');
 
 /**

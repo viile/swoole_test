@@ -10,7 +10,7 @@ $AppSvr->setAppPath(__DIR__.'/apps/'); //设置应用所在的目录
 $AppSvr->setLogger(new \Swoole\Log\EchoLog(true)); //Logger
 
 Swoole\Error::$echo_html = false;
-$server = new \Swoole\Network\SelectTCP('0.0.0.0', 9501);
+$server = new \Swoole\Network\SelectTCP('0.0.0.0', 8888);
 $server->setProtocol($AppSvr);
 //$server->daemonize(); //作为守护进程
 $server->run(array('worker_num' => 1, 'max_request' => 5000));

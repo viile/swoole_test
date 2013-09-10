@@ -1,9 +1,9 @@
 <?php
-require 'lib_config.php';
-require LIBPATH.'/function/cli.php';
-require LIBPATH.'/system/Form.php';
-require LIBPATH.'/system/Swoole_js.php';
-require LIBPATH.'/system/Swoole_tools.php';
+require __DIR__.'lib_config.php';
+require __DIR__.'/function/cli.php';
+require __DIR__.'/Swoole/Form.php';
+require __DIR__.'/Swoole/Swoole_js.php';
+require __DIR__.'/Swoole/Tool.php';
 
 if(is_file('../config.php')) require '../config.php';
 else define('WEBPATH',realpath(LIBPATH.'/../'));

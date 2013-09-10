@@ -9,6 +9,7 @@ class Response
     public $body;
     static $HTTP_HEADERS = array(
         100 => "100 Continue",
+        101 => "101 Switching Protocols",
         200 => "200 OK",
         201 => "201 Created",
         204 => "204 No Content",
@@ -41,10 +42,16 @@ class Response
     {
         $this->head[0] = $this->http_protocol.' '.self::$HTTP_HEADERS[$code];
     }
-    function send_head($key,$value)
+    function send_head($key, $value)
     {
         $this->head[$key] = $value;
     }
+
+    function addHeader(array $header)
+    {
+        $this->head += $header;
+    }
+
     function setcookie($name, $value = null, $expire = null, $path = '/', $domain = null, $secure = null, $httponly = null)
     {
         if($value==null) $value='deleted';

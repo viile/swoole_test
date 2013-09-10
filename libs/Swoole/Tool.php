@@ -13,6 +13,19 @@ class Tool
     static public $url_prefix = '';
     static public $url_add_end = '';
     const DATE_FORMAT_HTTP   = 'D, d-M-Y H:i:s T';
+
+    static $number = array('〇','一','二','三','四','五','六','七','八','九');
+
+    /**
+     * 数字转为汉字
+     * @param $num_str
+     * @return mixed
+     */
+    static function num2han($num_str)
+    {
+        return str_replace(range(0,9),self::$number,$num_str);
+    }
+
     /**
      * 解析URI
      * @param $url

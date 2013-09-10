@@ -10,6 +10,9 @@ namespace Swoole\Network\Protocol;
  */
 class HttpServer implements \Swoole\Server\Protocol
 {
+    /**
+     * @var \Swoole\Server
+     */
     public $server;
     public $config = array();
     protected $log;
@@ -50,7 +53,8 @@ class HttpServer implements \Swoole\Server\Protocol
 
     function onStart($serv)
     {
-        if (!defined('WEBROOT')) {
+        if (!defined('WEBROOT'))
+        {
             define('WEBROOT', $this->config['server']['webroot']);
         }
         $this->log(self::SOFTWARE . ". running. on {$this->server->host}:{$this->server->port}");
@@ -132,7 +136,7 @@ class HttpServer implements \Swoole\Server\Protocol
         //完整的请求
         $data = $this->buffer[$client_id];
         //解析请求
-        $request = $this->request($data);
+        $request = $this->parse_request($data);
         if ($request === false) {
             $this->server->close($client_id);
             return false;
@@ -222,22 +226,26 @@ class HttpServer implements \Swoole\Server\Protocol
     }
 
     /**
-     * 解析请求
+     * 解析http请求
      * @param $data
-     * @return unknown_type
+     * @return \Swoole\Request or bool
      */
-    function request($data)
+    function parse_request($data)
     {
-        $parts = explode("\r\n\r\n", $data, 2);
+        $parts = explode(self::HTTP_ETX, $data, 2);
         // parts[0] = HTTP头;
         // parts[1] = HTTP主体，GET请求没有body
-        $headerLines = explode("\r\n", $parts[0]);
-        $request = new \Swoole\Request;
+        $headerLines = explode(self::HTTP_SPLIT, $parts[0]);
         // HTTP协议头,方法，路径，协议[RFC-2616 5.1]
-        list($request->meta['method'], $request->meta['uri'], $request->meta['protocol']) = explode(' ', $headerLines[0], 3);
+        $_http_method = explode(' ', $headerLines[0], 3);
+        //错误的协议
+        if(count($_http_method) < 3) return false;
+        $request = new \Swoole\Request;
+        list($request->meta['method'], $request->meta['uri'], $request->meta['protocol']) = $_http_method;
         //$this->log($headerLines[0]);
         //错误的HTTP请求
-        if (empty($request->meta['method']) or empty($request->meta['uri']) or empty($request->meta['protocol'])) {
+        if (empty($request->meta['method']) or empty($request->meta['uri']) or empty($request->meta['protocol']))
+        {
             return false;
         }
         unset($headerLines[0]);
@@ -250,20 +258,27 @@ class HttpServer implements \Swoole\Server\Protocol
             parse_str($url_info['query'], $request->get);
         }
         //POST请求,有http body
-        if ($request->meta['method'] === 'POST') {
+        if ($request->meta['method'] === 'POST')
+        {
             $cd = strstr($request->head['Content-Type'], 'boundary');
-            if (isset($request->head['Content-Type']) and $cd !== false) $this->parse_form_data($parts[1], $request, $cd);
+            if (isset($request->head['Content-Type']) and $cd !== false)
+            {
+                $this->parse_form_data($parts[1], $request, $cd);
+            }
             else parse_str($parts[1], $request->post);
         }
         //解析Cookies
-        if (!empty($request->head['Cookie'])) $request->cookie = $this->parse_cookie($request->head['Cookie']);
+        if (!empty($request->head['Cookie']))
+        {
+            $request->cookie = $this->parse_cookie($request->head['Cookie']);
+        }
         return $request;
     }
 
     /**
      * 发送响应
      * @param $client_id
-     * @param $response
+     * @param \Swoole\Response $response
      * @return unknown_type
      */
     function response($client_id, $response)

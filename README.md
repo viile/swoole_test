@@ -7,7 +7,7 @@ PHP高级Web开发框架，内置应用服务器。提供统一注册树，数�
 
 Swoole_Framework支持的特性
 
-* 热部署，代码更新后即刻生效。依赖runkit扩展（https://github.com/zenovich/runkit）
+* 热部署，代码更新后即刻生效。依赖runkit扩展（ https://github.com/zenovich/runkit ）
 * MaxRequest进程回收机制，防止内存泄露
 * 支持使用Windows作为开发环境
 * http KeepAlive，可节省tcp connect带来的开销

@@ -35,6 +35,7 @@ abstract class WebSocket extends HttpServer
     public $ws_list = array();
     public $connections = array();
     public $max_connect = 10000;
+    public $heart_time = 600; //600秒内没有心跳的将被清理
     /**
      * Do the handshake.
      *
@@ -45,7 +46,8 @@ abstract class WebSocket extends HttpServer
      */
     public function doHandshake(Swoole\Request $request,  Swoole\Response $response)
     {
-        if (!isset($request->head['Sec-WebSocket-Key'])) {
+        if (!isset($request->head['Sec-WebSocket-Key']))
+        {
             $this->log('Bad protocol implementation: it is not RFC6455.');
             return false;
         }
@@ -71,13 +73,20 @@ abstract class WebSocket extends HttpServer
         return true;
     }
 
-    function cleanBuffer()
-    {
-
-    }
+    /**
+     * 清理掉长时间没有心跳的连接
+     */
     function cleanConnection()
     {
-
+        $now = time();
+        foreach($this->connections as $client_id => $conn)
+        {
+            if($conn['time'] < $now - $this->heart_time)
+            {
+                $this->close($client_id);
+            }
+        }
+        $this->log('clean connections');
     }
     abstract function onMessage($client_id, $message);
     /**

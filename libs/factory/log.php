@@ -1,5 +1,5 @@
 <?php
-require LIBPATH.'/system/Log.php';
+require LIBPATH.'/Swoole/Log.php';
 if(LOGTYPE=='FileLog')
 {
     $params = LOGPUT;

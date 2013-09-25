@@ -1,5 +1,4 @@
 <?php
-require LIBPATH.'/system/SwooleEvent.php';
 if(!defined('EVENT_MODE') or EVENT_MODE=='sync')
 {
 	$event = new SwooleEvent('sync');
@@ -16,6 +15,6 @@ else
 if(defined('EVENT_HANDLE'))
 {
 	require EVENT_HANDLE;
-	if(empty($handle)) Error::info('SwooleEvent Error','Event handles not be empty!');
+	if(empty($handle)) Swoole\Error::info('SwooleEvent Error','Event handles not be empty!');
 	$event->set_listens($handle);
 }

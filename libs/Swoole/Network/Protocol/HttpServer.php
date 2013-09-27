@@ -10,11 +10,13 @@ namespace Swoole\Network\Protocol;
  */
 class HttpServer implements \Swoole\Server\Protocol
 {
-    /**
-     * @var \Swoole\Server
-     */
     public $server;
     public $config = array();
+
+    public $keepalive = false;
+    public $gzip = false;
+    public $expire = false;
+
     protected $log;
 
     protected $mime_types;
@@ -28,8 +30,7 @@ class HttpServer implements \Swoole\Server\Protocol
     protected $buffer_maxlen = 65535; //最大POST尺寸，超过将写文件
 
     const SOFTWARE = "Swoole";
-    const HTTP_ETX = "\r\n\r\n";
-    const HTTP_SPLIT = "\r\n";
+    const DATE_FORMAT_HTTP = 'D, d-M-Y H:i:s T';
 
     function __construct($config = array())
     {
@@ -53,8 +54,7 @@ class HttpServer implements \Swoole\Server\Protocol
 
     function onStart($serv)
     {
-        if (!defined('WEBROOT'))
-        {
+        if (!defined('WEBROOT')) {
             define('WEBROOT', $this->config['server']['webroot']);
         }
         $this->log(self::SOFTWARE . ". running. on {$this->server->host}:{$this->server->port}");
@@ -81,8 +81,24 @@ class HttpServer implements \Swoole\Server\Protocol
         if (!is_file($ini_file)) exit("Swoole AppServer配置文件错误($ini_file)\n");
         $config = parse_ini_file($ini_file, true);
         /*--------------Server------------------*/
-        if (empty($config['server']['webroot'])) {
+        if (empty($config['server']['webroot']))
+        {
             $config['server']['webroot'] = 'http://' . $this->server->host . ':' . $this->server->port;
+        }
+        //开启http keepalive
+        if (!empty($config['server']['keepalive']))
+        {
+            $this->keepalive = true;
+        }
+        //是否压缩
+        if (!empty($config['server']['gzip_open']) and function_exists('gzdeflate'))
+        {
+            $this->gzip = true;
+        }
+        //过期控制
+        if (!empty($config['server']['expire_open']))
+        {
+            $this->expire = true;
         }
         /*--------------Session------------------*/
         if (empty($config['session']['cookie_life'])) $config['session']['cookie_life'] = 86400; //保存SESSION_ID的cookie存活时间
@@ -92,7 +108,6 @@ class HttpServer implements \Swoole\Server\Protocol
         if (empty($config['apps']['url_route'])) $config['apps']['url_route'] = 'url_route_default';
         if (empty($config['apps']['auto_reload'])) $config['apps']['auto_reload'] = 0;
         if (empty($config['apps']['charset'])) $config['apps']['charset'] = 'utf-8';
-
         /*--------------Access------------------*/
         $this->deny_dir = array_flip(explode(',', $config['access']['deny_dir']));
         $this->static_dir = array_flip(explode(',', $config['access']['static_dir']));
@@ -104,7 +119,6 @@ class HttpServer implements \Swoole\Server\Protocol
             $this->config = array();
         }
         $this->config = array_merge($this->config, $config);
-
     }
 
     protected function checkData($client_id, $data)
@@ -115,7 +129,7 @@ class HttpServer implements \Swoole\Server\Protocol
             $this->buffer[$client_id] .= $data;
         }
         //HTTP结束符
-        if (substr($data, -4, 4) != self::HTTP_ETX) {
+        if (substr($data, -4, 4) != "\r\n\r\n") {
             return false;
         }
     }
@@ -136,8 +150,9 @@ class HttpServer implements \Swoole\Server\Protocol
         //完整的请求
         $data = $this->buffer[$client_id];
         //解析请求
-        $request = $this->parse_request($data);
-        if ($request === false) {
+        $request = $this->request($data);
+        if ($request === false)
+        {
             $this->server->close($client_id);
             return false;
         }
@@ -152,7 +167,10 @@ class HttpServer implements \Swoole\Server\Protocol
         unset($response);
         //清空buffer
         $this->buffer[$client_id] = "";
-        $this->server->close($client_id);
+        if(!$this->keepalive)
+        {
+            $this->server->close($client_id);
+        }
     }
 
     /**
@@ -168,17 +186,15 @@ class HttpServer implements \Swoole\Server\Protocol
         $form = explode($cd, $part);
         foreach ($form as $f) {
             if ($f === '') continue;
-            $parts = explode(self::HTTP_ETX, $f);
-            $head = $this->parse_head(explode(self::HTTP_SPLIT, $parts[0]));
+            $parts = explode("\r\n\r\n", $f);
+            $head = $this->parse_head(explode("\r\n", $parts[0]));
             if (!isset($head['Content-Disposition'])) continue;
             $meta = $this->parse_cookie($head['Content-Disposition']);
             if (!isset($meta['filename'])) {
                 //checkbox
                 if (substr($meta['name'], -2) === '[]') $request->post[substr($meta['name'], 0, -2)][] = trim($parts[1]);
                 else $request->post[$meta['name']] = trim($parts[1]);
-            }
-            else
-            {
+            } else {
                 $file = trim($parts[1]);
                 $tmp_file = tempnam('/tmp', 'sw');
                 file_put_contents($tmp_file, $file);
@@ -200,10 +216,11 @@ class HttpServer implements \Swoole\Server\Protocol
     function parse_head($headerLines)
     {
         $header = array();
-        foreach ($headerLines as $k => $head) {
+        foreach ($headerLines as $k => $head)
+        {
             $head = trim($head);
             if (empty($head)) continue;
-            list($key, $value) = explode(':', $head);
+            list($key, $value) = explode(':', $head, 2);
             $header[trim($key)] = trim($value);
         }
         return $header;
@@ -226,22 +243,20 @@ class HttpServer implements \Swoole\Server\Protocol
     }
 
     /**
-     * 解析http请求
+     * 解析请求
      * @param $data
-     * @return \Swoole\Request or bool
+     * @return unknown_type
      */
-    function parse_request($data)
+    function request($data)
     {
-        $parts = explode(self::HTTP_ETX, $data, 2);
+        $parts = explode("\r\n\r\n", $data, 2);
         // parts[0] = HTTP头;
         // parts[1] = HTTP主体，GET请求没有body
-        $headerLines = explode(self::HTTP_SPLIT, $parts[0]);
-        // HTTP协议头,方法，路径，协议[RFC-2616 5.1]
-        $_http_method = explode(' ', $headerLines[0], 3);
-        //错误的协议
-        if(count($_http_method) < 3) return false;
+        $headerLines = explode("\r\n", $parts[0]);
         $request = new \Swoole\Request;
-        list($request->meta['method'], $request->meta['uri'], $request->meta['protocol']) = $_http_method;
+        // HTTP协议头,方法，路径，协议[RFC-2616 5.1]
+        list($request->meta['method'], $request->meta['uri'], $request->meta['protocol']) = explode(' ', $headerLines[0], 3);
+        $request->meta['request_time'] = time();
         //$this->log($headerLines[0]);
         //错误的HTTP请求
         if (empty($request->meta['method']) or empty($request->meta['uri']) or empty($request->meta['protocol']))
@@ -254,7 +269,8 @@ class HttpServer implements \Swoole\Server\Protocol
         $url_info = parse_url($request->meta['uri']);
         $request->meta['path'] = $url_info['path'];
         if (isset($url_info['fragment'])) $request->meta['fragment'] = $url_info['fragment'];
-        if (isset($url_info['query'])) {
+        if (isset($url_info['query']))
+        {
             parse_str($url_info['query'], $request->get);
         }
         //POST请求,有http body
@@ -268,27 +284,45 @@ class HttpServer implements \Swoole\Server\Protocol
             else parse_str($parts[1], $request->post);
         }
         //解析Cookies
-        if (!empty($request->head['Cookie']))
-        {
-            $request->cookie = $this->parse_cookie($request->head['Cookie']);
-        }
+        if (!empty($request->head['Cookie'])) $request->cookie = $this->parse_cookie($request->head['Cookie']);
         return $request;
     }
 
     /**
      * 发送响应
      * @param $client_id
-     * @param \Swoole\Response $response
+     * @param $response
      * @return unknown_type
      */
     function response($client_id, $response)
     {
         if (!isset($response->head['Date'])) $response->head['Date'] = gmdate("D, d M Y H:i:s T");
         if (!isset($response->head['Server'])) $response->head['Server'] = self::SOFTWARE;
-        if (!isset($response->head['KeepAlive'])) $response->head['KeepAlive'] = 'off';
-        if (!isset($response->head['Connection'])) $response->head['Connection'] = 'close';
-        if (!isset($response->head['Content-Length'])) $response->head['Content-Length'] = strlen($response->body);
-
+        //keepalive
+        if(!$this->keepalive)
+        {
+            $response->head['KeepAlive'] = 'off';
+            $response->head['Connection'] = 'close';
+        }
+        else
+        {
+            $response->head['KeepAlive'] = 'on';
+            $response->head['Connection'] = 'keep-alive';
+        }
+        //过期命中
+        if ($this->expire and $response->http_status == 304)
+        {
+            $out = $response->head();
+            $this->server->send($client_id, $out);
+            return;
+        }
+        //压缩
+        if ($this->gzip)
+        {
+            $response->head['Content-Encoding'] = 'deflate';
+            $response->body = gzdeflate($response->body, $this->config['server']['gzip_level']);
+        }
+        $response->head['Content-Length'] = strlen($response->body);
         $out = $response->head();
         $out .= $response->body;
         $this->server->send($client_id, $out);
@@ -363,9 +397,36 @@ class HttpServer implements \Swoole\Server\Protocol
         $path = $this->document_root . '/' . $request->meta['path'];
         if (is_file($path))
         {
+            $read_file = true;
+            if($this->expire)
+            {
+                $expire = intval($this->config['server']['expire_time']);
+                $fstat = stat($path);
+                //过期控制信息
+                if (isset($request->head['If-Modified-Since']))
+                {
+                    $lastModifiedSince = strtotime($request->head['If-Modified-Since']);
+                    if ($lastModifiedSince and $fstat['mtime'] <= $lastModifiedSince)
+                    {
+                        //不需要读文件了
+                        $read_file = false;
+                        $response->send_http_status(304);
+                    }
+                }
+                else
+                {
+                    $response->head['Cache-Control'] = "max-age={$expire}";
+                    $response->head['Pragma'] = "max-age={$expire}";
+                    $response->head['Last-Modified'] = date(self::DATE_FORMAT_HTTP, $fstat['mtime']);
+                    $response->head['Expires'] = "max-age={$expire}";
+                }
+            }
             $ext_name = \Upload::file_ext($request->meta['path']);
-            $response->head['Content-Type'] = $this->mime_types[$ext_name];
-            $response->body = file_get_contents($path);
+            if($read_file)
+            {
+                $response->head['Content-Type'] = $this->mime_types[$ext_name];
+                $response->body = file_get_contents($path);
+            }
             return true;
         }
         else

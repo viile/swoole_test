@@ -20,9 +20,14 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
     function connect()
     {
         $db_config = &$this->config;
-        parent::connect($db_config['host'],$db_config['user'],$db_config['passwd'],$db_config['name']);
-        if(mysqli_connect_errno())  exit("Connect failed: %s\n".mysqli_connect_error());
+        parent::connect($db_config['host'], $db_config['user'], $db_config['passwd'], $db_config['name']);
+        if(mysqli_connect_errno())
+        {
+            trigger_error("Mysqli connect failed: %s\n".mysqli_connect_error());
+            return false;
+        }
         $this->set_charset($db_config['charset']);
+        return true;
     }
     /**
      * 执行一个SQL语句
@@ -31,9 +36,40 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
     function query($sql)
     {
         parent::real_escape_string($sql);
-        $res = parent::query($sql);
-        if(!$res) echo Error::info("SQL Error",$this->error."<hr />$sql");
-        return new MySQLiRecord($res);
+        for ($i = 0; $i < 2; $i++)
+        {
+            $result = parent::query($sql);
+            if ($result === false)
+            {
+                if ($this->errno == 2013 or $this->errno == 2006)
+                {
+                    $r = $this->checkConnection();
+                    if ($r === true) continue;
+                }
+                $this->error .= "<hr>\n".$sql;
+                return false;
+            }
+            break;
+        }
+        if($result === false)
+        {
+            echo \Swoole\Error::info("SQL Error", $this->error."<hr />$sql");
+            return false;
+        }
+        return new MySQLiRecord($result);
+    }
+
+    /**
+     * 检查数据库连接,是否有效，无效则重新建立
+     */
+    protected function checkConnection()
+    {
+        if (!@$this->ping())
+        {
+            $this->close();
+            return $this->connect();
+        }
+        return true;
     }
     /**
      * 返回上一个Insert语句的自增主键ID
@@ -46,6 +82,9 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
 }
 class MySQLiRecord implements \Swoole\IDbRecord
 {
+    /**
+     * @var \mysqli_result
+     */
     public $result;
     function __construct($result)
     {
@@ -71,4 +110,3 @@ class MySQLiRecord implements \Swoole\IDbRecord
         $this->result->free_result();
     }
 }
-?>

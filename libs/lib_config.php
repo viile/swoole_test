@@ -102,14 +102,15 @@ function create($name)
  */
 function session()
 {
-    if(!defined('SESSION_CACHE'))
+    $php = Swoole::getInstance();
+    if(!isset($php->config['cache']['session']))
     {
         session_start();
         return true;
     }
     else
     {
-        Session::$cache = new Cache(SESSION_CACHE);
+        Session::$cache = Swoole\Cache::create($php->config['cache']['session']);
         Session::initSess();
     }
 }

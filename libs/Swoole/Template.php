@@ -1,4 +1,5 @@
 <?php
+namespace Swoole;
 require(LIBPATH."/module/smarty/Smarty.class.php");
 /**
  * Smarty模板系统封装类
@@ -8,7 +9,7 @@ require(LIBPATH."/module/smarty/Smarty.class.php");
  * @subpackage template
  *
  */
-class Template extends Smarty
+class Template extends \Smarty
 {
 	public $if_pagecache = false;
 	public $cache_life = 3600;
@@ -31,12 +32,12 @@ class Template extends Smarty
 	}
 	function set_cache($time=3600)
 	{
-		$tpl->caching = 1;
-		$tpl->cache_lifetime = $time;
+        $this->caching = 1;
+        $this->cache_lifetime = $time;
 	}
 	function pagecache()
 	{
-		$pagecache = new Swoole_pageCache($this->cache_life);
+		$pagecache = new \Swoole_pageCache($this->cache_life);
 		if($pagecache->isCached()) $pagecache->load();
 		else return false;
 		return true;
@@ -60,7 +61,7 @@ class Template extends Smarty
 		}
 		if($this->if_pagecache)
 		{
-			$pagecache = new Swoole_pageCache($this->cache_life);
+			$pagecache = new \Swoole_pageCache($this->cache_life);
 			if(!$pagecache->isCached()) $pagecache->create(parent::fetch($template,$cache_id,$complile_id));
 			$pagecache->load();
 		}
@@ -91,4 +92,3 @@ class Template extends Smarty
 		foreach($data as $key=>$value) $this->assign($key,$value);
 	}
 }
-?>

@@ -328,9 +328,8 @@ class Image
      * @param $img_height
      * @return unknown_type
      */
-    static function authcode_gd($img_width=80,$img_height=30)
+    static function authcode_gd($img_width=80, $img_height=30)
     {
-        session_start();
         $authnum = '';
         srand(microtime() * 100000);
         for($Tmpa=0;$Tmpa<4;$Tmpa++)
@@ -353,7 +352,6 @@ class Image
         {
             imageString($aimg, mt_rand(8,12),$i*$img_width/4+mt_rand(1,8),mt_rand(1,$img_height/4), $_SESSION['authcode'][$i],imageColorAllocate($aimg,mt_rand(0,100),mt_rand(0,150),mt_rand(0,200)));
         }
-        header("Content-type: image/png");    //告诉浏览器，下面的数据是图片
         ImagePng($aimg);                      //生成png格式
         ImageDestroy($aimg);
     }

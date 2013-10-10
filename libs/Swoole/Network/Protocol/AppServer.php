@@ -107,7 +107,6 @@ class AppServer extends HttpServer
 
         $response->head['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0';
         $response->head['Pragma'] = 'no-cache';
-        $response->head['Content-Type'] = 'text/html; charset='.$this->config['apps']['charset'];
         try
         {
             $controller = new $mvc['controller']($php);
@@ -118,13 +117,18 @@ class AppServer extends HttpServer
             }
             ob_start();
             if($controller->is_ajax) $response->body = json_encode(call_user_func(array($controller,$mvc['view']),$param));
-            else $response->body = call_user_func(array($controller,$mvc['view']),$param);
+            else $response->body = call_user_func(array($controller, $mvc['view']), $param);
             $response->body .= ob_get_contents();
             ob_end_clean();
+            unset($controller);
         }
         catch(Exception $e)
         {
             if($request->finish!=1) $this->http_error(404,$response,$e->getMessage());
+        }
+        if(!isset($response->head['Content-Type']))
+        {
+            $response->head['Content-Type'] = 'text/html; charset='.$this->config['apps']['charset'];
         }
         //保存Session
         if($php->session_open) $php->session->save();

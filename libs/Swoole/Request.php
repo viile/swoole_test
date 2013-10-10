@@ -13,7 +13,6 @@ class Request
 
     public $ext_name;
     public $status;
-    public $finish;
     /**
      * 将原始请求信息转换到PHP超全局变量中
      * @return unknown_type

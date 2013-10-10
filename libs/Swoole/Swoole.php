@@ -57,13 +57,31 @@ class Swoole
     public $plugin;
     public $genv;
     public $env;
+
+    private $hooks = array();
+    const HOOK_INIT  = 1;
+    const HOOK_CLEAN = 2;
     
     private function __construct()
     {
-        if(!defined('DEBUG')) define('DEBUG','off');
+        if(!defined('DEBUG')) define('DEBUG', 'off');
         if(DEBUG=='off') \error_reporting(0);
-        else \error_reporting(E_ALL);
-        $this->__init();
+
+        #初始化App环境
+        //为了兼容老的APPSPATH预定义常量方式
+        if(defined('APPSPATH'))
+        {
+            self::$app_root = str_replace(WEBPATH, '', APPSPATH);
+        }
+        //新版全部使用类静态变量 self::$app_root
+        elseif(empty(self::$app_root))
+        {
+            self::$app_root = "/apps";
+        }
+        self::$app_path = WEBPATH.self::$app_root;
+        $this->env['app_root'] = self::$app_root;
+
+//        $this->__init();
         $this->load = new Swoole\Loader($this);
         $this->model = new Swoole\ModelLoader($this);
         $this->plugin = new Swoole\PluginLoader($this);
@@ -76,12 +94,7 @@ class Swoole
         }
         return self::$php;
     }
-    private function __release()
-    {
-        if($this->db instanceof Database) $this->db->close();
-        unset($this->tpl);
-        unset($this->cache);
-    }
+
     /**
      * 获取资源消耗
      * @return unknown_type
@@ -113,7 +126,7 @@ class Swoole
      * 初始化环境
      * @return unknown_type
      */
-    private function __init()
+    function __init()
     {
         #DEBUG
         if(defined('DEBUG') and DEBUG=='on')
@@ -124,19 +137,37 @@ class Swoole
             $this->env['runtime']['start'] = microtime(true);
             $this->env['runtime']['mem'] = memory_get_usage();
         }
-		#初始化App环境
-		//为了兼容老的APPSPATH预定义常量方式
-    	if(defined('APPSPATH'))
-    	{
-    		self::$app_root = str_replace(WEBPATH, '', APPSPATH);
-    	}
-    	//新版全部使用类静态变量 self::$app_root
-    	elseif(empty(self::$app_root))
-    	{
-    		self::$app_root = "/apps";
-    	}
-    	self::$app_path = WEBPATH.self::$app_root;
-    	$this->env['app_root'] = self::$app_root;
+        if(isset($this->hooks[self::HOOK_INIT]))
+        {
+            foreach($this->hooks[self::HOOK_INIT] as $f)
+            {
+                if(!is_callable($f))
+                {
+                    trigger_error("SwooleFramework: hook function[$f] is not callable.");
+                    continue;
+                }
+                $f();
+            }
+        }
+    }
+    /**
+     * 清理
+     */
+    function __clean()
+    {
+        $this->env['runtime'] = array();
+        if(isset($this->hooks[self::HOOK_CLEAN]))
+        {
+            foreach($this->hooks[self::HOOK_CLEAN] as $f)
+            {
+                if(!is_callable($f))
+                {
+                    trigger_error("SwooleFramework: hook function[$f] is not callable.");
+                    continue;
+                }
+                $f();
+            }
+        }
     }
     /**
      * 加载一个模块，并返回
@@ -148,6 +179,17 @@ class Swoole
     	$this->$lib = $this->load->loadLib($lib);
     	return $this->$lib;
     }
+
+    /**
+     * 增加钩子函数
+     * @param $type
+     * @param $func
+     */
+    function addHook($type, $func)
+    {
+        $this->hooks[$type][] = $func;
+    }
+
     /**
      * 自动导入模块
      * @return None
@@ -157,6 +199,7 @@ class Swoole
         //$this->autoload_libs = array_flip(func_get_args());
         //历史遗留
     }
+
     function __get($lib_name)
     {
     	if(isset(self::$autoload_libs[$lib_name]) and empty($this->$lib_name))
@@ -165,6 +208,7 @@ class Swoole
     	}
     	return $this->$lib_name;
     }
+
     /**
      * 运行MVC处理模型
      * @param $url_processor

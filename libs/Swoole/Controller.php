@@ -24,6 +24,7 @@ class Controller
         $this->config = $swoole->config;
         $this->template_dir = \Swoole::$app_path.'/templates/';
         if($this->if_filter) Filter::request();
+        $swoole->__init();
     }
     /**
      * 跟踪信息
@@ -133,5 +134,10 @@ HTMLS;
         }
          $html .= "</div></fieldset></div>";
          return $html;
+    }
+
+    function __destruct()
+    {
+        $this->swoole->__clean();
     }
 }

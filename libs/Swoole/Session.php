@@ -124,6 +124,7 @@ class Session
                 array('Session', 'set'),
                 array('Session', 'delete'),
                 array('Session', 'gc'));
+
         session_start();
         return true;
     }

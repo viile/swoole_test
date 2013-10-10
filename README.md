@@ -13,6 +13,7 @@ Swoole_Framework支持的特性
 * http KeepAlive，可节省tcp connect带来的开销
 * 静态文件缓存，节省流量
 * 支持Gzip压缩，节省流量
+* 支持MySQL重新连接
 
 赞助Swoole开源项目
 -----

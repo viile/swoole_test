@@ -6,7 +6,7 @@ namespace Swoole\Cache;
  * @package Swoole
  * @subpackage cache
  */
-class CMemcache implements \Swoole\ICache
+class CMemcache implements \Swoole\IFace\Cache
 {
     /**
      * memcached扩展采用libmemcache，支持更多特性，更标准通用
@@ -47,7 +47,7 @@ class CMemcache implements \Swoole\ICache
     private function addServer($cf)
     {
         $this->format_config($cf);
-        if($this->memcached)	$this->cache->addServer($cf['host'],$cf['port'],$cf['weight']);
+        if($this->memcached) $this->cache->addServer($cf['host'],$cf['port'],$cf['weight']);
         else $this->cache->addServer($cf['host'],$cf['port'],$cf['persistent'],$cf['weight']);
     }
     /**

@@ -14,7 +14,7 @@ class Swoole_js
     static $charset = 'utf-8';
     static $return = true;
 
-    static function charset($return)
+    static function charset($return = false)
     {
         $out = '<meta http-equiv="Content-Type" content="text/html; charset='.self::$charset.'">';
         if(self::$return or $return) return $out;

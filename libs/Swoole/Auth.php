@@ -111,7 +111,7 @@ class Auth
      */
     function login($username,$password,$auto,$save=false)
     {
-        setcookie(self::$session_prefix.'username',$username,time() + self::$cookie_life,'/');
+        Swoole\Cookie::set(self::$session_prefix.'username',$username,time() + self::$cookie_life,'/');
         $this->user = $this->db->query('select '.$this->select.' from '.$this->table." where ".self::$username."='$username'")->fetch();
         if(empty($this->user)) return false;
         elseif($this->user[self::$password]==$password)
@@ -142,9 +142,9 @@ class Auth
      */
     function autoLogin()
     {
-        setcookie(self::$session_prefix.'autologin',1,time() + self::$cookie_life,'/');
-        setcookie(self::$session_prefix.'username',$this->user['username'],time() + self::$cookie_life,'/');
-        setcookie(self::$session_prefix.'password',$this->user['password'],time() + self::$cookie_life,'/');
+        Swoole\Cookie::set(self::$session_prefix.'autologin',1,time() + self::$cookie_life,'/');
+        Swoole\Cookie::set(self::$session_prefix.'username',$this->user['username'],time() + self::$cookie_life,'/');
+        Swoole\Cookie::set(self::$session_prefix.'password',$this->user['password'],time() + self::$cookie_life,'/');
     }
     /**
      * 注销登录
@@ -165,7 +165,7 @@ class Auth
 
         if(!empty($_SESSION[self::$session_prefix.'save_key'])) foreach($_SESSION[self::$session_prefix.'save_key'] as $sk) unset($_SESSION[$sk]);
         unset($_SESSION[self::$session_prefix.'save_key']);
-        if(isset($_COOKIE[self::$session_prefix.'password'])) setcookie(self::$session_prefix.'password','',0,'/');
+        if(isset($_COOKIE[self::$session_prefix.'password'])) Swoole\Cookie::set(self::$session_prefix.'password','',0,'/');
 
     }
     /**

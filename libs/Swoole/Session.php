@@ -1,4 +1,5 @@
 <?php
+namespace Swoole;
 /**
  * 会话控制类
  * 通过SwooleCache系统实现会话控制，可支持FileCache,DBCache,Memcache以及更多
@@ -9,13 +10,17 @@
 class Session
 {
     // 类成员属性定义
-    static $cache_prefix;
-    static $cache;
+    static $cache_prefix = "phpsess_";
     static $cache_life = 1800;
 
     public $sessID;
+    public $readonly; //是否为只读，只读不需要保存
+    public $open;
+    protected $cache;
+
     static $sess_size = 32;
     static $sess_name = 'SESSID';
+    static $cookie_key = 'PHPSESSID';
     static $sess_domain;
 
     /**
@@ -25,18 +30,33 @@ class Session
      */
     public function __construct($cache)
     {
-        self::$cache = $cache;
+        $this->cache = $cache;
     }
+
+    public function start($readonly = false)
+    {
+        $this->readonly = $readonly;
+        $this->open = true;
+        $sessid = Cookie::get(self::$cookie_key);
+        if(empty($sessid))
+        {
+            $sessid = \RandomKey::randmd5(40);
+            Cookie::set(self::$cookie_key, $sessid, self::$cache_life);
+        }
+        $_SESSION = $this->load($sessid);
+    }
+
     public function load($sessId)
     {
         $this->sessID = $sessId;
-        $data = self::get($sessId);
+        $data = $this->get($sessId);
         if($data) return unserialize($data);
         else return array();
     }
+
     public function save()
     {
-        return self::set($this->sessID,serialize($_SESSION));
+        return $this->set($this->sessID, serialize($_SESSION));
     }
     /**
      * 打开Session
@@ -44,7 +64,7 @@ class Session
      * @param   String  $pSessName
      * @return  Bool    TRUE/FALSE
      */
-    static public function open($save_path='',$sess_name='')
+    public function open($save_path='',$sess_name='')
     {
         self::$cache_prefix = $save_path.'_'.$sess_name;
         return true;
@@ -54,7 +74,7 @@ class Session
      * @param   NULL
      * @return  Bool    TRUE/FALSE
      */
-    static public function close()
+    public function close()
     {
         return true;
     }
@@ -63,12 +83,12 @@ class Session
      * @param   String  $sessId
      * @return  Bool    TRUE/FALSE
      */
-    static public function get($sessId)
+    public function get($sessId)
     {
-        $session = self::$cache->get(self::$cache_prefix.'_'.$sessId);
+        $session = $this->cache->get(self::$cache_prefix.$sessId);
         //先读数据，如果没有，就初始化一个
         if(!empty($session)) return $session;
-        else return '';
+        else return array();
     }
     /**
      * 设置Session的值
@@ -76,25 +96,27 @@ class Session
      * @param   String  $wData
      * @return  Bool    true/FALSE
      */
-    static public function set($sessId,$session='')
+    public function set($sessId, $session='')
     {
-        return self::$cache->set(self::$cache_prefix.'_'.$sessId,$session,self::$cache_life);
+        $key = self::$cache_prefix.$sessId;
+        $ret = $this->cache->set($key, $session, self::$cache_life);
+        return $ret;
     }
     /**
      * 销毁Session
      * @param   String  $wSessId
      * @return  Bool    true/FALSE
      */
-    static public function delete($wSessId = '')
+    public function delete($sessId = '')
     {
-        return self::$cache->delete(self::$cache_prefix.'_'.$sessId);
+        return $this->cache->delete(self::$cache_prefix.$sessId);
     }
     /**
      * 内存回收
      * @param   NULL
      * @return  Bool    true/FALSE
      */
-    static public function gc()
+    public function gc()
     {
         return true;
     }
@@ -103,7 +125,7 @@ class Session
      * @param   NULL
      * @return  Bool  true/FALSE
      */
-    static function initSess()
+    function initSess()
     {
         //不使用 GET/POST 变量方式
         ini_set('session.use_trans_sid',0);
@@ -116,15 +138,14 @@ class Session
         ini_set('session.cookie_domain', self::$sess_domain);
         //将 session.save_handler 设置为 user，而不是默认的 files
         session_module_name('user');
-        //定义 SESSION 各项操作所对应的方法名：
+        //定义 SESSION 各项操作所对应的方法名
         session_set_save_handler(
-                array('Session', 'open'),
-                array('Session', 'close'),
-                array('Session', 'get'),
-                array('Session', 'set'),
-                array('Session', 'delete'),
-                array('Session', 'gc'));
-
+                array($this, 'open'),
+                array($this, 'close'),
+                array($this, 'get'),
+                array($this, 'set'),
+                array($this, 'delete'),
+                array($this, 'gc'));
         session_start();
         return true;
     }

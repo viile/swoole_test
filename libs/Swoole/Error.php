@@ -125,7 +125,7 @@ HTMLS;
         {
             $info .= '</pre></div></body></html>';
         }
-		if(self::$stop) exit($info);
+		if(!defined('SWOOLE_SERVER') and self::$stop) exit($info);
 		else return $info;
 	}
 	static function warn($title,$content)

@@ -18,9 +18,10 @@ class Swoole
     public $server;
     public $protocol;
     public $request;
+    /**
+     * @var Swoole\Response
+     */
     public $response;
-    public $session;
-    public $session_open = false;
 
     static public $app_root;
     static public $app_path;
@@ -37,12 +38,13 @@ class Swoole
     	'kdb' => true, //key-value数据库
     	'upload' => true, //上传组件
     	'user' => true,   //用户验证组件
+        'session' => true, //session
     );
     static $charset = 'utf-8';
     static $setting = array();
     /**
      * Swoole类的实例
-     * @var unknown_type
+     * @var Swoole
      */
     static public $php;
     public $pagecache;

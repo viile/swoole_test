@@ -81,13 +81,4 @@ class Response
         $out .= "\r\n";
         return $out;
     }
-
-    function __destruct()
-    {
-        global $php;
-        if($php->tpl instanceof \Swoole\Template)
-        {
-            $php->tpl->clear_all_assign();
-        }
-    }
 }

@@ -98,9 +98,8 @@ function create($name)
 }
 /**
  * 开启会话
- * @return None
  */
-function session()
+function session($readonly = false)
 {
     $php = Swoole::getInstance();
     if(!isset($php->config['cache']['session']))
@@ -110,8 +109,7 @@ function session()
     }
     else
     {
-        Session::$cache = Swoole\Cache::create($php->config['cache']['session']);
-        Session::initSess();
+        $php->session->start($readonly);
     }
 }
 /**

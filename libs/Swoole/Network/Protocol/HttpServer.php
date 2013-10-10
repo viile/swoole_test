@@ -19,6 +19,11 @@ class HttpServer implements \Swoole\Server\Protocol
 
     protected $log;
 
+    /**
+     * @var \Swoole\Http\Parser
+     */
+    protected $parser;
+
     protected $mime_types;
     protected $static_dir;
     protected $static_ext;
@@ -26,20 +31,28 @@ class HttpServer implements \Swoole\Server\Protocol
     protected $document_root;
     protected $deny_dir;
 
-    protected $buffer = array();
+    protected $buffer = array(); //数据缓存区
+    protected $request_tmp = array(); //保存请求信息
     protected $buffer_maxlen = 65535; //最大POST尺寸，超过将写文件
 
     const SOFTWARE = "Swoole";
     const DATE_FORMAT_HTTP = 'D, d-M-Y H:i:s T';
 
+    const HTTP_EOF = "\r\n\r\n";
+    const HTTP_HEAD_MAXLEN = 2048; //http头最大长度不得超过2k
+
+    const ST_FINISH = 1; //完成，进入处理流程
+    const ST_WAIT   = 2; //等待数据
+    const ST_ERROR  = 3; //错误，丢弃此包
+
     function __construct($config = array())
     {
         define('SWOOLE_SERVER', true);
-        \import_func('compat');
         $mimes = require(LIBPATH . '/data/mimes.php');
         $this->mime_types = array_flip($mimes);
         $this->config = $config;
         \Swoole\Error::$echo_html = true;
+        $this->parser = new \Swoole\Http\Parser;
     }
 
     function setLogger($log)
@@ -73,7 +86,7 @@ class HttpServer implements \Swoole\Server\Protocol
     function onClose($serv, $client_id, $from_id)
     {
         $this->log("client[#$client_id@$from_id] close");
-        unset($this->buffer[$client_id]);
+        unset($this->request_tmp[$client_id]);
     }
 
     function loadSetting($ini_file)
@@ -121,16 +134,64 @@ class HttpServer implements \Swoole\Server\Protocol
         $this->config = array_merge($this->config, $config);
     }
 
-    protected function checkData($client_id, $data)
+    protected function checkData($client_id, $http_data)
     {
-        if (!isset($this->buffer[$client_id])) {
-            $this->buffer[$client_id] = $data;
-        } else {
-            $this->buffer[$client_id] .= $data;
+        //新的连接
+        if (!isset($this->request_tmp[$client_id]))
+        {
+            //HTTP结束符
+            $ret = strpos($http_data, self::HTTP_EOF);
+            //没有找到EOF
+            if($ret === false)
+            {
+                return self::ST_ERROR;
+            }
+            else
+            {
+                $request = new \Swoole\Request;
+                //GET没有body
+                list($header, $request->body) = explode(self::HTTP_EOF, $http_data, 2);
+                $request->head = $this->parser->parseHeader($header);
+                //使用head[0]保存额外的信息
+                $request->meta = $request->head[0];
+                unset($request->head[0]);
+                //解析失败
+                if($request->head == false)
+                {
+                    return self::ST_ERROR;
+                }
+                $this->request_tmp[$client_id] = $request;
+            }
         }
-        //HTTP结束符
-        if (substr($data, -4, 4) != "\r\n\r\n") {
-            return false;
+        //POST请求需要合并数据
+        else
+        {
+            $request = $this->request_tmp[$client_id];
+            $request->body .= $http_data;
+        }
+        //POST请求需要检测body是否完整
+        if($request->meta['method'] == 'POST')
+        {
+            if(isset($request->head['Content-Length']))
+            {
+                //不完整，继续等待数据
+                if($request->head['Content-Length'] < strlen($request->body))
+                {
+                    return self::ST_WAIT;
+                }
+                //长度正确
+                else
+                {
+                    return self::ST_FINISH;
+                }
+            }
+            //POST请求没有Content-Length，丢弃此请求
+            return self::ST_ERROR;
+        }
+        //GET请求直接进入处理流程
+        else
+        {
+            return self::ST_FINISH;
         }
     }
 
@@ -143,30 +204,32 @@ class HttpServer implements \Swoole\Server\Protocol
     function onReceive($serv, $client_id, $from_id, $data)
     {
         //检测request data完整性
-        //请求不完整，继续等待
-        if ($this->checkData($client_id, $data) === false) {
-            return true;
+        $ret = $this->checkData($client_id, $data);
+        switch($ret)
+        {
+            //错误的请求
+            case self::ST_ERROR;
+                $this->server->close($client_id);
+                return;
+            //请求不完整，继续等待
+            case self::ST_WAIT:
+                return;
+            default:
+                break;
         }
         //完整的请求
-        $data = $this->buffer[$client_id];
-        //解析请求
-        $request = $this->request($data);
-        if ($request === false)
-        {
-            $this->server->close($client_id);
-            return false;
-        }
+        //开始处理
+        $request = $this->request_tmp[$client_id];
+        $this->parseRequest($request);
         //处理请求，产生response对象
         $response = $this->onRequest($request);
         //发送response
         $this->response($client_id, $response);
-        //回收内存
-        unset($data);
+        //清空request缓存区
+        unset($this->request_tmp[$client_id]);
         $request->unsetGlobal();
         unset($request);
         unset($response);
-        //清空buffer
-        $this->buffer[$client_id] = "";
         if(!$this->keepalive)
         {
             $this->server->close($client_id);
@@ -174,99 +237,14 @@ class HttpServer implements \Swoole\Server\Protocol
     }
 
     /**
-     * 解析form_data格式文件
-     * @param $part
-     * @param $request
-     * @param $cd
-     * @return unknown_type
-     */
-    function parse_form_data($part, &$request, $cd)
-    {
-        $cd = '--' . str_replace('boundary=', '', $cd);
-        $form = explode($cd, $part);
-        foreach ($form as $f) {
-            if ($f === '') continue;
-            $parts = explode("\r\n\r\n", $f);
-            $head = $this->parse_head(explode("\r\n", $parts[0]));
-            if (!isset($head['Content-Disposition'])) continue;
-            $meta = $this->parse_cookie($head['Content-Disposition']);
-            if (!isset($meta['filename'])) {
-                //checkbox
-                if (substr($meta['name'], -2) === '[]') $request->post[substr($meta['name'], 0, -2)][] = trim($parts[1]);
-                else $request->post[$meta['name']] = trim($parts[1]);
-            } else {
-                $file = trim($parts[1]);
-                $tmp_file = tempnam('/tmp', 'sw');
-                file_put_contents($tmp_file, $file);
-                if (!isset($meta['name'])) $meta['name'] = 'file';
-                $request->file[$meta['name']] = array('name' => $meta['filename'],
-                    'type' => $head['Content-Type'],
-                    'size' => strlen($file),
-                    'error' => UPLOAD_ERR_OK,
-                    'tmp_name' => $tmp_file);
-            }
-        }
-    }
-
-    /**
-     * 头部解析
-     * @param $headerLines
-     * @return unknown_type
-     */
-    function parse_head($headerLines)
-    {
-        $header = array();
-        foreach ($headerLines as $k => $head)
-        {
-            $head = trim($head);
-            if (empty($head)) continue;
-            list($key, $value) = explode(':', $head, 2);
-            $header[trim($key)] = trim($value);
-        }
-        return $header;
-    }
-
-    /**
-     * 解析Cookies
-     * @param $cookies
-     * @return unknown_type
-     */
-    function parse_cookie($cookies)
-    {
-        $_cookies = array();
-        $blocks = explode(";", $cookies);
-        foreach ($blocks as $cookie) {
-            list ($key, $value) = explode("=", $cookie);
-            $_cookies[trim($key)] = trim($value, "\r\n \t\"");
-        }
-        return $_cookies;
-    }
-
-    /**
      * 解析请求
-     * @param $data
+     * @param $request \Swoole\Request
      * @return unknown_type
      */
-    function request($data)
+    function parseRequest($request)
     {
-        $parts = explode("\r\n\r\n", $data, 2);
-        // parts[0] = HTTP头;
-        // parts[1] = HTTP主体，GET请求没有body
-        $headerLines = explode("\r\n", $parts[0]);
-        $request = new \Swoole\Request;
-        // HTTP协议头,方法，路径，协议[RFC-2616 5.1]
-        list($request->meta['method'], $request->meta['uri'], $request->meta['protocol']) = explode(' ', $headerLines[0], 3);
-        $request->meta['request_time'] = time();
-        //$this->log($headerLines[0]);
-        //错误的HTTP请求
-        if (empty($request->meta['method']) or empty($request->meta['uri']) or empty($request->meta['protocol']))
-        {
-            return false;
-        }
-        unset($headerLines[0]);
-        //解析Head
-        $request->head = $this->parse_head($headerLines);
         $url_info = parse_url($request->meta['uri']);
+        $request->meta['request_time'] = time();
         $request->meta['path'] = $url_info['path'];
         if (isset($url_info['fragment'])) $request->meta['fragment'] = $url_info['fragment'];
         if (isset($url_info['query']))
@@ -276,16 +254,13 @@ class HttpServer implements \Swoole\Server\Protocol
         //POST请求,有http body
         if ($request->meta['method'] === 'POST')
         {
-            $cd = strstr($request->head['Content-Type'], 'boundary');
-            if (isset($request->head['Content-Type']) and $cd !== false)
-            {
-                $this->parse_form_data($parts[1], $request, $cd);
-            }
-            else parse_str($parts[1], $request->post);
+            $request->post = $this->parser->parseBody($request);
         }
         //解析Cookies
-        if (!empty($request->head['Cookie'])) $request->cookie = $this->parse_cookie($request->head['Cookie']);
-        return $request;
+        if (!empty($request->head['Cookie']))
+        {
+            $request->cookie = $this->parser->parseCookie($request);
+        }
     }
 
     /**
@@ -330,7 +305,6 @@ class HttpServer implements \Swoole\Server\Protocol
 
     function http_error($code, $response, $content = '')
     {
-
         $response->send_http_status($code);
         $response->head['Content-Type'] = 'text/html';
         $response->body = \Swoole\Error::info(\Swoole\Response::$HTTP_HEADERS[$code], "<p>$content</p><hr><address>" . self::SOFTWARE . " at {$this->server->host} Port {$this->server->port}</address>");

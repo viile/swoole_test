@@ -8,7 +8,9 @@ class Request
     public $file = array();
     public $cookie = array();
     public $session = array();
+
     public $head = array();
+    public $body;
     public $meta = array();
 
     public $ext_name;

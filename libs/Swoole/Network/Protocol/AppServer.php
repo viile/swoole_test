@@ -120,9 +120,8 @@ class AppServer extends HttpServer
             else $response->body = call_user_func(array($controller, $mvc['view']), $param);
             $response->body .= ob_get_contents();
             ob_end_clean();
-            unset($controller);
         }
-        catch(Exception $e)
+        catch(\Exception $e)
         {
             if($request->finish!=1) $this->http_error(404,$response,$e->getMessage());
         }
@@ -131,7 +130,10 @@ class AppServer extends HttpServer
             $response->head['Content-Type'] = 'text/html; charset='.$this->config['apps']['charset'];
         }
         //保存Session
-        if($php->session_open) $php->session->save();
+        if($php->session->open and $php->session->readonly===false)
+        {
+            $php->session->save();
+        }
         return $response;
     }
 }

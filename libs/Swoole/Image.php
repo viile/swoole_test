@@ -336,7 +336,7 @@ class Image
         {
             $authnum.=dechex(rand(0,15));
         }
-        $authnum = strtoupper($authnum);;
+        $authnum = strtoupper($authnum);
         $_SESSION['authcode'] = $authnum;
 
         $aimg = imageCreate($img_width,$img_height);       //生成图片

@@ -1,63 +1,75 @@
 <?php
 namespace Swoole;
 
-if(defined('SWOOLE_SERVER'))
+/**
+ * Class Http_LAMP
+ * @package Swoole
+ */
+class Http_PWS
 {
-    \Swoole\Error::$stop = false;
-    \Swoole_js::$return = true;
-
-    class Http
+    function header($k, $v)
     {
-        function header($k, $v)
-        {
-            $k = ucwords($k);
-            \Swoole::$php->response->send_head($k,$v);
-        }
-        function status($code)
-        {
-            \Swoole::$php->response->send_http_status($code);
-        }
-        function response($content)
-        {
-            global $php;
-            $php->response->body = $content;
-            http_finish();
-        }
-        function redirect($url,$mode=301)
-        {
-            \Swoole::$php->response->send_http_status($mode);
-            \Swoole::$php->response->send_head('Location',$url);
-        }
+        $k = ucwords($k);
+        \Swoole::$php->response->send_head($k,$v);
+    }
+    function status($code)
+    {
+        \Swoole::$php->response->send_http_status($code);
+    }
+    function response($content)
+    {
+        global $php;
+        $php->response->body = $content;
+        self::finish();
+    }
+    function redirect($url,$mode=301)
+    {
+        \Swoole::$php->response->send_http_status($mode);
+        \Swoole::$php->response->send_head('Location',$url);
+    }
 
-        function finish()
+    function finish()
+    {
+        \Swoole::$php->request->finish = 1;
+        throw new \Exception;
+    }
+}
+
+class Http_LAMP
+{
+    function header($k,$v)
+    {
+        header($k.':'.$v);
+    }
+    function status($code)
+    {
+        header('HTTP/1.1 '.\Swoole\Response::$HTTP_HEADERS[$code]);
+    }
+    function redirect($url,$mode=301)
+    {
+        \Swoole_client::redirect($url,$mode);
+    }
+    function finish()
+    {
+        if(function_exists('fastcgi_finish_request'))
         {
-            \Swoole::$php->request->finish = 1;
-            throw new \Exception;
+            fastcgi_finish_request();
         }
     }
 }
-else
+
+class Http
 {
-    class Http
+    static function __callStatic($func, $params)
     {
-        function header($k,$v)
+        if(defined('SWOOLE_SERVER'))
         {
-            header($k.':'.$v);
+            return call_user_func_array("\\Swoole\\Http_PWS::{$func}", $params);
         }
-        function status($code)
+        else
         {
-            header('HTTP/1.1 '.\Swoole\Response::$HTTP_HEADERS[$code]);
-        }
-        function redirect($url,$mode=301)
-        {
-            \Swoole_client::redirect($url,$mode);
-        }
-        function finish()
-        {
-            if(function_exists('fastcgi_finish_request'))
-            {
-                fastcgi_finish_request();
-            }
+            return call_user_func_array("\\Swoole\\Http_LAMP::{$func}", $params);
         }
     }
 }
+

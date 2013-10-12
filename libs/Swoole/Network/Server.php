@@ -16,6 +16,7 @@ class Server extends \Swoole\Server implements \Swoole\Server\Driver
         $this->host = $host;
         $this->port = $port;
         \Swoole\Error::$stop = false;
+        \Swoole_js::$return = true;
         $this->swooleSetting = array('timeout' => 2.5,  //select and epoll_wait timeout.
             'poll_thread_num' => 2,  //reactor thread num
             'writer_num' => 2,       //writer thread num

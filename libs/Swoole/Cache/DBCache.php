@@ -6,7 +6,7 @@ namespace Swoole\Cache;
  * @package Swoole
  * @subpackage cache
  */
-class DBCache implements \Swoole\ICache
+class DBCache implements \Swoole\IFace\Cache
 {
     public $swoole;
     public $shard_id = 0;

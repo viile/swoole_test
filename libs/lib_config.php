@@ -33,6 +33,7 @@ function import_func($space_name)
 /**
  * 生产一个model接口，模型在注册树上为单例
  * @param $model_name
+ * @return Swoole\Model
  */
 function createModel($model_name)
 {

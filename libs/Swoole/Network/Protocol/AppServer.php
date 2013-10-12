@@ -129,6 +129,11 @@ class AppServer extends HttpServer
         {
             $response->head['Content-Type'] = 'text/html; charset='.$this->config['apps']['charset'];
         }
+        //重定向
+        if(isset($response->head['Location']))
+        {
+            $response->send_http_status(301);
+        }
         //保存Session
         if($php->session->open and $php->session->readonly===false)
         {

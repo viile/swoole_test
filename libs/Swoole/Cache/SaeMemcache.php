@@ -6,7 +6,7 @@ namespace Swoole\Cache;
  * @package Swoole
  * @subpackage cache
  */
-class SaeMemcache implements \Swoole\ICache
+class SaeMemcache implements \Swoole\IFace\Cache
 {
     public $multi = false;
     //启用压缩
@@ -27,14 +27,14 @@ class SaeMemcache implements \Swoole\ICache
      */
     function get($key)
     {
-        return \memcache_get($key);
+        return $this->cache->get($key);
     }
     function set($key, $value, $expire=0)
     {
-        return \memcache_set($key, $value, self::$compress, $expire);
+        return $this->cache->set($key, $value, self::$compress, $expire);
     }
     function delete($key)
     {
-        return \memcache_delete($key);
+        return $this->cache->delete($key);
     }
 }

@@ -31,8 +31,7 @@ class HttpServer implements \Swoole\Server\Protocol
     protected $document_root;
     protected $deny_dir;
 
-    protected $buffer = array(); //数据缓存区
-    protected $request_tmp = array(); //保存请求信息
+    public $requests = array(); //保存请求信息
     protected $buffer_maxlen = 65535; //最大POST尺寸，超过将写文件
 
     const SOFTWARE = "Swoole";
@@ -86,7 +85,7 @@ class HttpServer implements \Swoole\Server\Protocol
     function onClose($serv, $client_id, $from_id)
     {
         $this->log("client[#$client_id@$from_id] close");
-        unset($this->request_tmp[$client_id]);
+        unset($this->requests[$client_id]);
     }
 
     function loadSetting($ini_file)
@@ -134,17 +133,17 @@ class HttpServer implements \Swoole\Server\Protocol
         $this->config = array_merge($this->config, $config);
     }
 
-    protected function checkData($client_id, $http_data)
+    function checkHeader($client_id, $http_data)
     {
         //新的连接
-        if (!isset($this->request_tmp[$client_id]))
+        if (!isset($this->requests[$client_id]))
         {
             //HTTP结束符
             $ret = strpos($http_data, self::HTTP_EOF);
             //没有找到EOF
             if($ret === false)
             {
-                return self::ST_ERROR;
+                return false;
             }
             else
             {
@@ -155,38 +154,62 @@ class HttpServer implements \Swoole\Server\Protocol
                 //使用head[0]保存额外的信息
                 $request->meta = $request->head[0];
                 unset($request->head[0]);
+                //保存请求
+                $this->requests[$client_id] = $request;
                 //解析失败
                 if($request->head == false)
                 {
-                    return self::ST_ERROR;
+                    $this->log("parseHeader fail. header=".$header);
+                    return false;
                 }
-                $this->request_tmp[$client_id] = $request;
             }
         }
         //POST请求需要合并数据
         else
         {
-            $request = $this->request_tmp[$client_id];
+            $request = $this->requests[$client_id];
             $request->body .= $http_data;
+        }
+        return $request;
+    }
+
+    function checkPost($request)
+    {
+        if(isset($request->head['Content-Length']))
+        {
+            //超过最大尺寸
+            if(intval($request->head['Content-Length']) > $this->config['access']['post_maxsize'])
+            {
+                return self::ST_ERROR;
+            }
+            //不完整，继续等待数据
+            if(intval($request->head['Content-Length']) > strlen($request->body))
+            {
+                return self::ST_WAIT;
+            }
+            //长度正确
+            else
+            {
+                return self::ST_FINISH;
+            }
+        }
+        //POST请求没有Content-Length，丢弃此请求
+        return self::ST_ERROR;
+    }
+
+    function checkData($client_id, $http_data)
+    {
+        //检测头
+        $request = $this->checkHeader($client_id, $http_data);
+        //错误的http头
+        if($request === false)
+        {
+            return self::ST_ERROR;
         }
         //POST请求需要检测body是否完整
         if($request->meta['method'] == 'POST')
         {
-            if(isset($request->head['Content-Length']))
-            {
-                //不完整，继续等待数据
-                if($request->head['Content-Length'] < strlen($request->body))
-                {
-                    return self::ST_WAIT;
-                }
-                //长度正确
-                else
-                {
-                    return self::ST_FINISH;
-                }
-            }
-            //POST请求没有Content-Length，丢弃此请求
-            return self::ST_ERROR;
+            return $this->checkPost($request);
         }
         //GET请求直接进入处理流程
         else
@@ -210,23 +233,23 @@ class HttpServer implements \Swoole\Server\Protocol
             //错误的请求
             case self::ST_ERROR;
                 $this->server->close($client_id);
-                return;
+                return true;
             //请求不完整，继续等待
             case self::ST_WAIT:
-                return;
+                return true;
             default:
                 break;
         }
         //完整的请求
         //开始处理
-        $request = $this->request_tmp[$client_id];
+        $request = $this->requests[$client_id];
         $this->parseRequest($request);
         //处理请求，产生response对象
         $response = $this->onRequest($request);
         //发送response
         $this->response($client_id, $response);
         //清空request缓存区
-        unset($this->request_tmp[$client_id]);
+        unset($this->requests[$client_id]);
         $request->unsetGlobal();
         unset($request);
         unset($response);
@@ -254,12 +277,12 @@ class HttpServer implements \Swoole\Server\Protocol
         //POST请求,有http body
         if ($request->meta['method'] === 'POST')
         {
-            $request->post = $this->parser->parseBody($request);
+            $this->parser->parseBody($request);
         }
         //解析Cookies
         if (!empty($request->head['Cookie']))
         {
-            $request->cookie = $this->parser->parseCookie($request);
+            $this->parser->parseCookie($request);
         }
     }
 
@@ -310,6 +333,14 @@ class HttpServer implements \Swoole\Server\Protocol
         $response->body = \Swoole\Error::info(\Swoole\Response::$HTTP_HEADERS[$code], "<p>$content</p><hr><address>" . self::SOFTWARE . " at {$this->server->host} Port {$this->server->port}</address>");
     }
 
+    /**
+     * 错误请求
+     * @param $request
+     */
+    function onError($request)
+    {
+
+    }
     /**
      * 处理请求
      * @param $request

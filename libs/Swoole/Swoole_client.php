@@ -15,9 +15,8 @@ class Swoole_client
 	 */
 	static function redirect($url,$mode=302)
 	{
-		header("Location: ".$url,$mode);
-		header("Connection: close");
-		exit;
+		Swoole\Http::redirect($url, $mode);
+        return;
 	}
 	/**
 	 * 发送下载声明
@@ -32,25 +31,25 @@ class Swoole_client
 	 * 获取客户端IP
 	 * @return unknown_type
 	 */
-	public static function getIP()
+	static function getIP()
 	{
-		if (getenv("HTTP_CLIENT_IP") && strcasecmp(getenv("HTTP_CLIENT_IP"), "unknown"))
-		$ip = getenv("HTTP_CLIENT_IP");
-		else if (getenv("HTTP_X_FORWARDED_FOR") && strcasecmp(getenv("HTTP_X_FORWARDED_FOR"), "unknown"))
-		$ip = getenv("HTTP_X_FORWARDED_FOR");
-		else if (getenv("REMOTE_ADDR") && strcasecmp(getenv("REMOTE_ADDR"), "unknown"))
-		$ip = getenv("REMOTE_ADDR");
-		else if (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] && strcasecmp($_SERVER['REMOTE_ADDR'], "unknown"))
-		$ip = $_SERVER['REMOTE_ADDR'];
-		else
-		$ip = "unknown";
-		return($ip);
+        if (getenv("HTTP_CLIENT_IP") && strcasecmp(getenv("HTTP_CLIENT_IP"), "unknown"))
+            $ip = getenv("HTTP_CLIENT_IP");
+        else if (getenv("HTTP_X_FORWARDED_FOR") && strcasecmp(getenv("HTTP_X_FORWARDED_FOR"), "unknown"))
+            $ip = getenv("HTTP_X_FORWARDED_FOR");
+        else if (getenv("REMOTE_ADDR") && strcasecmp(getenv("REMOTE_ADDR"), "unknown"))
+            $ip = getenv("REMOTE_ADDR");
+        else if (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] && strcasecmp($_SERVER['REMOTE_ADDR'], "unknown"))
+            $ip = $_SERVER['REMOTE_ADDR'];
+        else
+            $ip = "unknown";
+        return $ip;
 	}
 	/**
 	 * 获取客户端浏览器信息
 	 * @return unknown_type
 	 */
-	public static function getBrowser()
+	static function getBrowser()
 	{
 		if( $Browser = self::matchbrowser( $_SERVER["HTTP_USER_AGENT"], "|(myie[^;^)^(]*)|i" ) );
 		else if( $Browser = self::matchbrowser( $_SERVER["HTTP_USER_AGENT"], "|(Netscape[^;^)^(]*)|i" ) );
@@ -71,7 +70,7 @@ class Swoole_client
 	 * 获取客户端操作系统信息
 	 * @return unknown_type
 	 */
-	public static function getOS()
+	static function getOS()
 	{
 		$os="";
 		$Agent = $_SERVER["HTTP_USER_AGENT"];

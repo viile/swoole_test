@@ -7,7 +7,7 @@ namespace Swoole\Cache;
  * @package Swoole
  * @subpackage cache
  */
-class FileCache implements \Swoole\ICache
+class FileCache implements \Swoole\IFace\Cache
 {
 	public $_vd=array();
 	public $onchange=0;

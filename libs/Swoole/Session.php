@@ -11,7 +11,7 @@ class Session
 {
     // 类成员属性定义
     static $cache_prefix = "phpsess_";
-    static $cache_life = 1800;
+    static $cache_life = 86400;
 
     public $sessID;
     public $readonly; //是否为只读，只读不需要保存

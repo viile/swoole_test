@@ -10,7 +10,7 @@ class Upload
 {
     public $mimes;
     public $max_size=0;
-    public $access;
+    public $allow = array('jpg', 'gif', 'png'); //允许上传的类型
     public $name_type = ''; //md5,
 
     //上传文件的根目录
@@ -58,16 +58,12 @@ class Upload
     function __construct($base_dir)
     {
         $this->base_dir = $base_dir;
-        require LIBPATH.'/data/mimes.php';
+        $mimes = require LIBPATH.'/data/mimes.php';
         $this->mimes = $mimes;
     }
     function error_msg()
     {
         return $this->error_msg;
-    }
-    function set_access($access)
-    {
-        $this->access = $access;
     }
     function save_all()
     {
@@ -79,7 +75,20 @@ class Upload
 			}
 		}
     }
-    function save($name,$filename=null)
+
+    static function moveUploadFile($tmpfile, $newfile)
+    {
+        if(!defined('SWOOLE_SERVER'))
+        {
+            return move_uploaded_file($tmpfile, $newfile);
+        }
+        else
+        {
+            return rename($tmpfile, $newfile);
+        }
+    }
+
+    function save($name, $filename=null, $allow=null)
     {
         //检查请求中是否存在上传的文件
         if(empty($_FILES[$name]['type']))
@@ -103,11 +112,18 @@ class Upload
     	}
     	//上传的最终绝对路径，如果不存在则创建目录
     	$path = WEBPATH.$up_dir;
-    	if(!is_dir($path)) mkdir($path,0777,true);
+    	if(!is_dir($path))
+        {
+            if(mkdir($path, 0777, true)===false)
+            {
+                $this->error_msg = "mkdir path=$path fail.";
+                return false;
+            }
+        }
 
     	//MIME格式
     	$mime = $_FILES[$name]['type'];
-    	$filetype= $this->mime_type($mime);
+    	$filetype = $this->mime_type($mime);
     	if($filetype==='bin') $filetype = self::file_ext($_FILES[$name]['name']);
     	if($filetype===false)
     	{
@@ -115,16 +131,13 @@ class Upload
     	    $this->error_code = 1;
     	    return false;
     	}
-    	elseif(!empty($access))
+    	elseif(!in_array($filetype, $this->allow))
     	{
-    		$access_type = explode(',',$this->access);
-    		if(!in_array($filetype,$access_type))
-    		{
-    			$this->error_msg = "File Type '$filetype' not allow upload!";
-    			$this->error_code = 2;
-    			return false;
-    		}
+            $this->error_msg = "File Type '$filetype' not allow upload!";
+            $this->error_code = 2;
+            return false;
     	}
+
     	//生成文件名
     	if($filename===null)
     	{
@@ -153,7 +166,7 @@ class Upload
     	}
     	$save_filename = $path."/".$filename;
     	//写入文件
-    	if(move_uploaded_file($_FILES[$name]['tmp_name'],$save_filename))
+    	if(self::moveUploadFile($_FILES[$name]['tmp_name'], $save_filename))
     	{
     	    //产生缩略图
     	    if($this->thumb_width and in_array($filetype,array('gif','jpg','jpeg','bmp','png')))
@@ -175,7 +188,7 @@ class Upload
     	}
     	else
     	{
-            $this->error_msg = "File Type '$filetype' not allow upload!";
+            $this->error_msg = "move upload file fail. tmp_name={$_FILES[$name]['tmp_name']}|dest_name={$save_filename}";
     		$this->error_code = 2;
     		return false;
     	}

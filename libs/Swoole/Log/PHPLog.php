@@ -1,4 +1,5 @@
 <?php
+namespace Swoole\Log;
 /**
  * 使用PHP的error_log记录日志
  * @author Tianfeng.Han

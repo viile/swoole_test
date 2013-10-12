@@ -28,6 +28,7 @@ class Request
         $_REQUEST = array_merge($this->get, $this->post, $this->cookie);
         $_SERVER["HTTP_HOST"] = $this->head['Host'];
         $_SERVER["HTTP_USER_AGENT"] = $this->head['User-Agent'];
+        $_SERVER['REQUEST_URI'] = $this->meta['uri'];
     }
 
     function unsetGlobal()

@@ -14,6 +14,10 @@ Swoole_Framework支持的特性
 * 静态文件缓存，节省流量
 * 支持Gzip压缩，节省流量
 * 支持MySQL重新连接
+* 支持文件上传
+* 支持POST大文本
+* 支持Session/Cookie
+
 
 在线体验地址：<http://112.124.39.26:9501/>
 

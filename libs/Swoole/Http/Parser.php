@@ -22,9 +22,10 @@ class Parser implements \Swoole\IFace\HttpParser
         // parts[0] = HTTP头;
         // parts[1] = HTTP主体，GET请求没有body
         $headerLines = explode("\r\n", $parts[0]);
+        file_put_contents('/tmp/head.log', var_export($headerLines, 1).PHP_EOL, FILE_APPEND);
         // HTTP协议头,方法，路径，协议[RFC-2616 5.1]
         list($meta['method'], $meta['uri'], $meta['protocol']) = explode(' ', $headerLines[0], 3);
-
+        file_put_contents('/tmp/head.log', $data.PHP_EOL, FILE_APPEND);
         //$this->log($headerLines[0]);
         //错误的HTTP请求
         if (empty($meta['method']) or empty($meta['uri']) or empty($meta['protocol']))
@@ -33,25 +34,65 @@ class Parser implements \Swoole\IFace\HttpParser
         }
         unset($headerLines[0]);
         //解析Header
+        $header = array_merge($header, self::parseHeaderLine($headerLines));
+        return $header;
+    }
+
+    /**
+     * 传入一个字符串或者数组
+     * @param $headerLines string/array
+     * @return array
+     */
+    static function parseHeaderLine($headerLines)
+    {
+        if(is_string($headerLines))
+        {
+            $headerLines = explode("\r\n", $headerLines);
+        }
+        $header = array();
         foreach ($headerLines as $_h)
         {
             $_h = trim($_h);
             if (empty($_h)) continue;
-            list($key, $value) = explode(':', $_h, 2);
+            $_r = explode(':', $_h, 2);
+            $key = $_r[0];
+            $value = isset($_r[1])?$_r[1]:'';
             $header[trim($key)] = trim($value);
         }
         return $header;
     }
-    function parseBody($request)
+
+    static function parseParams($str)
     {
         $params = array();
+        $blocks = explode(";", $str);
+        foreach ($blocks as $b)
+        {
+            $_r = explode("=", $b);
+            if(count($_r)==2)
+            {
+                list ($key, $value) = $_r;
+                $params[trim($key)] = trim($value, "\r\n \t\"");
+            }
+            else
+            {
+                $params[$_r[0]] = '';
+            }
+        }
+        return $params;
+    }
+
+    function parseBody($request)
+    {
         $cd = strstr($request->head['Content-Type'], 'boundary');
         if (isset($request->head['Content-Type']) and $cd !== false)
         {
-            $this->parseFormData($request->body, $request, $cd);
+            $this->parseFormData($request, $cd);
         }
-        else parse_str($request->body, $params);
-        return $params;
+        else
+        {
+            parse_str($request->body, $request->post);
+        }
     }
     /**
      * 解析Cookies
@@ -59,14 +100,7 @@ class Parser implements \Swoole\IFace\HttpParser
      */
     function parseCookie($request)
     {
-        $_cookies = array();
-        $blocks = explode(";", $request->head['Cookie']);
-        foreach ($blocks as $cookie)
-        {
-            list ($key, $value) = explode("=", $cookie);
-            $_cookies[trim($key)] = trim($value, "\r\n \t\"");
-        }
-        return $_cookies;
+        $request->cookie = self::parseParams($request->head['Cookie']);
     }
 
     /**
@@ -76,22 +110,24 @@ class Parser implements \Swoole\IFace\HttpParser
      * @param $cd
      * @return unknown_type
      */
-    protected function parseFormData($part, $request, $cd)
+    function parseFormData($request, $cd)
     {
         $cd = '--' . str_replace('boundary=', '', $cd);
-        $form = explode($cd, $part);
+        $form = explode($cd, rtrim($request->body, "-")); //去掉末尾的--
         foreach ($form as $f)
         {
             if ($f === '') continue;
-            $parts = explode("\r\n\r\n", $f);
-            $head = $this->parseHeader($parts[0]);
+            $parts = explode("\r\n\r\n", trim($f));
+            $head = self::parseHeaderLine($parts[0]);
             if (!isset($head['Content-Disposition'])) continue;
-            $meta = $this->parseCookie($head['Content-Disposition']);
+            $meta = $this->parseParams($head['Content-Disposition']);
+            //filename字段表示它是一个文件
             if (!isset($meta['filename']))
             {
-                //checkbox
+                if(count($parts) < 2) $parts[1] = "";
+                //支持checkbox
                 if (substr($meta['name'], -2) === '[]') $request->post[substr($meta['name'], 0, -2)][] = trim($parts[1]);
-                else $request->post[$meta['name']] = trim($parts[1]);
+                else $request->post[$meta['name']] = trim($parts[1], "\r\n");
             }
             else
             {

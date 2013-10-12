@@ -1,4 +1,5 @@
 <?php
+namespace Swoole\Log;
 /**
  * 文件日志类
  * @author Tianfeng.Han

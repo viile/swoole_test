@@ -7,7 +7,7 @@ namespace Swoole\Cache;
  * @package Swoole
  * @subpackage cache
  */
-class WinCache implements \Swoole\ICache
+class WinCache implements \Swoole\IFace\Cache
 {
 	function __construct($config)
 	{

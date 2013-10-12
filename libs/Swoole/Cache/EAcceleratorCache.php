@@ -7,7 +7,7 @@ namespace Swoole\Cache;
  * @package Swoole
  * @subpackage cache
  */
-class EAcceleratorCache implements \Swoole\ICache
+class EAcceleratorCache implements \Swoole\IFace\Cache
 {
 	function __construct($config)
 	{

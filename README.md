@@ -15,6 +15,8 @@ Swoole_Framework支持的特性
 * 支持Gzip压缩，节省流量
 * 支持MySQL重新连接
 
+在线体验地址：<http://112.124.39.26:9501/>
+
 赞助Swoole开源项目
 -----
 捐赠地址：http://me.alipay.com/swoole

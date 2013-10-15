@@ -327,9 +327,9 @@ class SelectDB
         $this->pager = new Pager(array('total'=>$this->num,'perpage'=>$this->page_size,'nowindex'=>$this->page));
     }
 
-    static function quote(&$sql)
+    function quote(&$str)
     {
-        $sql = str_replace("'","&#039;",$sql);
+        $this->db->escape_string($str);
     }
     /**
      * 使SQL元素安全
@@ -564,7 +564,7 @@ class SelectDB
         $values="";
         foreach($data as $key => $value)
         {
-            self::quote($value);
+            $this->quote($value);
             $field=$field."`$key`,";
             $values=$values."'$value',";
         }
@@ -582,7 +582,7 @@ class SelectDB
         $update="";
         foreach($data as $key=>$value)
         {
-            self::quote($value);
+            $this->quote($value);
             if($value!='' and $value{0}=='`') $update=$update."`$key`=$value,";
             else $update=$update."`$key`='$value',";
         }

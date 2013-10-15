@@ -164,7 +164,11 @@ class Database
 	 */
 	public function update($id,$data,$table,$where='id')
 	{
-		if(func_num_args()<3) Error::info('SelectDB param error','Update must have 3 paramers ($id,$data,$table) !');
+		if(func_num_args()<3)
+        {
+            echo Error::info('SelectDB param error','Update must have 3 paramers ($id,$data,$table) !');
+            return false;
+        }
 		$this->db_apt->init();
 		$this->db_apt->from($table);
 		$this->db_apt->where("$where='$id'");

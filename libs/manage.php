@@ -1,5 +1,5 @@
 <?php
-require __DIR__.'lib_config.php';
+require __DIR__.'/lib_config.php';
 require __DIR__.'/function/cli.php';
 require __DIR__.'/Swoole/Form.php';
 require __DIR__.'/Swoole/Swoole_js.php';
@@ -23,7 +23,9 @@ else
     if(empty($_GET['act'])) manage_check_env();
     elseif($_GET['act']=='cc') manage_create_controller();
     elseif($_GET['act']=='cm') manage_create_model();
-    elseif($_GET['act']=='init')
+    //4种指令都一样
+    elseif($_GET['act']=='init' or $_GET['act']=='install' or
+        $_GET['act']=='create' or $_GET['act']=='setup' )
     {
         if(file_exists(WEBPATH.'/config.php')) exit('此目录下已安装Swoole框架!');
         else
@@ -74,6 +76,7 @@ function main($param)
             echo $project;
             break;
             //初始化项目
+        case 'create':
         case 'init':
             create_require_dir();
             echo "craete require directory success!\n";

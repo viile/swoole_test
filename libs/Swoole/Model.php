@@ -343,7 +343,10 @@ class Record implements \ArrayAccess
 {
 	public $_data = array();
 	public $_change;
-	public $db;
+    /**
+     * @var \Swoole\Database
+     */
+    public $db;
 
 	public $primary="id";
 	public $table="";

@@ -8,16 +8,13 @@ namespace Swoole\Network\Protocol;
  * @package Swoole
  * @subpackage net.protocol
  */
-class HttpServer implements \Swoole\Server\Protocol
+class HttpServer extends \Swoole\Network\Protocol implements \Swoole\Server\Protocol
 {
-    public $server;
     public $config = array();
 
     public $keepalive = false;
     public $gzip = false;
     public $expire = false;
-
-    protected $log;
 
     /**
      * @var \Swoole\Http\Parser
@@ -54,19 +51,10 @@ class HttpServer implements \Swoole\Server\Protocol
         $this->parser = new \Swoole\Http\Parser;
     }
 
-    function setLogger($log)
-    {
-        $this->log = $log;
-    }
-
-    function log($msg, $type = 'INFO')
-    {
-        $this->log->put($type, $msg);
-    }
-
     function onStart($serv)
     {
-        if (!defined('WEBROOT')) {
+        if (!defined('WEBROOT'))
+        {
             define('WEBROOT', $this->config['server']['webroot']);
         }
         $this->log(self::SOFTWARE . ". running. on {$this->server->host}:{$this->server->port}");

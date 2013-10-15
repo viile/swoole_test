@@ -35,7 +35,6 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
      */
     function query($sql)
     {
-        parent::real_escape_string($sql);
         for ($i = 0; $i < 2; $i++)
         {
             $result = parent::query($sql);
@@ -46,7 +45,7 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
                     $r = $this->checkConnection();
                     if ($r === true) continue;
                 }
-                $this->error .= "<hr>\n".$sql;
+                echo \Swoole\Error::info("SQL Error", $this->error."<hr />$sql");
                 return false;
             }
             break;

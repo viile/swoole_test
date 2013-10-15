@@ -1,7 +1,7 @@
 <?php
 namespace Swoole;
 
-class Server
+abstract class Server implements \Swoole\Server\Driver
 {
 	public $protocol;
 	public $host = '0.0.0.0';
@@ -37,6 +37,7 @@ class Server
 		$this->protocol = $protocol;
 		$this->protocol->server = $this;
 	}
+
 	function accept()
 	{
 		$client_socket = stream_socket_accept($this->server_sock, 0);
@@ -97,6 +98,11 @@ class Server
     {
 
     }
+
+    abstract function run($setting);
+    abstract function send($client_id, $data);
+    abstract function close($client_id);
+    abstract function shutdown();
 
     function daemonize()
     {

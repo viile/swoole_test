@@ -13,9 +13,9 @@ class SOAClient
     const OK = 0;
     const TYPE_ASYNC = 1;
     const TYPE_SYNC  = 2;
-    public $re_connect = true; //ÖØĞÂconnect
+    public $re_connect = true; //é‡æ–°connect
     /**
-     * ·¢ËÍÇëÇó
+     * å‘é€è¯·æ±‚
      * @param $type
      * @param $send
      * @param $retObj
@@ -28,9 +28,9 @@ class SOAClient
         $retObj->send = $send;
 
         $svr = $this->getServer();
-        //Òì²½connect
+        //å¼‚æ­¥connect
         $ret = $socket->connect($svr['host'], $svr['port'], $this->timeout);
-        //Ê¹ÓÃSOCKETµÄ±àºÅ×÷ÎªID
+        //ä½¿ç”¨SOCKETçš„ç¼–å·ä½œä¸ºID
         $retObj->id = (int)$socket->get_socket();
         if($ret === false)
         {
@@ -38,14 +38,14 @@ class SOAClient
             unset($retObj->socket);
             return false;
         }
-        //·¢ËÍÊ§°ÜÁË
+        //å‘é€å¤±è´¥äº†
         if($retObj->socket->send(self::packData($retObj->send)) === false)
         {
             $retObj->code = SOAClient_Result::ERR_SEND;
             unset($retObj->socket);
             return false;
         }
-        //¼ÓÈëwait_list
+        //åŠ å…¥wait_list
         if($type != self::TYPE_ASYNC)
         {
             $this->wait_list[$retObj->id] = $retObj;
@@ -53,7 +53,7 @@ class SOAClient
         return true;
     }
     /**
-     * Íê³ÉÇëÇó
+     * å®Œæˆè¯·æ±‚
      * @param $retData
      * @param $retObj
      */
@@ -98,7 +98,7 @@ class SOAClient
         return $svr;
     }
     /**
-     * ´ò°üÊı¾İ
+     * æ‰“åŒ…æ•°æ®
      * @param $data
      * @return string
      */
@@ -107,7 +107,7 @@ class SOAClient
         return pack('n', Protocol\SOAServer::STX).serialize($data).pack('n', Protocol\SOAServer::ETX);
     }
     /**
-     * ½â°ü
+     * è§£åŒ…
      * @param $recv
      * @param bool $unseralize
      * @return string
@@ -118,7 +118,7 @@ class SOAClient
         return unserialize($data);
     }
     /**
-     * RPCµ÷ÓÃ
+     * RPCè°ƒç”¨
      * @param $function
      * @param $params
      * @return SOAClient_Result
@@ -131,7 +131,7 @@ class SOAClient
         return $retObj;
     }
     /**
-     * Òì²½ÈÎÎñ
+     * å¼‚æ­¥ä»»åŠ¡
      * @param $function
      * @param $params
      * @return SOAClient_Result
@@ -155,7 +155,7 @@ class SOAClient
     }
 
     /**
-     * ²¢·¢ÇëÇó
+     * å¹¶å‘è¯·æ±‚
      * @param float $timeout
      * @return int
      */
@@ -188,13 +188,13 @@ class SOAClient
             $n = socket_select($read, $write, $error, $t_sec, $t_usec);
             if($n > 0)
             {
-                //¿É¶Á
+                //å¯è¯»
                 foreach($read as $sock)
                 {
                     $id = (int)$sock;
                     $retObj = $this->wait_list[$id];
                     $data = $retObj->socket->recv();
-                    //socket±»¹Ø±ÕÁË
+                    //socketè¢«å…³é—­äº†
                     if(empty($data))
                     {
                         $retObj->code = SOAClient_Result::ERR_CLOSED;
@@ -204,7 +204,7 @@ class SOAClient
                     if(!isset($buffer[$id]))
                     {
                         $_stx = unpack('nstx', substr($data, 0, 2));
-                        //´íÎóµÄÆğÊ¼·û
+                        //é”™è¯¯çš„èµ·å§‹ç¬¦
                         if($_stx == false or $_stx['stx'] != Protocol\SOAServer::STX)
                         {
                             $retObj->code = SOAClient_Result::ERR_STX;
@@ -215,36 +215,36 @@ class SOAClient
                     }
                     $buffer[$id] .= $data;
                     $_etx = unpack('netx', substr($buffer[$id], -2, 2));
-                    //ÊÕµ½½áÊø·û
+                    //æ”¶åˆ°ç»“æŸç¬¦
                     if($_etx!=false and $_etx['etx'] === Protocol\SOAServer::ETX)
                     {
-                        //³É¹¦´¦Àí
+                        //æˆåŠŸå¤„ç†
                         $this->finish(self::unpackData($buffer[$id]), $retObj);
                         $success_num++;
                     }
-                    //³¬¹ı×î´ó³¤¶È½«¶ªÆú
+                    //è¶…è¿‡æœ€å¤§é•¿åº¦å°†ä¸¢å¼ƒ
                     elseif(strlen($data) > $this->packet_maxlen)
                     {
                         $retObj->code = SOAClient_Result::ERR_TOOBIG;
                         unset($this->wait_list[$id]);
                         continue;
                     }
-                    //¼ÌĞøµÈ´ıÊı¾İ
+                    //ç»§ç»­ç­‰å¾…æ•°æ®
                 }
             }
-            //·¢Éú³¬Ê±
+            //å‘ç”Ÿè¶…æ—¶
             if((microtime(true) - $st) > $timeout)
             {
                 foreach($this->wait_list as $obj)
                 {
                     $obj->code = ($obj->socket->connected)?SOAClient_Result::ERR_TIMEOUT:SOAClient_Result::ERR_CONNECT;
                 }
-                //Çå¿Õµ±Ç°ÁĞ±í
+                //æ¸…ç©ºå½“å‰åˆ—è¡¨
                 $this->wait_list = array();
                 return $success_num;
             }
         }
-        //Î´·¢ÉúÈÎºÎ³¬Ê±
+        //æœªå‘ç”Ÿä»»ä½•è¶…æ—¶
         $this->wait_list = array();
         return $success_num;
     }
@@ -257,17 +257,17 @@ class SOAClient_Result
     public $code = self::ERR_NO_READY;
     public $msg;
     public $data = null;
-    public $send;  //Òª·¢ËÍµÄÊı¾İ
+    public $send;  //è¦å‘é€çš„æ•°æ®
     public $type;
     public $socket = null;
 
-    const ERR_NO_READY   = 8001; //Î´¾ÍĞ÷
-    const ERR_CONNECT    = 8002; //Á¬½Ó·şÎñÆ÷Ê§°Ü
-    const ERR_TIMEOUT    = 8003; //·şÎñÆ÷¶Ë³¬Ê±
-    const ERR_SEND       = 8004; //·¢ËÍÊ§°Ü
-    const ERR_SERVER     = 8005; //server·µ»ØÁË´íÎóÂë
-    const ERR_UNPACK     = 8006; //½â°üÊ§°ÜÁË
-    const ERR_STX        = 8007; //´íÎóµÄÆğÊ¼·û
-    const ERR_TOOBIG     = 8008; //³¬¹ı×î´óÔÊĞíµÄ³¤¶È
+    const ERR_NO_READY   = 8001; //æœªå°±ç»ª
+    const ERR_CONNECT    = 8002; //è¿æ¥æœåŠ¡å™¨å¤±è´¥
+    const ERR_TIMEOUT    = 8003; //æœåŠ¡å™¨ç«¯è¶…æ—¶
+    const ERR_SEND       = 8004; //å‘é€å¤±è´¥
+    const ERR_SERVER     = 8005; //serverè¿”å›äº†é”™è¯¯ç 
+    const ERR_UNPACK     = 8006; //è§£åŒ…å¤±è´¥äº†
+    const ERR_STX        = 8007; //é”™è¯¯çš„èµ·å§‹ç¬¦
+    const ERR_TOOBIG     = 8008; //è¶…è¿‡æœ€å¤§å…è®¸çš„é•¿åº¦
     const ERR_CLOSED     = 8009;
 }

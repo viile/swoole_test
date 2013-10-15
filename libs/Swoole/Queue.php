@@ -21,7 +21,6 @@ class Queue
 
     function __call($method, $param=array())
     {
-    	return call_user_func_array(array($this->$server,$method),$param);
+    	return call_user_func_array(array($this->queue, $method), $param);
     }
 }
-?>

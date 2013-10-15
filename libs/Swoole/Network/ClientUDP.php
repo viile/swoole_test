@@ -1,7 +1,7 @@
 <?php
 namespace Swoole\Network;
 /**
- * UDP¿Í»§¶Ë
+ * UDPå®¢æˆ·ç«¯
  */
 class ClientUDP extends Client
 {
@@ -9,17 +9,17 @@ class ClientUDP extends Client
     public $remote_port;
 
     /**
-     * Á¬½Óµ½·þÎñÆ÷
-     * ½ÓÊÜÒ»¸ö¸¡µãÐÍÊý×Ö×÷Îª³¬Ê±£¬ÕûÊý²¿·Ö×÷Îªsec£¬Ð¡Êý²¿·Ö*100Íò×÷Îªusec
+     * è¿žæŽ¥åˆ°æœåŠ¡å™¨
+     * æŽ¥å—ä¸€ä¸ªæµ®ç‚¹åž‹æ•°å­—ä½œä¸ºè¶…æ—¶ï¼Œæ•´æ•°éƒ¨åˆ†ä½œä¸ºsecï¼Œå°æ•°éƒ¨åˆ†*100ä¸‡ä½œä¸ºusec
      *
-     * @param string $host ·þÎñÆ÷µØÖ·
-     * @param int $port ·þÎñÆ÷µØÖ·
-     * @param float $timeout ³¬Ê±Ä¬ÈÏÖµ£¬Á¬½Ó£¬·¢ËÍ£¬½ÓÊÕ¶¼Ê¹ÓÃ´ËÉèÖÃ
-     * @param bool $udp_connect ÊÇ·ñÆôÓÃconnect·½Ê½
+     * @param string $host æœåŠ¡å™¨åœ°å€
+     * @param int $port æœåŠ¡å™¨åœ°å€
+     * @param float $timeout è¶…æ—¶é»˜è®¤å€¼ï¼Œè¿žæŽ¥ï¼Œå‘é€ï¼ŒæŽ¥æ”¶éƒ½ä½¿ç”¨æ­¤è®¾ç½®
+     * @param bool $udp_connect æ˜¯å¦å¯ç”¨connectæ–¹å¼
      */
     function connect($host, $port, $timeout = 0.1, $udp_connect = true)
     {
-        //ÅÐ¶Ï³¬Ê±Îª0»ò¸ºÊý
+        //åˆ¤æ–­è¶…æ—¶ä¸º0æˆ–è´Ÿæ•°
         if (empty($host) or empty($port) or $timeout <= 0) {
             $this->errCode = -10001;
             $this->errMsg = "param error";
@@ -31,12 +31,12 @@ class ClientUDP extends Client
         $this->set_timeout($timeout, $timeout);
         //$this->set_bufsize($this->sendbuf_size, $this->recvbuf_size);
 
-        //ÊÇ·ñÓÃUDP Connect
+        //æ˜¯å¦ç”¨UDP Connect
         if ($udp_connect !== true) {
             return true;
         }
         if (socket_connect($this->sock, $host, $port)) {
-            //ÇåÀíconnectÇ°µÄbufferÊý¾ÝÒÅÁô
+            //æ¸…ç†connectå‰çš„bufferæ•°æ®é—ç•™
             while (@socket_recv($this->sock, $buf, 65535, MSG_DONTWAIT)) ;
             return true;
         } else {
@@ -46,7 +46,7 @@ class ClientUDP extends Client
     }
 
     /**
-     * ·¢ËÍÊý¾Ý
+     * å‘é€æ•°æ®
      * @param string $data
      * @return $n or false
      */
@@ -64,10 +64,10 @@ class ClientUDP extends Client
     }
 
     /**
-     * ½ÓÊÕÊý¾Ý£¬UD°ü²»ÄÜ·Ö2´Î¶Á£¬recvºó»áÇå³ýÊý¾Ý°ü£¬ËùÒÔ±ØÐëÒªÒ»´ÎÐÔ¶ÁÍê
+     * æŽ¥æ”¶æ•°æ®ï¼ŒUDåŒ…ä¸èƒ½åˆ†2æ¬¡è¯»ï¼ŒrecvåŽä¼šæ¸…é™¤æ•°æ®åŒ…ï¼Œæ‰€ä»¥å¿…é¡»è¦ä¸€æ¬¡æ€§è¯»å®Œ
      *
-     * @param int $length ½ÓÊÕÊý¾ÝµÄ³¤¶È
-     * @param bool $waitall µÈ´ý½ÓÊÕµ½È«²¿Êý¾ÝºóÔÙ·µ»Ø£¬×¢Òâwaitall=true,³¬¹ý°ü³¤¶È»á×èÈû×¡
+     * @param int $length æŽ¥æ”¶æ•°æ®çš„é•¿åº¦
+     * @param bool $waitall ç­‰å¾…æŽ¥æ”¶åˆ°å…¨éƒ¨æ•°æ®åŽå†è¿”å›žï¼Œæ³¨æ„waitall=true,è¶…è¿‡åŒ…é•¿åº¦ä¼šé˜»å¡žä½
      */
     function recv($length = 65535, $waitall = 0)
     {
@@ -75,7 +75,7 @@ class ClientUDP extends Client
         $ret = socket_recvfrom($this->sock, $data, $length, $waitall, $this->remote_host, $this->remote_port);
         if ($ret === false) {
             $this->set_error();
-            //ÖØÊÔÒ»´Î£¬ÕâÀïÎª·ÀÖ¹ÒâÍâ£¬²»Ê¹ÓÃµÝ¹éÑ­»·
+            //é‡è¯•ä¸€æ¬¡ï¼Œè¿™é‡Œä¸ºé˜²æ­¢æ„å¤–ï¼Œä¸ä½¿ç”¨é€’å½’å¾ªçŽ¯
             if ($this->errCode == 4) {
                 socket_recvfrom($this->sock, $data, $length, $waitall, $this->remote_host, $this->remote_port);
             } else {
@@ -86,7 +86,7 @@ class ClientUDP extends Client
     }
 
     /**
-     * ¹Ø±ÕsocketÁ¬½Ó
+     * å…³é—­socketè¿žæŽ¥
      */
     function close()
     {

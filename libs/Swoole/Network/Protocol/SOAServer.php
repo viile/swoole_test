@@ -8,15 +8,15 @@ use Swoole;
  */
 class SOAServer extends \Swoole\Network\Protocol implements \Swoole\Server\Protocol
 {
-    protected $_buffer; //bufferÇø
-    protected $_fdfrom; //±£´æfd¶ÔÓ¦µÄfrom_id
+    protected $_buffer; //bufferåŒº
+    protected $_fdfrom; //ä¿å­˜fdå¯¹åº”çš„from_id
 
     protected $errCode;
     protected $errMsg;
 
-    protected $packet_maxlen = 2465792; //2MÄ¬ÈÏ×î´ó³¤¶È
-    protected $buffer_maxlen = 10240;   //×î´ó´ý´¦ÀíÇø³¤¶È,³¬¹ýºó½«¶ªÆú×îÔçÈë¶ÓÊý¾Ý
-    protected $buffer_clear_num = 100; //³¬¹ý×î´ó³¤¶Èºó£¬ÇåÀí100¸öÊý¾Ý
+    protected $packet_maxlen = 2465792; //2Mé»˜è®¤æœ€å¤§é•¿åº¦
+    protected $buffer_maxlen = 10240;   //æœ€å¤§å¾…å¤„ç†åŒºé•¿åº¦,è¶…è¿‡åŽå°†ä¸¢å¼ƒæœ€æ—©å…¥é˜Ÿæ•°æ®
+    protected $buffer_clear_num = 100; //è¶…è¿‡æœ€å¤§é•¿åº¦åŽï¼Œæ¸…ç†100ä¸ªæ•°æ®
 
     const STX = 0xABAB;
     const ETX = 0xEFEF;
@@ -25,13 +25,13 @@ class SOAServer extends \Swoole\Network\Protocol implements \Swoole\Server\Proto
     const ERR_OVER_MAXLEN = 9002;
     const ERR_BUFFER_FULL = 9003;
 
-    const ERR_UNPACK      = 9204; //½â°üÊ§°Ü
-    const ERR_PARAMS      = 9205; //²ÎÊý´íÎó
-    const ERR_NOFUNC      = 9206; //º¯Êý²»´æÔÚ
-    const ERR_CALL        = 9207; //Ö´ÐÐ´íÎó
+    const ERR_UNPACK      = 9204; //è§£åŒ…å¤±è´¥
+    const ERR_PARAMS      = 9205; //å‚æ•°é”™è¯¯
+    const ERR_NOFUNC      = 9206; //å‡½æ•°ä¸å­˜åœ¨
+    const ERR_CALL        = 9207; //æ‰§è¡Œé”™è¯¯
 
-    protected $appNS = array(); //Ó¦ÓÃ³ÌÐòÃüÃû¿Õ¼ä
-    public $function_map = array(); //½Ó¿ÚÁÐ±í
+    protected $appNS = array(); //åº”ç”¨ç¨‹åºå‘½åç©ºé—´
+    public $function_map = array(); //æŽ¥å£åˆ—è¡¨
 
     function onStart($serv)
     {
@@ -54,26 +54,26 @@ class SOAServer extends \Swoole\Network\Protocol implements \Swoole\Server\Proto
         $this->log("Timer[$interval] call");
     }
     /**
-     * ·µ»Øfalse¶ªÆú°ü²¢·¢ËÍ´íÎóÂë£¬·µ»Øtrue½«½øÐÐÏÂÒ»²½´¦Àí£¬·µ»Ø0±íÊ¾¼ÌÐøµÈ´ý°ü
+     * è¿”å›žfalseä¸¢å¼ƒåŒ…å¹¶å‘é€é”™è¯¯ç ï¼Œè¿”å›žtrueå°†è¿›è¡Œä¸‹ä¸€æ­¥å¤„ç†ï¼Œè¿”å›ž0è¡¨ç¤ºç»§ç»­ç­‰å¾…åŒ…
      * @param $data
      * @return false or true or 0
      */
     function _packetReform($data)
     {
         $_etx = unpack('netx', substr($data, -2, 2));
-        //ÊÕµ½½áÊø·û
+        //æ”¶åˆ°ç»“æŸç¬¦
         if($_etx!=false and $_etx['etx'] === self::ETX)
         {
             return true;
         }
-        //³¬¹ý×î´ó³¤¶È½«¶ªÆú
+        //è¶…è¿‡æœ€å¤§é•¿åº¦å°†ä¸¢å¼ƒ
         elseif(strlen($data) > $this->packet_maxlen)
         {
             $this->errCode = self::ERR_OVER_MAXLEN;
             $this->log("ERROR: packet too big.data=".$data);
             return false;
         }
-        //¼ÌÐøµÈ´ýÊý¾Ý
+        //ç»§ç»­ç­‰å¾…æ•°æ®
         else
         {
             return 0;
@@ -83,7 +83,7 @@ class SOAServer extends \Swoole\Network\Protocol implements \Swoole\Server\Proto
     {
         if(!isset($this->_buffer[$fd]) or $this->_buffer[$fd]==='')
         {
-            //³¬¹ýbufferÇøµÄ×î´ó³¤¶ÈÁË
+            //è¶…è¿‡bufferåŒºçš„æœ€å¤§é•¿åº¦äº†
             if(count($this->_buffer) >= $this->buffer_maxlen)
             {
                 $n = 0;
@@ -92,12 +92,12 @@ class SOAServer extends \Swoole\Network\Protocol implements \Swoole\Server\Proto
                     $this->server->close($k, $this->_fdfrom[$k]);
                     $n++;
                     $this->log("clear buffer");
-                    //ÇåÀíÍê±Ï
+                    //æ¸…ç†å®Œæ¯•
                     if($n >= $this->buffer_clear_num) break;
                 }
             }
             $_stx = unpack('nstx', substr($data, 0, 2));
-            //´íÎóµÄÆðÊ¼·û
+            //é”™è¯¯çš„èµ·å§‹ç¬¦
             if($_stx == false or $_stx['stx'] != self::STX)
             {
                 $this->errCode = self::ERR_STX;
@@ -108,24 +108,24 @@ class SOAServer extends \Swoole\Network\Protocol implements \Swoole\Server\Proto
         }
         $this->_buffer[$fd] .= $data;
         $ret = $this->_packetReform($this->_buffer[$fd]);
-        //¼ÌÐøµÈ´ýÊý¾Ý
+        //ç»§ç»­ç­‰å¾…æ•°æ®
         if($ret === 0)
         {
             return true;
         }
-        //¶ªÆú´Ë°ü
+        //ä¸¢å¼ƒæ­¤åŒ…
         elseif($ret === false)
         {
             $this->log("ERROR: lose data=".$data);
             $this->server->close($fd, $from_id);
-            //ÕâÀï¿ÉÒÔ¼Ólog
+            //è¿™é‡Œå¯ä»¥åŠ log
         }
-        //´¦ÀíÊý¾Ý
+        //å¤„ç†æ•°æ®
         else
         {
-            //ÕâÀïÐèÒªÈ¥µôSTXºÍETX
+            //è¿™é‡Œéœ€è¦åŽ»æŽ‰STXå’ŒETX
             $retData = $this->task($fd, substr($this->_buffer[$fd], 2, strlen($this->_buffer[$fd])-4));
-            //Ö´ÐÐÊ§°Ü
+            //æ‰§è¡Œå¤±è´¥
             if($retData === false)
             {
                 $this->server->close($fd);
@@ -134,7 +134,7 @@ class SOAServer extends \Swoole\Network\Protocol implements \Swoole\Server\Proto
             {
                 $this->server->send($fd, pack('n', self::STX).serialize($retData).pack('n', self::ETX));
             }
-            //ÇåÀí»º´æ
+            //æ¸…ç†ç¼“å­˜
             $this->_buffer[$fd] = '';
         }
     }

@@ -470,7 +470,7 @@ class Image
      * @param $crop_size 裁切的参数，高度,宽度,四点坐标
      * @return true/false
      */
-    static function cropImage($image,$params,$original_size,$crop_size)
+    static function cropImage($image,$params, $original_size,$crop_size)
     {
         $qulitity = isset($params['qulitity'])?$params['qulitity']:100;
         $dst_width = isset($params['width'])?$params['width']:90;

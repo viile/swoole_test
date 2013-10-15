@@ -1,18 +1,18 @@
 <?php
 namespace Swoole\Network;
 /**
- * TCP¿Í»§¶Ë
- * @author À¼¸ê
+ * TCPå®¢æˆ·ç«¯
+ * @author å…°æˆˆ
  */
 class ClientTCP extends Client
 {
     /**
-     * ÊÇ·ñÖØĞÂÁ¬½Ó
+     * æ˜¯å¦é‡æ–°è¿æ¥
      */
     public $try_reconnect = true;
-    public $connected = false; //ÊÇ·ñÒÑÁ¬½Ó
+    public $connected = false; //æ˜¯å¦å·²è¿æ¥
     /**
-     * ·¢ËÍÊı¾İ
+     * å‘é€æ•°æ®
      * @param string $data
      */
     function send($data)
@@ -20,19 +20,19 @@ class ClientTCP extends Client
         $length = strlen($data);
         $written = 0;
         $t1 = microtime(true);
-        //×Ü³¬Ê±£¬forÑ­»·ÖĞ¼ÆÊ±
+        //æ€»è¶…æ—¶ï¼Œforå¾ªç¯ä¸­è®¡æ—¶
         while ($written < $length)
         {
             $n = socket_send($this->sock, substr($data, $written), $length - $written, null);
-            //³¬¹ı×ÜÊ±¼ä
+            //è¶…è¿‡æ€»æ—¶é—´
             if (microtime(true) > $this->timeout_send + $t1)
             {
                 return false;
             }
-            if ($n === false) //·´¹ıÀ´
+            if ($n === false) //åè¿‡æ¥
             {
                 $errno = socket_last_error($this->sock);
-                //ÅĞ¶Ï´íÎóĞÅÏ¢£¬EAGAIN EINTR£¬ÖØĞ´Ò»´Î
+                //åˆ¤æ–­é”™è¯¯ä¿¡æ¯ï¼ŒEAGAIN EINTRï¼Œé‡å†™ä¸€æ¬¡
                 if ($errno == 11 or $errno == 4) {
                     continue;
                 } else {
@@ -45,9 +45,9 @@ class ClientTCP extends Client
     }
 
     /**
-     * ½ÓÊÕÊı¾İ
-     * @param int $length ½ÓÊÕÊı¾İµÄ³¤¶È
-     * @param bool $waitall µÈ´ı½ÓÊÕµ½È«²¿Êı¾İºóÔÙ·µ»Ø£¬×¢ÒâÕâÀï³¬¹ı°ü³¤¶È»á×èÈû×¡
+     * æ¥æ”¶æ•°æ®
+     * @param int $length æ¥æ”¶æ•°æ®çš„é•¿åº¦
+     * @param bool $waitall ç­‰å¾…æ¥æ”¶åˆ°å…¨éƒ¨æ•°æ®åå†è¿”å›ï¼Œæ³¨æ„è¿™é‡Œè¶…è¿‡åŒ…é•¿åº¦ä¼šé˜»å¡ä½
      */
     function recv($length = 65535, $waitall = 0)
     {
@@ -56,7 +56,7 @@ class ClientTCP extends Client
 
         if ($ret === false) {
             $this->set_error();
-            //ÖØÊÔÒ»´Î£¬ÕâÀïÎª·ÀÖ¹ÒâÍâ£¬²»Ê¹ÓÃµİ¹éÑ­»·
+            //é‡è¯•ä¸€æ¬¡ï¼Œè¿™é‡Œä¸ºé˜²æ­¢æ„å¤–ï¼Œä¸ä½¿ç”¨é€’å½’å¾ªç¯
             if ($this->errCode == 4) {
                 socket_recv($this->sock, $data, $length, $waitall);
             } else {
@@ -67,16 +67,16 @@ class ClientTCP extends Client
     }
 
     /**
-     * Á¬½Óµ½·şÎñÆ÷
-     * ½ÓÊÜÒ»¸ö¸¡µãĞÍÊı×Ö×÷Îª³¬Ê±£¬ÕûÊı²¿·Ö×÷Îªsec£¬Ğ¡Êı²¿·Ö*100Íò×÷Îªusec
+     * è¿æ¥åˆ°æœåŠ¡å™¨
+     * æ¥å—ä¸€ä¸ªæµ®ç‚¹å‹æ•°å­—ä½œä¸ºè¶…æ—¶ï¼Œæ•´æ•°éƒ¨åˆ†ä½œä¸ºsecï¼Œå°æ•°éƒ¨åˆ†*100ä¸‡ä½œä¸ºusec
      *
-     * @param string $host ·şÎñÆ÷µØÖ·
-     * @param int $port ·şÎñÆ÷µØÖ·
-     * @param float $timeout ³¬Ê±Ä¬ÈÏÖµ£¬Á¬½Ó£¬·¢ËÍ£¬½ÓÊÕ¶¼Ê¹ÓÃ´ËÉèÖÃ
+     * @param string $host æœåŠ¡å™¨åœ°å€
+     * @param int $port æœåŠ¡å™¨åœ°å€
+     * @param float $timeout è¶…æ—¶é»˜è®¤å€¼ï¼Œè¿æ¥ï¼Œå‘é€ï¼Œæ¥æ”¶éƒ½ä½¿ç”¨æ­¤è®¾ç½®
      */
     function connect($host, $port, $timeout = 0.1, $nonblock = false)
     {
-        //ÅĞ¶Ï³¬Ê±Îª0»ò¸ºÊı
+        //åˆ¤æ–­è¶…æ—¶ä¸º0æˆ–è´Ÿæ•°
         if (empty($host) or empty($port) or $timeout <= 0)
         {
             $this->errCode = -10001;
@@ -85,17 +85,17 @@ class ClientTCP extends Client
         }
         $this->host = $host;
         $this->port = $port;
-        //´´½¨socket
+        //åˆ›å»ºsocket
         $this->sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         if ($this->sock === false)
         {
             $this->set_error();
             return false;
         }
-        //ÉèÖÃconnect³¬Ê±
+        //è®¾ç½®connectè¶…æ—¶
         $this->set_timeout($timeout, $timeout);
         $this->setopt(SO_REUSEADDR, 1);
-        //·Ç×èÈûÄ£Ê½ÏÂconnect½«Á¢¼´·µ»Ø
+        //éé˜»å¡æ¨¡å¼ä¸‹connectå°†ç«‹å³è¿”å›
         if($nonblock)
         {
             socket_set_nonblock($this->sock);
@@ -104,7 +104,7 @@ class ClientTCP extends Client
         }
         else
         {
-            //ÕâÀïµÄ´íÎóĞÅÏ¢Ã»ÓĞÈÎºÎÒâÒå£¬ËùÒÔÆÁ±Îµô
+            //è¿™é‡Œçš„é”™è¯¯ä¿¡æ¯æ²¡æœ‰ä»»ä½•æ„ä¹‰ï¼Œæ‰€ä»¥å±è”½æ‰
             if (@socket_connect($this->sock, $this->host, $this->port))
             {
                 $this->connected = true;
@@ -125,7 +125,7 @@ class ClientTCP extends Client
     }
 
     /**
-     * ¹Ø±ÕsocketÁ¬½Ó
+     * å…³é—­socketè¿æ¥
      */
     function close()
     {

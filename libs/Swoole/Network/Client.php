@@ -16,7 +16,7 @@ namespace Swoole\Network;
      */
 
 /**
- * ÍøÂç¿Í»§¶Ë·â×°»ùÀà
+ * ç½‘ç»œå®¢æˆ·ç«¯å°è£…åŸºç±»
  */
 abstract class Client
 {
@@ -31,10 +31,10 @@ abstract class Client
     public $host; //Server Host
     public $port; //Server Port
 
-    const ERR_RECV_TIMEOUT = 11; //½ÓÊÕÊı¾İ³¬Ê±£¬server¶ËÔÚ¹æ¶¨µÄÊ±¼äÄÚÃ»»Ø°ü
-    const ERR_INPROGRESS   = 115; //ÕıÔÚ´¦ÀíÖĞ
+    const ERR_RECV_TIMEOUT = 11; //æ¥æ”¶æ•°æ®è¶…æ—¶ï¼Œserverç«¯åœ¨è§„å®šçš„æ—¶é—´å†…æ²¡å›åŒ…
+    const ERR_INPROGRESS   = 115; //æ­£åœ¨å¤„ç†ä¸­
     /**
-     * ´íÎóĞÅÏ¢¸³Öµ
+     * é”™è¯¯ä¿¡æ¯èµ‹å€¼
      */
     protected function set_error()
     {
@@ -43,9 +43,9 @@ abstract class Client
         socket_clear_error($this->sock);
     }
     /**
-     * ÉèÖÃ³¬Ê±
-     * @param float $recv_timeout ½ÓÊÕ³¬Ê±
-     * @param float $send_timeout ·¢ËÍ³¬Ê±
+     * è®¾ç½®è¶…æ—¶
+     * @param float $recv_timeout æ¥æ”¶è¶…æ—¶
+     * @param float $send_timeout å‘é€è¶…æ—¶
      */
     function set_timeout($timeout_recv, $timeout_send)
     {
@@ -62,7 +62,7 @@ abstract class Client
         $this->setopt(SO_SNDTIMEO, $_timeout_send);
     }
     /**
-     * ÉèÖÃsocket²ÎÊı
+     * è®¾ç½®socketå‚æ•°
      */
     function setopt($opt, $set)
     {
@@ -70,7 +70,7 @@ abstract class Client
     }
 
     /**
-     * »ñÈ¡socket²ÎÊı
+     * è·å–socketå‚æ•°
      */
     function getopt($opt)
     {
@@ -83,7 +83,7 @@ abstract class Client
     }
 
     /**
-     * ÉèÖÃbufferÇø
+     * è®¾ç½®bufferåŒº
      * @param $sendbuf_size
      * @param $recvbuf_size
      */
@@ -93,7 +93,7 @@ abstract class Client
         $this->setopt(SO_RCVBUF, $recvbuf_size);
     }
     /**
-     * Îö¹¹º¯Êı
+     * ææ„å‡½æ•°
      */
     function __destruct()
     {

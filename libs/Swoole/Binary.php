@@ -1,7 +1,7 @@
 <?php
 namespace Swoole;
 /**
- * ¶ş½øÖÆ´ò°üÀà
+ * äºŒè¿›åˆ¶æ‰“åŒ…ç±»
  */
 class Binary
 {
@@ -208,7 +208,7 @@ class Binary
 		}
 		$rets = substr($this->body, 1, $ret['len']);
 		$this->body = substr($this->body, $ret['len'] + 1);
-		// ³¤¶ÈÎª0Ê±substr»á·µ»Øfalse£¬ĞèÒªÌØÊâ´¦Àí
+		// é•¿åº¦ä¸º0æ—¶substrä¼šè¿”å›falseï¼Œéœ€è¦ç‰¹æ®Šå¤„ç†
 		if ($ret['len'] == 0)
 		{
 			return "";
@@ -231,7 +231,7 @@ class Binary
 		}
 		$rets = substr($this->body, 2, $ret['len']);
 		$this->body = substr($this->body, $ret['len'] + 2);
-		// ³¤¶ÈÎª0Ê±substr»á·µ»Øfalse£¬ĞèÒªÌØÊâ´¦Àí
+		// é•¿åº¦ä¸º0æ—¶substrä¼šè¿”å›falseï¼Œéœ€è¦ç‰¹æ®Šå¤„ç†
 		if ($ret['len'] == 0)
 		{
 			return "";
@@ -253,7 +253,7 @@ class Binary
 		}
 		$rets = substr($this->body, 4, $ret['len']);
 		$this->body = substr($this->body, $ret['len'] + 4);
-		// ³¤¶ÈÎª0Ê±substr»á·µ»Øfalse£¬ĞèÒªÌØÊâ´¦Àí
+		// é•¿åº¦ä¸º0æ—¶substrä¼šè¿”å›falseï¼Œéœ€è¦ç‰¹æ®Šå¤„ç†
 		if ($ret['len'] == 0)
 		{
 			return "";
@@ -298,8 +298,8 @@ class Binary
 		return $ret;
 	}
 	/*
-	 * $val_arr Êı×é ÖµµÄÊı×é¶ÔÓ¦½á¹¹»¯µÄstruct
-	* $format_str ¸ñÊ½»¯×Ö·û´®
+	 * $val_arr æ•°ç»„ å€¼çš„æ•°ç»„å¯¹åº”ç»“æ„åŒ–çš„struct
+	* $format_str æ ¼å¼åŒ–å­—ç¬¦ä¸²
 	* return false/str
 	*/
 	public static function binaryFormat($val_arr,$format_str)

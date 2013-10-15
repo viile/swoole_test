@@ -101,13 +101,14 @@ abstract class WebSocket extends HttpServer
         //建立连接
         if(!isset($this->connections[$client_id]))
         {
-            $request = $this->parse_request($data);
-            if ($request === false)
+            $st = $this->checkData($client_id, $data);
+            if ($st === self::ST_ERROR)
             {
                 $this->server->close($client_id);
                 return false;
             }
-            $response = new \Swoole\Response;
+            $request = $this->requests[$client_id];
+            $response = new Swoole\Response;
             $this->doHandshake($request, $response);
             $this->response($client_id, $response);
 

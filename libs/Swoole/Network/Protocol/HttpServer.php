@@ -1,6 +1,8 @@
 <?php
 namespace Swoole\Network\Protocol;
 
+use Swoole;
+
 /**
  * HTTP Server
  * @author Tianfeng.Han
@@ -8,7 +10,7 @@ namespace Swoole\Network\Protocol;
  * @package Swoole
  * @subpackage net.protocol
  */
-class HttpServer extends \Swoole\Network\Protocol implements \Swoole\Server\Protocol
+class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protocol
 {
     public $config = array();
 
@@ -47,8 +49,8 @@ class HttpServer extends \Swoole\Network\Protocol implements \Swoole\Server\Prot
         $mimes = require(LIBPATH . '/data/mimes.php');
         $this->mime_types = array_flip($mimes);
         $this->config = $config;
-        \Swoole\Error::$echo_html = true;
-        $this->parser = new \Swoole\Http\Parser;
+        Swoole\Error::$echo_html = true;
+        $this->parser = new Swoole\Http\Parser;
     }
 
     function onStart($serv)
@@ -135,7 +137,7 @@ class HttpServer extends \Swoole\Network\Protocol implements \Swoole\Server\Prot
             }
             else
             {
-                $request = new \Swoole\Request;
+                $request = new Swoole\Request;
                 //GET没有body
                 list($header, $request->body) = explode(self::HTTP_EOF, $http_data, 2);
                 $request->head = $this->parser->parseHeader($header);
@@ -249,7 +251,7 @@ class HttpServer extends \Swoole\Network\Protocol implements \Swoole\Server\Prot
 
     /**
      * 解析请求
-     * @param $request \Swoole\Request
+     * @param $request Swoole\Request
      * @return unknown_type
      */
     function parseRequest($request)
@@ -280,20 +282,29 @@ class HttpServer extends \Swoole\Network\Protocol implements \Swoole\Server\Prot
      * @param $response
      * @return unknown_type
      */
-    function response($client_id, $response)
+    function response($client_id, Swoole\Response $response)
     {
-        if (!isset($response->head['Date'])) $response->head['Date'] = gmdate("D, d M Y H:i:s T");
-        if (!isset($response->head['Server'])) $response->head['Server'] = self::SOFTWARE;
-        //keepalive
-        if(!$this->keepalive)
+        if (!isset($response->head['Date']))
         {
-            $response->head['KeepAlive'] = 'off';
-            $response->head['Connection'] = 'close';
+            $response->head['Date'] = gmdate("D, d M Y H:i:s T");
         }
-        else
+        if (!isset($response->head['Server']))
         {
-            $response->head['KeepAlive'] = 'on';
-            $response->head['Connection'] = 'keep-alive';
+            $response->head['Server'] = self::SOFTWARE;
+        }
+        if(!isset($response->head['Connection']))
+        {
+            //keepalive
+            if(!$this->keepalive)
+            {
+                $response->head['KeepAlive'] = 'off';
+                $response->head['Connection'] = 'close';
+            }
+            else
+            {
+                $response->head['KeepAlive'] = 'on';
+                $response->head['Connection'] = 'keep-alive';
+            }
         }
         //过期命中
         if ($this->expire and $response->http_status == 304)
@@ -314,11 +325,11 @@ class HttpServer extends \Swoole\Network\Protocol implements \Swoole\Server\Prot
         $this->server->send($client_id, $out);
     }
 
-    function http_error($code, $response, $content = '')
+    function http_error($code, Swoole\Response $response, $content = '')
     {
         $response->send_http_status($code);
         $response->head['Content-Type'] = 'text/html';
-        $response->body = \Swoole\Error::info(\Swoole\Response::$HTTP_HEADERS[$code], "<p>$content</p><hr><address>" . self::SOFTWARE . " at {$this->server->host} Port {$this->server->port}</address>");
+        $response->body = Swoole\Error::info(Swoole\Response::$HTTP_HEADERS[$code], "<p>$content</p><hr><address>" . self::SOFTWARE . " at {$this->server->host} Port {$this->server->port}</address>");
     }
 
     /**
@@ -336,7 +347,7 @@ class HttpServer extends \Swoole\Network\Protocol implements \Swoole\Server\Prot
      */
     function onRequest($request)
     {
-        $response = new \Swoole\Response;
+        $response = new Swoole\Response;
         //请求路径
         if ($request->meta['path'][strlen($request->meta['path']) - 1] == '/') {
             $request->meta['path'] .= $this->config['request']['default_page'];
@@ -385,7 +396,7 @@ class HttpServer extends \Swoole\Network\Protocol implements \Swoole\Server\Prot
      * @param $response
      * @return unknown_type
      */
-    function process_static($request, $response)
+    function process_static($request, Swoole\Response $response)
     {
         $path = $this->document_root . '/' . $request->meta['path'];
         if (is_file($path))

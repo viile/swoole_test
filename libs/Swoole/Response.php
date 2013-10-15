@@ -12,6 +12,7 @@ class Response
 
     static $HTTP_HEADERS = array(
         100 => "100 Continue",
+        101 => "101 Switching Protocols",
         200 => "200 OK",
         201 => "201 Created",
         204 => "204 No Content",
@@ -49,6 +50,17 @@ class Response
     {
         $this->head[$key] = $value;
     }
+
+    /**
+     * 设置cookie
+     * @param $name
+     * @param null $value
+     * @param null $expire
+     * @param string $path
+     * @param null $domain
+     * @param null $secure
+     * @param null $httponly
+     */
     function setcookie($name, $value = null, $expire = null, $path = '/', $domain = null, $secure = null, $httponly = null)
     {
         if($value==null) $value='deleted';
@@ -56,6 +68,15 @@ class Response
         if($domain) $cookie.="; domain=$domain";
         if($httponly) $cookie.='; httponly';
         $this->cookie[] = $cookie;
+    }
+
+    /**
+     * 增加head信息
+     * @param $header
+     */
+    function addHeader(array $header)
+    {
+        $this->head = array_merge($this->head, $header);
     }
 
     function head()

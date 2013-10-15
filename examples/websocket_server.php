@@ -1,7 +1,7 @@
 <?php
 define('DEBUG', 'on');
 define("WEBPATH", str_replace("\\","/", __DIR__));
-require __DIR__.'/libs/lib_config.php';
+require __DIR__ . '/../libs/lib_config.php';
 
 class WebSocket extends Swoole\Network\Protocol\WebSocket
 {

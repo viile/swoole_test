@@ -19,9 +19,9 @@ for ($i = 0; $i < 1; $i++)
     $ret8 = $cloud->task("BL\\Test::test1", "hello{$i}_8");
 //    echo "send " . (microtime(true) - $s2) * 1000, "\n";
 
-    $n = $cloud->wait(0.5); //500ms³¬Ê±
+    $n = $cloud->wait(0.5); //500msè¶…æ—¶
     //and $ret1->code == Mido\Cloud::OK and $ret2->code == Mido\Cloud::OK
-    //±íÊ¾È«²¿OKÁË
+    //è¡¨ç¤ºå…¨éƒ¨OKäº†
     if ($n === 8)
     {
         $ok++;

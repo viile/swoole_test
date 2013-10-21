@@ -72,6 +72,11 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         $this->log("client[#$client_id@$from_id] connect");
     }
 
+    function setDocumentRoot($path)
+    {
+        $this->document_root = $path;
+    }
+
     function onClose($serv, $client_id, $from_id)
     {
         $this->log("client[#$client_id@$from_id] close");
@@ -115,9 +120,14 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         $this->static_dir = array_flip(explode(',', $config['access']['static_dir']));
         $this->static_ext = array_flip(explode(',', $config['access']['static_ext']));
         $this->dynamic_ext = array_flip(explode(',', $config['access']['dynamic_ext']));
-        $this->document_root = $config['server']['document_root'];
+        /*--------------document_root------------*/
+        if (empty($this->document_root) and !empty($config['server']['document_root']))
+        {
+            $this->document_root = $config['server']['document_root'];
+        }
         /*-----merge----*/
-        if (!is_array($this->config)) {
+        if (!is_array($this->config))
+        {
             $this->config = array();
         }
         $this->config = array_merge($this->config, $config);

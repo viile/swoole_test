@@ -53,6 +53,7 @@ class SelectDB
     public $result_filter = array();
 
     public $call_by = 'func';
+
     public $db;
 
     function __construct($db)
@@ -327,10 +328,6 @@ class SelectDB
         $this->pager = new Pager(array('total'=>$this->num,'perpage'=>$this->page_size,'nowindex'=>$this->page));
     }
 
-    function quote(&$str)
-    {
-        $this->db->escape_string($str);
-    }
     /**
      * 使SQL元素安全
      * @param $sql_sub
@@ -338,7 +335,7 @@ class SelectDB
      */
     static function sql_safe($sql_sub)
     {
-        if(!preg_match(self::$allow_regx,$sql_sub))
+        if(!preg_match(self::$allow_regx, $sql_sub))
         {
             echo $sql_sub;
             if(self::$error_call==='') die('sql block is not safe!');
@@ -462,7 +459,7 @@ class SelectDB
             }
             else
             {
-                self::quote($param);
+                $param = $this->db->quote($param);
                 if($this->call_by=='func') $this->where($method.'="'.$param.'"');
                 elseif($this->call_by=='smarty')
                 {
@@ -564,7 +561,7 @@ class SelectDB
         $values="";
         foreach($data as $key => $value)
         {
-            $this->quote($value);
+            $value = $this->db->quote($value);
             $field=$field."`$key`,";
             $values=$values."'$value',";
         }
@@ -582,7 +579,7 @@ class SelectDB
         $update="";
         foreach($data as $key=>$value)
         {
-            $this->quote($value);
+            $value = $this->db->quote($value);
             if($value!='' and $value{0}=='`') $update=$update."`$key`=$value,";
             else $update=$update."`$key`='$value',";
         }

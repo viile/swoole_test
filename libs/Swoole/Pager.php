@@ -9,70 +9,65 @@ namespace Swoole;
  */
 class Pager
 {
-	/**
-	 * config ,public
-	 */
-	public $page_name="page";//page标签，用来控制url页。比如说xxx.php?PB_page=2中的PB_page
-	public $next_page='下一页';//下一页
-	public $pre_page='上一页';//上一页
-	public $first_page='首页';//首页
-	public $last_page='尾页';//尾页
-	public $pre_bar='上一分页条';//上一分页条
-	public $next_bar='下一分页条';//下一分页条
-	public $format_left='';
-	public $format_right='';
-	public $is_ajax=false;//是否支持AJAX分页模式
-	public $page_tpl = '';
+    /**
+     * config ,public
+     */
+    public $page_name = "page"; //page标签，用来控制url页。比如说xxx.php?PB_page=2中的PB_page
+    public $next_page = '下一页'; //下一页
+    public $pre_page = '上一页'; //上一页
+    public $first_page = '首页'; //首页
+    public $last_page = '尾页'; //尾页
+    public $pre_bar = '上一分页条'; //上一分页条
+    public $next_bar = '下一分页条'; //下一分页条
+    public $format_left = '';
+    public $format_right = '';
+    public $page_tpl = '';
 
-	public $fragment;
-	public $span_open = array('first','last','next','previous');
-	public $pagesize_group = array(10,20,50);
-	public $span_class;
-	/**
-	 * private
-	 *
-	 */
-	public $pagebarnum=10;//控制记录条的个数。
-	public $totalpage=0;//总页数
-	public $pagesize=10;
-	public $total=0;
-	public $ajax_action_name='';//AJAX动作名
-	public $nowindex=1;//当前页
-	public $offset=0;
-	public $style;
+    public $fragment;
+    public $span_open = array('first', 'last', 'next', 'previous');
+    public $pagesize_group = array(10, 20, 50);
+    public $span_class;
+    /**
+     * private
+     *
+     */
+    public $pagebarnum = 10; //控制记录条的个数。
+    public $totalpage = 0; //总页数
+    public $pagesize = 10;
+    public $total = 0;
+    public $ajax_action_name = ''; //AJAX动作名
+    public $nowindex = 1; //当前页
+    public $offset = 0;
+    public $style;
 
-	/**
+    /**
 	 * constructor构造函数
 	 *
 	 * @param array $array['total'],$array['perpage'],$array['nowindex'],$array['url'],$array['ajax']...
 	 */
 	function __construct($array)
 	{
-		//debug($array);
-		if(is_array($array))
-		{
-			if(!isset($array['total'])) $this->error(__FUNCTION__,'need a param of total');
-			$total=intval($array['total']);
-			$perpage = isset($array['perpage'])?intval($array['perpage']):10;
-			$nowindex = isset($array['nowindex'])?intval($array['nowindex']):'';
-			$url = isset($array['url'])?$array['url']:'';
-		}
-		else
-		{
-			$total=$array;
-			$perpage=10;
-			$nowindex='';
-			$url='';
-		}
-		if(!empty($array['page_name']))
-		{
-			$this->set('page_name',$array['page_name']);//设置pagename
-		}
-		$this->pagesize=$perpage;
-		$this->_set_nowindex($nowindex);//设置当前页
-		$this->totalpage=ceil($total/$perpage);
-		$this->total = $total;
-		$this->offset=($this->nowindex-1)*$perpage;
+        //debug($array);
+        if (is_array($array)) {
+            if (!isset($array['total'])) Error::info(__FUNCTION__, 'need a param of total');
+            $total = intval($array['total']);
+            $perpage = isset($array['perpage']) ? intval($array['perpage']) : 10;
+            $nowindex = isset($array['nowindex']) ? intval($array['nowindex']) : '';
+            $url = isset($array['url']) ? $array['url'] : '';
+        } else {
+            $total = $array;
+            $perpage = 10;
+            $nowindex = '';
+            $url = '';
+        }
+        if (!empty($array['page_name'])) {
+            $this->set('page_name', $array['page_name']); //设置pagename
+        }
+        $this->pagesize = $perpage;
+        $this->_set_nowindex($nowindex); //设置当前页
+        $this->totalpage = ceil($total / $perpage);
+        $this->total = $total;
+        $this->offset = ($this->nowindex - 1) * $perpage;
 	}
 	function set_class($span,$classname)
 	{
@@ -84,29 +79,28 @@ class Pager
 	 * @param string $var
 	 * @param string $value
 	 */
-	function set($var,$value)
-	{
-		if(in_array($var,get_object_vars($this)))
-			$this->$var=$value;
-		else {
-			$this->error(__FUNCTION__,$var." does not belong to PB_Page!");
-		}
-	}
+    function set($var, $value)
+    {
+        if (in_array($var, get_object_vars($this)))
+            $this->$var = $value;
+        else {
+            Error::info(__FUNCTION__, $var . " does not belong to PB_Page!");
+        }
+    }
 	/**
 	 * 获取显示"下一页"的代码
 	 *
 	 * @param string $style
 	 * @return string
 	 */
-	function next_page()
-	{
-		$style = @$this->span_class['next'];
-		if($this->nowindex<$this->totalpage)
-		{
-			return $this->_get_link($this->_get_url($this->nowindex+1),$this->next_page,$style);
-		}
-		return '<span class="'.$style.'">'.$this->next_page.'</span>';
-	}
+    function next_page()
+    {
+        $style = @$this->span_class['next'];
+        if ($this->nowindex < $this->totalpage) {
+            return $this->_get_link($this->_get_url($this->nowindex + 1), $this->next_page, $style);
+        }
+        return '<span class="' . $style . '">' . $this->next_page . '</span>';
+    }
 
 	/**
 	 * 获取显示“上一页”的代码
@@ -299,21 +293,9 @@ class Pager
 	/**
 	 * 获取链接地址
 	 */
-	function _get_link($url,$text,$style=''){
-		$style=(empty($style))?'':'class="'.$style.'"';
-		if($this->is_ajax){
-			//如果是使用AJAX模式
-			return '<a '.$style.'href="javascript:'.$this->ajax_action_name.'(\''.$url.'\')">'.$text.'</a>';
-		}else{
-			return '<a '.$style.'href="'.$url.'">'.$text.'</a>';
-		}
-	}
-	/**
-	 * 出错处理方式
-	 */
-	function error($function,$errormsg)
-	{
-		die('Error in file <b>'.__FILE__.'</b> ,Function <b>'.$function.'()</b> :'.$errormsg);
-	}
+    function _get_link($url, $text, $style = '')
+    {
+        $style = (empty($style)) ? '' : 'class="' . $style . '"';
+        return '<a ' . $style . 'href="' . $url . '">' . $text . '</a>';
+    }
 }
-?>

@@ -66,6 +66,12 @@ class MySQL implements \Swoole\IDatabase
 	{
 		return \mysql_insert_id($this->conn);
 	}
+
+    function quote($value)
+    {
+        return mysql_real_escape_string($value, $this->conn);
+    }
+
 	function ping()
 	{
 		if(!\mysql_ping($this->conn)) return false;

@@ -141,7 +141,15 @@ class Tool
             $ignores = explode(',', $ignore);
             foreach ($ignores as $ig) unset($urls[$ig]);
         }
-        if (self::$url_prefix == '') $prefix = $_SERVER['PHP_SELF'] . '?';
+        if (self::$url_prefix == '')
+        {
+            $qm = strpos($_SERVER['REQUEST_URI'], '?');
+            if($qm !== false) {
+                $prefix = substr($_SERVER['REQUEST_URI'], 0, $qm+1);
+            } else {
+                $prefix = $_SERVER['REQUEST_URI'] . '?';
+            }
+        }
         else $prefix = self::$url_prefix;
         return $prefix . self::combine_query($urls) . self::$url_add_end;
     }

@@ -13,7 +13,7 @@ class Swoole_client
 	 * @param $url
 	 * @return unknown_type
 	 */
-	static function redirect($url,$mode=302)
+	public static function redirect($url,$mode=302)
 	{
 		Swoole\Http::redirect($url, $mode);
         return;

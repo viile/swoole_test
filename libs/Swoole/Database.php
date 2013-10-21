@@ -45,7 +45,10 @@ class Database
 	public $read_times = 0;
 	public $write_times = 0;
 	public $_db = null;
-	public $db_apt = null;
+    /**
+     * @var \Swoole\SelectDB
+     */
+    public $db_apt = null;
 
 	const TYPE_MYSQL   = 1;
 	const TYPE_MYSQLi  = 2;
@@ -194,8 +197,8 @@ class Database
 	 * @param $method
 	 * @return unknown_type
 	 */
-	function __call($method,$args=array())
+	function __call($method, $args=array())
 	{
-		return call_user_func_array(array($this->_db,$method),$args);
+		return call_user_func_array(array($this->_db, $method), $args);
 	}
 }

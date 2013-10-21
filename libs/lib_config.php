@@ -103,7 +103,7 @@ function create($name)
 function session($readonly = false)
 {
     $php = Swoole::getInstance();
-    if(!isset($php->config['cache']['session']))
+    if(!defined('SWOOLE_SERVER'))
     {
         session_start();
         return true;

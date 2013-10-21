@@ -20,9 +20,9 @@ class PdoDB extends \PDO
 			else
 			    parent::__construct($dsn, $db_config['user'],$db_config['password']);
 			if($db_config['ifsetname']) parent::query('set names '.$db_config['charset']);
-			$this->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);
+			$this->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE,\PDO::FETCH_ASSOC);
 		}
-		catch (PDOException $e)
+		catch (\PDOException $e)
 		{
 			die("Error: " . $e->__toString() . "<br/>");
 		}
@@ -39,7 +39,7 @@ class PdoDB extends \PDO
 	{
 		if($this->debug) echo "$sql<br />\n<hr />";
 		parent::quote($sql);
-		$res = parent::query($sql) or Error::info("SQL Error",implode(", ",$this->errorInfo())."<hr />$sql");
+		$res = parent::query($sql) or \Swoole\Error::info("SQL Error",implode(", ",$this->errorInfo())."<hr />$sql");
 		return $res;
 	}
 	/**

@@ -1,12 +1,13 @@
 <?php
 define('DEBUG', 'on');
-define("WEBPATH", str_replace("\\","/", __DIR__));
+define("WEBPATH", realpath(__DIR__.'/../'));
 require __DIR__ . '/../libs/lib_config.php';
 //require __DIR__'/phar://swoole.phar';
 Swoole\Config::$debug = true;
 $AppSvr = new Swoole\Network\Protocol\AppServer();
-$AppSvr->loadSetting("./swoole.ini"); //加载配置文件
-$AppSvr->setAppPath(__DIR__.'/apps/'); //设置应用所在的目录
+$AppSvr->loadSetting(__DIR__.'/swoole.ini'); //加载配置文件
+$AppSvr->setAppPath(WEBPATH.'/apps/'); //设置应用所在的目录
+$AppSvr->setDocumentRoot(WEBPATH);
 $AppSvr->setLogger(new \Swoole\Log\EchoLog(true)); //Logger
 
 Swoole\Error::$echo_html = false;

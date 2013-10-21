@@ -68,7 +68,7 @@ class Parser implements \Swoole\IFace\HttpParser
         $blocks = explode(";", $str);
         foreach ($blocks as $b)
         {
-            $_r = explode("=", $b);
+            $_r = explode("=", $b, 2);
             if(count($_r)==2)
             {
                 list ($key, $value) = $_r;

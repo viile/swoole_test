@@ -7,28 +7,28 @@ namespace Swoole;
  */
 class Http_PWS
 {
-    function header($k, $v)
+    static function header($k, $v)
     {
         $k = ucwords($k);
         \Swoole::$php->response->send_head($k,$v);
     }
-    function status($code)
+    static function status($code)
     {
         \Swoole::$php->response->send_http_status($code);
     }
-    function response($content)
+    static function response($content)
     {
         global $php;
         $php->response->body = $content;
         self::finish();
     }
-    function redirect($url,$mode=301)
+    static function redirect($url,$mode=301)
     {
         \Swoole::$php->response->send_http_status($mode);
         \Swoole::$php->response->send_head('Location',$url);
     }
 
-    function finish()
+    static function finish()
     {
         \Swoole::$php->request->finish = 1;
         throw new \Exception;
@@ -37,19 +37,20 @@ class Http_PWS
 
 class Http_LAMP
 {
-    function header($k,$v)
+    static function header($k,$v)
     {
         header($k.':'.$v);
     }
-    function status($code)
+    static function status($code)
     {
         header('HTTP/1.1 '.\Swoole\Response::$HTTP_HEADERS[$code]);
     }
-    function redirect($url,$mode=301)
+    static function redirect($url,$mode=301)
     {
-        \Swoole_client::redirect($url,$mode);
+        header( "HTTP/1.1 ".\Swoole\Response::$HTTP_HEADERS[$mode]);
+        header("Location:".$url);
     }
-    function finish()
+    static function finish()
     {
         if(function_exists('fastcgi_finish_request'))
         {

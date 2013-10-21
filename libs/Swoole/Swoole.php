@@ -61,9 +61,11 @@ class Swoole
     public $env;
 
     private $hooks = array();
-    const HOOK_INIT  = 1;
-    const HOOK_CLEAN = 2;
-    
+
+    const HOOK_INIT  = 1; //初始化
+    const HOOK_ROUTE = 2; //URL路由
+    const HOOK_CLEAN = 3; //清理
+
     private function __construct()
     {
         if(!defined('DEBUG')) define('DEBUG', 'off');
@@ -87,6 +89,61 @@ class Swoole
         $this->load = new Swoole\Loader($this);
         $this->model = new Swoole\ModelLoader($this);
         $this->plugin = new Swoole\PluginLoader($this);
+
+        //路由钩子，URLRewrite
+        $this->addHook(Swoole::HOOK_ROUTE, function(&$uri) {
+            $rewrite = Swoole::$php->config['rewrite'];
+            $match = array();
+            foreach($rewrite as $rule)
+            {
+                if(preg_match('#'.$rule['regx'].'#', $uri['path'], $match))
+                {
+                    //合并到GET中
+                    if(isset($rule['get']))
+                    {
+                        $p = explode(',', $rule['get']);
+                        foreach($p as $k=>$v)
+                        {
+                            $_GET[$v] = $match[$k+1];
+                        }
+                    }
+                    return $rule['mvc'];
+                }
+            }
+            return false;
+        });
+
+        //mvc
+        $this->addHook(Swoole::HOOK_ROUTE, function(&$uri) {
+            $array = array('controller'=>'page', 'view'=>'index');
+            if(!empty($_GET["c"])) $array['controller'] = $_GET["c"];
+            if(!empty($_GET["v"])) $array['view'] = $_GET["v"];
+
+            if(empty($uri['path']) or $uri['path']=='/' or $uri['path']=='/index.php')
+            {
+                return $array;
+            }
+            $request = explode('/', trim($uri['path'], '/'), 3);
+            if(count($request) < 2)
+            {
+                return $array;
+            }
+            $array['controller']=$request[0];
+            $array['view']=$request[1];
+            if(isset($request[2]))
+            {
+                if(is_numeric($request[2])) $_GET['id'] = $request[2];
+                else
+                {
+                    Swoole\Tool::$url_key_join = '-';
+                    Swoole\Tool::$url_param_join = '-';
+                    Swoole\Tool::$url_add_end = '.html';
+                    Swoole\Tool::$url_prefix = WEBROOT."/{$request[0]}/$request[1]/";
+                    Swoole\Tool::url_parse_into($request[2], $_GET);
+                }
+            }
+            return $array;
+        });
     }
     static function getInstance()
     {
@@ -139,9 +196,18 @@ class Swoole
             $this->env['runtime']['start'] = microtime(true);
             $this->env['runtime']['mem'] = memory_get_usage();
         }
-        if(isset($this->hooks[self::HOOK_INIT]))
+        $this->callHook(self::HOOK_INIT);
+    }
+
+    /**
+     * 执行Hook函数列表
+     * @param $type
+     */
+    protected function callHook($type)
+    {
+        if(isset($this->hooks[$type]))
         {
-            foreach($this->hooks[self::HOOK_INIT] as $f)
+            foreach($this->hooks[$type] as $f)
             {
                 if(!is_callable($f))
                 {
@@ -152,24 +218,14 @@ class Swoole
             }
         }
     }
+
     /**
      * 清理
      */
     function __clean()
     {
         $this->env['runtime'] = array();
-        if(isset($this->hooks[self::HOOK_CLEAN]))
-        {
-            foreach($this->hooks[self::HOOK_CLEAN] as $f)
-            {
-                if(!is_callable($f))
-                {
-                    trigger_error("SwooleFramework: hook function[$f] is not callable.");
-                    continue;
-                }
-                $f();
-            }
-        }
+        $this->callHook(self::HOOK_CLEAN);
     }
     /**
      * 加载一个模块，并返回
@@ -211,19 +267,48 @@ class Swoole
     	return $this->$lib_name;
     }
 
+    function urlRoute()
+    {
+        if(empty($this->hooks[self::HOOK_ROUTE]))
+        {
+            echo Swoole\Error::info('MVC Error!',"UrlRouter hook is empty");
+            return false;
+        }
+        $uri = parse_url($_SERVER['REQUEST_URI']);
+        $mvc = array();
+
+        //URL Router
+        foreach($this->hooks[self::HOOK_ROUTE] as $hook)
+        {
+            if(!is_callable($hook))
+            {
+                trigger_error("SwooleFramework: hook function[$hook] is not callable.");
+                continue;
+            }
+            $mvc = $hook($uri);
+            //命中
+            if($mvc !== false)
+            {
+                break;
+            }
+        }
+        return $mvc;
+    }
+
     /**
      * 运行MVC处理模型
      * @param $url_processor
      * @return None
      */
-    function runMVC($url_processor = 'default')
+    function runMVC()
     {
-        $url_func = 'url_process_'.$url_processor;
-        if(!function_exists($url_func))
+        $mvc = $this->urlRoute();
+        if($mvc === false)
         {
-        	return Swoole\Error::info('MVC Error!',"Url Process function not found!<p>\nFunction:$url_func");
+            \Swoole\Http::status(404);
+            return Swoole\Error::info('MVC Error', "url route fail!");
         }
-        $mvc = $url_func($url_func);
+        //check
         if(!preg_match('/^[a-z0-9_]+$/i', $mvc['controller']))
         {
         	return Swoole\Error::info('MVC Error!',"controller[{$mvc['controller']}] name incorrect.Regx: /^[a-z0-9_]+$/i");
@@ -237,31 +322,32 @@ class Swoole
         	return Swoole\Error::info('MVC Error!',"app[{$mvc['app']}] name incorrect.Regx: /^[a-z0-9_]+$/i");
         }
 		$this->env['mvc'] = $mvc;
-		//支持app+controller+view三级映射
-		if(isset($mvc['app']))
-		{
-			 $controller_path = self::$app_path."/{$mvc['app']}/controllers/{$mvc['controller']}.php";
-		}
-        else
-        {
-        	$controller_path = self::$app_path."/controllers/{$mvc['controller']}.php";
-        }
-        if(!is_file($controller_path))
-        {
-            header("HTTP/1.1 404 Not Found");
-            Swoole\Error::info('MVC Error',"Controller <b>{$mvc['controller']}</b> not exist!");
-        }
-        else require_once($controller_path);
+        $controller_path = self::$app_path."/controllers/{$mvc['controller']}.php";
         if(!class_exists($mvc['controller'], false))
         {
-            Swoole\Error::info('MVC Error',"Controller Class <b>{$mvc['controller']}</b> not exist!");
+            if(!is_file($controller_path))
+            {
+                \Swoole\Http::status(404);
+                return Swoole\Error::info('MVC Error', "Controller <b>{$mvc['controller']}</b> not exist!");
+            }
+            else
+            {
+                require_once($controller_path);
+            }
         }
+
+        //服务器模式下，尝试重载入代码
+        if(defined('SWOOLE_SERVER'))
+        {
+            $this->reloadController($mvc, $controller_path);
+        }
+
         $class = $mvc['controller'];
         $controller = new $class($this);
         if(!is_callable(array($controller,$mvc['view'])))
         {
-            header("HTTP/1.1 404 Not Found");
-            Swoole\Error::info('MVC Error!'.$mvc['view'],"View <b>{$mvc['controller']}->{$mvc['view']}</b> Not Found!");
+            \Swoole\Http::status(404);
+            return Swoole\Error::info('MVC Error!'.$mvc['view'],"View <b>{$mvc['controller']}->{$mvc['view']}</b> Not Found!");
         }
         if(empty($mvc['param'])) $param = null;
         else $param = $mvc['param'];
@@ -269,6 +355,13 @@ class Swoole
         $method = $mvc['view'];
         $return = $controller->$method($param);
 
+        //保存Session
+        if ($this->session->open and $this->session->readonly === false)
+        {
+            $this->session->save();
+        }
+
+        //响应请求
         if($controller->is_ajax)
         {
             header('Cache-Control: no-cache, must-revalidate');
@@ -276,7 +369,22 @@ class Swoole
             header('Content-type: application/json');
             echo \json_encode($return);
         }
-        else $return;
+        else return $return;
+    }
+
+    function reloadController($mvc, $controller_file)
+    {
+        if(extension_loaded('runkit') and $this->config['apps']['auto_reload'])
+        {
+            clearstatcache();
+            $fstat = stat($controller_file);
+            //修改时间大于加载时的时间
+            if($fstat['mtime'] > $this->env['controllers'][$mvc['controller']]['time'])
+            {
+                runkit_import($controller_file, RUNKIT_IMPORT_CLASS_METHODS|RUNKIT_IMPORT_OVERRIDE);
+                $this->env['controllers'][$mvc['controller']]['time'] = time();
+            }
+        }
     }
 
     function runAjax()

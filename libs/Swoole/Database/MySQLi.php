@@ -29,6 +29,10 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
         $this->set_charset($db_config['charset']);
         return true;
     }
+    function quote($value)
+    {
+        return $this->escape_string($value);
+    }
     /**
      * 执行一个SQL语句
      * @param $sql 执行的SQL语句

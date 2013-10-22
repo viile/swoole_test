@@ -31,7 +31,7 @@ class AppServer extends HttpServer
                 $php->tpl->clear_all_assign();
             }
             //还原session
-            if(!empty($this->session))
+            if(!empty($php->session))
             {
                 $php->session->open = false;
                 $php->session->readonly = false;

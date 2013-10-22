@@ -3,7 +3,7 @@ define('DEBUG', 'on');
 define("WEBPATH", realpath(__DIR__.'/../'));
 require __DIR__ . '/../libs/lib_config.php';
 //require __DIR__'/phar://swoole.phar';
-Swoole\Config::$debug = true;
+Swoole\Config::$debug = false;
 $AppSvr = new Swoole\Network\Protocol\AppServer();
 $AppSvr->loadSetting(__DIR__.'/swoole.ini'); //加载配置文件
 $AppSvr->setAppPath(WEBPATH.'/apps/'); //设置应用所在的目录

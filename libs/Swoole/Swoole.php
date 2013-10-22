@@ -93,6 +93,7 @@ class Swoole
         //路由钩子，URLRewrite
         $this->addHook(Swoole::HOOK_ROUTE, function(&$uri) {
             $rewrite = Swoole::$php->config['rewrite'];
+            if(empty($rewrite) or !is_array($rewrite)) return false;
             $match = array();
             foreach($rewrite as $rule)
             {

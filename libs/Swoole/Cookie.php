@@ -13,7 +13,8 @@ class Cookie
 		if(!isset($_COOKIE[$key])) return $default;
 		else return $_COOKIE[$key];
 	}
-	static function set($key,$value,$expire=0)
+
+    static function set($key, $value, $expire = 0)
 	{
 	    if($expire!=0) $expire=time()+$expire;
 		if(defined('SWOOLE_SERVER'))
@@ -21,11 +22,15 @@ class Cookie
 		    global $php;
 		    $php->response->setcookie($key,$value,$expire,Cookie::$path,Cookie::$domain,Cookie::$secure,Cookie::$httponly);
 		}
-		else setcookie($key,$value,$expire,Cookie::$path,Cookie::$domain,Cookie::$secure,Cookie::$httponly);
-	}
-	static function delete($key)
+        else
+        {
+            setcookie($key, $value, $expire, Cookie::$path, Cookie::$domain, Cookie::$secure, Cookie::$httponly);
+        }
+    }
+
+    static function delete($key)
 	{
 		unset($_COOKIE[$key]);
-		return Cookie::set($key,null);
+		return self::set($key,null);
 	}
 }

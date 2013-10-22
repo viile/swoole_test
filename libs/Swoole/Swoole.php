@@ -132,7 +132,11 @@ class Swoole
             $array['view']=$request[1];
             if(isset($request[2]))
             {
-                if(is_numeric($request[2])) $_GET['id'] = $request[2];
+                $request[2] = trim($request[2], '/');
+                if(is_numeric($request[2]))
+                {
+                    $_GET['id'] = $request[2];
+                }
                 else
                 {
                     Swoole\Tool::$url_key_join = '-';

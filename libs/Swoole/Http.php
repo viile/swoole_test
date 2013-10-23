@@ -45,17 +45,14 @@ class Http_LAMP
     {
         header('HTTP/1.1 '.\Swoole\Response::$HTTP_HEADERS[$code]);
     }
-    static function redirect($url,$mode=301)
+    static function redirect($url, $mode=301)
     {
         header( "HTTP/1.1 ".\Swoole\Response::$HTTP_HEADERS[$mode]);
         header("Location:".$url);
     }
     static function finish()
     {
-        if(function_exists('fastcgi_finish_request'))
-        {
-            fastcgi_finish_request();
-        }
+        exit;
     }
 }
 

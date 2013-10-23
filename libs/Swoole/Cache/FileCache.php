@@ -25,7 +25,7 @@ class FileCache implements \Swoole\IFace\Cache
 
     protected function getFileName($key)
     {
-        $file = $this->config['cache_dir'] . '/' . trim(str_replace($key, '_', '/'), '/');
+        $file = $this->config['cache_dir'] . '/' . trim(str_replace('_', '/', $key), '/');
         $dir = dirname($file);
         if(!is_dir($dir))
         {
@@ -46,13 +46,14 @@ class FileCache implements \Swoole\IFace\Cache
 	function get($key)
 	{
         $file = $this->getFileName($key);
-        $data = serialize(file_get_contents($file));
+        if(!is_file($file)) return false;
+        $data = unserialize(file_get_contents($file));
         if (empty($data) or !isset($data['timeout']) or !isset($data["value"]))
         {
             return false;
         }
         //已过期
-        if (($data["mktime"] + $data["timeout"]) < time())
+        if ($data["timeout"] != 0 and ($data["mktime"] + $data["timeout"]) < time())
         {
             $this->delete($key);
             return false;

@@ -372,9 +372,10 @@ class Swoole
             header('Cache-Control: no-cache, must-revalidate');
             header('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT');
             header('Content-type: application/json');
-            echo \json_encode($return);
+            $return = json_encode($return);
         }
-        else return $return;
+        if(defined('SWOOLE_SERVER')) return $return;
+        else echo $return;
     }
 
     function reloadController($mvc, $controller_file)

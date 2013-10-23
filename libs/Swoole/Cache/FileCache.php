@@ -9,68 +9,60 @@ namespace Swoole\Cache;
  */
 class FileCache implements \Swoole\IFace\Cache
 {
-	public $_vd=array();
-	public $onchange=0;
-	public $res;
-	public $autosave = true;
-
+    protected $config;
 	function __construct($config)
 	{
-	    if(isset($config['params']['file'])) $this->res = $config['params']['file'];
-	    else $this->res = FILECACHE_DIR.'/'.$config['id'].'.php';
-		if(is_file($this->res))
-		{
-		    require($this->res);
-		    $this->_vd = $_vd;
-		}
+	    if(!isset($config['cache_dir']))
+        {
+            $config['cache_dir'] = WEBPATH.'/cache/filecache';
+        }
+        if(!is_dir($config['cache_dir']))
+        {
+            mkdir($config['cache_dir'], 0755, true);
+        }
+        $this->config = $config;
     }
 
-    function set($name,$value,$timeout=0)
-	{
-		$this->_vd[$name]["value"]=$value;
-		$this->_vd[$name]["timeout"]=$timeout;
-		$this->_vd[$name]["mktime"]=time();
-		$this->onchange=1;
-		if($this->autosave) $this->save();
-		return true;
+    protected function getFileName($key)
+    {
+        $file = $this->config['cache_dir'] . '/' . trim(str_replace($key, '_', '/'), '/');
+        $dir = dirname($file);
+        if(!is_dir($dir))
+        {
+            mkdir($dir, 0755, true);
+        }
+        return $file;
     }
 
-	function get($name)
+    function set($key, $value, $timeout=0)
 	{
-		if($this->exist($name)) return $this->_vd[$name]["value"];
-		else return false;
+        $file = $this->getFileName($key);
+        $data["value"] = $value;
+        $data["timeout"] = $timeout;
+        $data["mktime"] = time();
+        return file_put_contents($file, serialize($data));
+    }
+
+	function get($key)
+	{
+        $file = $this->getFileName($key);
+        $data = serialize(file_get_contents($file));
+        if (empty($data) or !isset($data['timeout']) or !isset($data["value"]))
+        {
+            return false;
+        }
+        //已过期
+        if (($data["mktime"] + $data["timeout"]) < time())
+        {
+            $this->delete($key);
+            return false;
+        }
+        return $data['value'];
 	}
 
-	function exist($name)
+	function delete($key)
 	{
-		if(!isset($this->_vd[$name])) return false;
-		elseif($this->_vd[$name]["timeout"]==0) return true;
-		elseif(($this->_vd[$name]["mktime"]+$this->_vd[$name]["timeout"])<time())
-		{
-			$this->onchange=1;
-			$this->delete($name);
-			return false;
-		}
-		else return true;
-	}
-
-	function delete($name)
-	{
-		if(isset($this->_vd[$name])) unset($this->_vd[$name]);
-		$this->onchange=1;
-		$this->save();
-	}
-
-	function save()
-	{
-		if($this->onchange==1)
-		{
-		    file_put_contents($this->res,"<?php\n\$_vd=".var_export($this->_vd,true).';');
-		}
-	}
-
-	function __destruct()
-	{
-		$this->save();
+        $file = $this->getFileName($key);
+        return unlink($file);
 	}
 }

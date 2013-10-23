@@ -192,8 +192,8 @@ class Form
 	 *	$default 如果要设定默认选择哪个数据 就在此填入默认的数据的值
 	 *	$self 设置为ture，option的值等于$value
 	 *	$attrArray html的属性 例如  class="x1"
-	 */
-	static function radio($name,$option,$default=null,$self=false,$attrArray=null,$label_class='')
+     **/
+    static function radio($name, $option, $default = null, $self = false, $attrArray = null, $label_class = '')
 	{
 		$htmlStr = "";
 	    $attrStr = self::input_attr($attrArray);
@@ -247,7 +247,7 @@ class Form
      * @param $attrArray html的属性 例如  class="x1"
      * @return unknown_type
      */
-    static function upload($name,$value='',$attrArray=null)
+    static function upload($name, $value = '', $attrArray = null)
     {
     	$attrStr = self::input_attr($attrArray);
     	$form = '';
@@ -262,7 +262,7 @@ class Form
      * @param $attrArray
      * @return unknown_type
      */
-	static function input($name,$value='',$attrArray=null)
+    static function input($name, $value = '', $attrArray = null)
 	{
 		$attrStr = self::input_attr($attrArray);
 		return "<input type='text' name='{$name}' id='{$name}' value='{$value}' {$attrStr} />";

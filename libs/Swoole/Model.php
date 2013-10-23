@@ -88,7 +88,7 @@ class Model
 	public final function put($data)
 	{
 		if(empty($data) or !is_array($data)) return false;
-		$this->db->insert($data,$this->table);
+		$this->db->insert($data, $this->table);
 		return $this->db->Insert_ID();
 	}
 	/**
@@ -98,7 +98,7 @@ class Model
 	 * @param $where 指定匹配字段，默认为主键
 	 * @return true/false
 	 */
-	public final function set($id,$data,$where='')
+	public final function set($id, $data, $where='')
 	{
 		if(empty($where)) $where=$this->primary;
 		return $this->db->update($id,$data,$this->table,$where);
@@ -128,7 +128,7 @@ class Model
 	 * @param $where 指定匹配字段，默认为主键
 	 * @return true/false
 	 */
-	public final function del($id,$where=null)
+	public final function del($id, $where=null)
 	{
 		if($where==null) $where = $this->primary;
 		return $this->db->delete($id,$this->table,$where);
@@ -169,7 +169,7 @@ class Model
 	 */
 	public final function all()
 	{
-		return new RecordSet($this->db,$this->table,$this->primary,$this->select);
+		return new RecordSet($this->db, $this->table, $this->primary, $this->select);
 	}
 	/**
 	 * 建立表，必须在Model类中，指定create_sql
@@ -398,21 +398,21 @@ class Record implements \ArrayAccess
 
 	function __get($property)
 	{
-		if(array_key_exists($property,$this->_data)) return $this->_data[$property];
+		if(array_key_exists($property, $this->_data)) return $this->_data[$property];
 		else Error::pecho("Record object no property: $property");
 	}
 
-	function __set($property,$value)
+	function __set($property, $value)
 	{
 		if($this->change==1 or $this->change==2)
 		{
-			$this->change=2;
-			$this->_change[$property]=$value;
-			$this->_data[$property]=$value;
+            $this->change = 2;
+            $this->_change[$property] = $value;
+            $this->_data[$property] = $value;
 		}
 		else
 		{
-			$this->_data[$property]=$value;
+            $this->_data[$property] = $value;
 		}
 		return true;
 	}
@@ -504,6 +504,7 @@ class RecordSet implements \Iterator
 	}
 	/**
 	 * 获取得到的数据
+     * @return array
 	 */
 	function get()
 	{
@@ -512,15 +513,17 @@ class RecordSet implements \Iterator
 	/**
 	 * 制定查询的参数，再调用数据之前进行
 	 * 参数为SQL SelectDB的put语句
-	 * @param unknown_type $params
+	 * @param array $params
+     * @return bool
 	 */
 	function params($params)
 	{
-		$this->db_select->put($params);
+		return $this->db_select->put($params);
 	}
 	/**
 	 * 过滤器语法，参数为SQL SelectDB的where语句
-	 * @param unknown_type $params
+	 * @param array $params
+     * @return null
 	 */
 	function filter($where)
 	{
@@ -530,7 +533,7 @@ class RecordSet implements \Iterator
 	 * 增加过滤条件，$field = $value
 	 * @return unknown_type
 	 */
-	function eq($field,$value)
+	function eq($field, $value)
 	{
 		$this->db_select->equal($field,$value);
 	}

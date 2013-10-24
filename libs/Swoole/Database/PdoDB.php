@@ -43,14 +43,6 @@ class PdoDB extends \PDO
 		return $res;
 	}
 	/**
-	 * 返回上一个Insert语句的自增主键ID
-	 * @return $ID
-	 */
-	function Insert_ID()
-	{
-		return $this->lastInsertId();
-	}
-	/**
 	 * 关闭连接，释放资源
 	 * @return unknown_type
 	 */

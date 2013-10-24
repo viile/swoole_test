@@ -17,6 +17,11 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
         $this->config = $db_config;
     }
 
+    function lastInsertId()
+    {
+        return $this->insert_id;
+    }
+
     function connect()
     {
         $db_config = &$this->config;

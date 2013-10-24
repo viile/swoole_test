@@ -19,7 +19,7 @@ interface IDatabase
 	function query($sql);
 	function connect();
 	function close();
-	function Insert_ID();
+	function lastInsertId();
 }
 /**
  * Database Driver接口

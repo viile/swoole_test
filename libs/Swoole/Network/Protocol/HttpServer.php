@@ -353,13 +353,14 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
     /**
      * 处理请求
      * @param $request
-     * @return unknown_type
+     * @return Swoole\Response
      */
-    function onRequest($request)
+    function onRequest(Swoole\Request $request)
     {
         $response = new Swoole\Response;
         //请求路径
-        if ($request->meta['path'][strlen($request->meta['path']) - 1] == '/') {
+        if ($request->meta['path'][strlen($request->meta['path']) - 1] == '/')
+        {
             $request->meta['path'] .= $this->config['request']['default_page'];
         }
         if($this->doStaticRequest($request, $response))
@@ -463,7 +464,8 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
             $request->setGlobal();
             $response->head['Content-Type'] = 'text/html';
             ob_start();
-            try {
+            try
+            {
                 include $path;
             }
             catch (\Exception $e)

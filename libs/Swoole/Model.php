@@ -10,7 +10,10 @@ namespace Swoole;
 class Model
 {
 	public $_data=array(); //数据库字段的具体值
-	public $db;
+    /**
+     * @var IDatabase
+     */
+    public $db;
 	public $swoole;
 
 	public $primary="id";
@@ -89,7 +92,7 @@ class Model
 	{
 		if(empty($data) or !is_array($data)) return false;
 		$this->db->insert($data, $this->table);
-		return $this->db->Insert_ID();
+		return $this->db->lastInsertId();
 	}
 	/**
 	 * 更新ID为$id的记录,值为$data关联数组
@@ -216,8 +219,10 @@ class Model
 			global $php;
 			$php->env['page'] = $params['page'];
 			$php->env['start'] = 10*intval($params['page']/10);
-			if($selectdb->pages>10 and $params['page']<$start)
-				$php->env['more'] = 1;
+			if($selectdb->pages>10 and $params['page']< $php->env['start'])
+            {
+                $php->env['more'] = 1;
+            }
 			$php->env['end'] = $selectdb->pages-$php->env['start'];
 			$php->env['pages'] = $selectdb->pages;
 			$php->env['pagesize'] = $selectdb->page_size;
@@ -426,14 +431,17 @@ class Record implements \ArrayAccess
 	{
 		if($this->change==0 or $this->change==1)
 		{
-			$this->db->insert($this->_data,$this->table);
-			$this->_current_id=$this->db->lastInsertId();
+			$ret = $this->db->insert($this->_data,$this->table);
+            if($ret === false) return false;
+            //改变状态
+            $this->change = 1;
+			$this->_current_id = $this->db->lastInsertId();
 		}
 		elseif($this->change==2)
 		{
 			$update = $this->_data;
 			unset($update[$this->primary]);
-			$this->db->update($this->_current_id,$this->_change,$this->table,$this->primary);
+			return $this->db->update($this->_current_id,$this->_change,$this->table,$this->primary);
 		}
 		return true;
 	}

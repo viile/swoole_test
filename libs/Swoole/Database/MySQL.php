@@ -62,7 +62,7 @@ class MySQL implements \Swoole\IDatabase
 	 * 返回上一个Insert语句的自增主键ID
 	 * @return $ID
 	 */
-	function Insert_ID()
+	function lastInsertId()
 	{
 		return \mysql_insert_id($this->conn);
 	}

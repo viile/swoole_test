@@ -240,8 +240,9 @@ class SelectDB
      * @param $ins
      * @return unknown_type
      */
-    function in($field,$ins)
+    function in($field, $ins)
     {
+        $ins = trim($ins, ','); //去掉2面的分号
         $this->where("`$field` in ({$ins})");
     }
     /**
@@ -565,8 +566,8 @@ class SelectDB
             $field=$field."`$key`,";
             $values=$values."'$value',";
         }
-        $field=substr($field,0,-1);
-        $values=substr($values,0,-1);
+        $field = substr($field, 0, -1);
+        $values = substr($values, 0, -1);
         return $this->db->query("insert into {$this->table} ($field) values($values)");
     }
     /**

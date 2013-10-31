@@ -1,9 +1,12 @@
 <?php
 namespace Swoole;
 
-abstract class Server implements \Swoole\Server\Driver
+abstract class Server implements Server\Driver
 {
-	public $protocol;
+    /**
+     * @var Server\Protocol
+     */
+    public $protocol;
 	public $host = '0.0.0.0';
 	public $port;
 	public $timeout;
@@ -144,7 +147,7 @@ abstract class Server implements \Swoole\Server\Driver
 	}
 	function sendData($sock,$data)
 	{
-		return sw_fwrite_stream($sock,$data);
+		return Network\Stream::write($sock,$data);
 	}
 	function log($log)
 	{
@@ -183,27 +186,6 @@ function sw_socket_close($socket,$event=null)
 	stream_socket_shutdown($socket,STREAM_SHUT_RDWR);
 	fclose($socket);
 }
-function sw_fread_stream($fp,$length)
-{
-	$data = false;
-	while($buf = fread($fp,$length))
-	{
-		$data .= $buf;
-		if(strlen($buf)<$length) break;
-	}
-	return $data;
-}
-function sw_fwrite_stream($fp, $string)
-{
-	$length = strlen($string);
-	for($written = 0; $written < $length; $written += $fwrite)
-	{
-		$fwrite = fwrite($fp, substr($string, $written));
-		if($fwrite<=0 or $fwrite===false) return $written;
-	}
-	return $written;
-}
-
 
 interface TCP_Server_Driver
 {
@@ -213,12 +195,14 @@ interface TCP_Server_Driver
 	function shutdown();
 	function setProtocol($protocol);
 }
+
 interface UDP_Server_Driver
 {
 	function run($num=1);
 	function shutdown();
 	function setProtocol($protocol);
 }
+
 interface TCP_Server_Protocol
 {
 	function onStart();

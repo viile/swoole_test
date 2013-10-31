@@ -11,7 +11,7 @@ $AppSvr->setDocumentRoot(WEBPATH);
 $AppSvr->setLogger(new \Swoole\Log\EchoLog(true)); //Logger
 
 Swoole\Error::$echo_html = false;
-$server = new \Swoole\Network\SelectTCP('0.0.0.0', 8888);
+$server = new \Swoole\Network\Server('0.0.0.0', 8888);
 $server->setProtocol($AppSvr);
-//$server->daemonize(); //作为守护进程
-$server->run(array('worker_num' => 1, 'max_request' => 5000));
+$server->daemonize(); //作为守护进程
+$server->run(array('worker_num' => 8, 'max_request' => 5000));

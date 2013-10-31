@@ -10,6 +10,8 @@ class EventTCP extends \Swoole\Server
 	public $server_event;
 	public $server_sock;
 
+    public $client_event;
+
 	//最大连接数
 	public $max_connect= 10000;
 
@@ -18,11 +20,12 @@ class EventTCP extends \Swoole\Server
 	//客户端数量
 	public $client_num = 0;
 
-	function __construct($host,$port,$timeout=30)
+	function __construct($host, $port, $timeout=30)
 	{
 		parent::__construct($host, $port, $timeout);
 	}
-	function init()
+
+    function init()
 	{
 		$this->base_event = event_base_new();
 		$this->server_event = event_new();
@@ -76,10 +79,10 @@ class EventTCP extends \Swoole\Server
 		//关闭所有客户端
 		foreach($this->client_sock as $k=>$sock)
 		{
-			sw_socket_close($sock,$this->client_event[$k]);
+            Stream::close($sock, $this->client_event[$k]);
 		}
 		//关闭服务器端
-		sw_socket_close($this->server_sock,$this->server_event);
+        Stream::close($this->server_sock, $this->server_event);
 		//关闭事件循环
 		event_base_loopexit($this->base_event);
 		$this->protocol->onShutdown($this);
@@ -90,7 +93,7 @@ class EventTCP extends \Swoole\Server
 	 */
 	function close($client_id)
 	{
-		sw_socket_close($this->client_sock[$client_id],$this->client_event[$client_id]);
+		Stream::close($this->client_sock[$client_id],$this->client_event[$client_id]);
 		unset($this->client_sock[$client_id],$this->client_event[$client_id]);
 		$this->protocol->onClose($this, $client_id, 0);
 		$this->client_num--;
@@ -129,8 +132,7 @@ class EventTCP extends \Swoole\Server
      */
     function event_receive($client_socket, $events, $client_id)
     {
-        $data = sw_fread_stream($client_socket, $this->buffer_size);
-
+        $data = Stream::read($client_socket, $this->buffer_size);
         if($data !== false)
         {
             $this->protocol->onReceive($this, $client_id, 0, $data);

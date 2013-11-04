@@ -247,16 +247,16 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         //处理请求，产生response对象
         $response = $this->onRequest($request);
         //发送response
-        $this->response($client_id, $response);
-        //清空request缓存区
-        unset($this->requests[$client_id]);
-        $request->unsetGlobal();
-        unset($request);
-        unset($response);
-        if(!$this->keepalive)
+        $this->response($client_id, $request, $response);
+        if(!$this->keepalive or $response->head['Connection'] == 'close')
         {
             $this->server->close($client_id);
         }
+        $request->unsetGlobal();
+        //清空request缓存区
+        unset($this->requests[$client_id]);
+        unset($request);
+        unset($response);
     }
 
     /**
@@ -292,7 +292,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
      * @param $response
      * @return unknown_type
      */
-    function response($client_id, Swoole\Response $response)
+    function response($client_id, Swoole\Request $request, Swoole\Response $response)
     {
         if (!isset($response->head['Date']))
         {
@@ -305,15 +305,15 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         if(!isset($response->head['Connection']))
         {
             //keepalive
-            if(!$this->keepalive)
-            {
-                $response->head['KeepAlive'] = 'off';
-                $response->head['Connection'] = 'close';
-            }
-            else
+            if($this->keepalive and $request->head['Connection'] == 'keep-alive')
             {
                 $response->head['KeepAlive'] = 'on';
                 $response->head['Connection'] = 'keep-alive';
+            }
+            else
+            {
+                $response->head['KeepAlive'] = 'off';
+                $response->head['Connection'] = 'close';
             }
         }
         //过期命中

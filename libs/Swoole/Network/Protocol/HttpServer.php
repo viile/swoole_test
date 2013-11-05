@@ -305,7 +305,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         if(!isset($response->head['Connection']))
         {
             //keepalive
-            if($this->keepalive and $request->head['Connection'] == 'keep-alive')
+            if($this->keepalive and (isset($request->head['Connection']) and $request->head['Connection'] == 'keep-alive'))
             {
                 $response->head['KeepAlive'] = 'on';
                 $response->head['Connection'] = 'keep-alive';

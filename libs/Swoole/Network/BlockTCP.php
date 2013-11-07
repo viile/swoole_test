@@ -29,16 +29,16 @@ class BlockTCP extends \Swoole\Server
 		//关闭所有客户端
 		foreach($this->client_sock as $k=>$sock)
 		{
-			sw_socket_close($sock, $this->client_event[$k]);
+            Stream::close($sock, $this->client_event[$k]);
 		}
 		//关闭服务器端
-		sw_socket_close($this->server_sock, $this->server_event);
+        Stream::close($this->server_sock, $this->server_event);
 		$this->protocol->onShutdown($this);
 	}
 
 	function close($client_id)
 	{
-		sw_socket_close($this->client_sock[$client_id]);
+        Stream::close($this->client_sock[$client_id]);
 		$this->client_sock[$client_id] = null;
 		unset($this->client_sock[$client_id]);
 		$this->protocol->onClose($this, $client_id, 0);
@@ -53,7 +53,7 @@ class BlockTCP extends \Swoole\Server
 			if(feof($this->client_sock[0])) $this->close(0);
 
 			//堵塞Server必须读完全部数据
-            $data = sw_fread_stream($this->client_sock[0],$this->buffer_size);
+            $data = Stream::read($this->client_sock[0],$this->buffer_size);
 			$this->protocol->onReceive($this, 0, 0, $data);
 		}
 	}

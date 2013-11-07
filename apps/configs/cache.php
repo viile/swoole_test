@@ -1,5 +1,5 @@
 <?php
 $cache['session'] = array(
-  'type' => 'CMemcache',
+  'type' => 'FileCache',
 );
 return $cache;

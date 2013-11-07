@@ -42,6 +42,7 @@ class Swoole
     );
     static $charset = 'utf-8';
     static $setting = array();
+    public $error_call = array();
     /**
      * Swoole类的实例
      * @var Swoole

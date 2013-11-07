@@ -33,10 +33,9 @@ class Error extends \Exception
 	{
 	    if(is_numeric($error))
 	    {
-    	    if(empty(self::$error_code))
+    	    if(empty($this->error_id))
     		{
     			include LIBPATH.'/data/text/error_code.php';
-    			self::$error_code = $error_code;
     			//错误ID
     			$this->error_id = (int)$error;
     			//错误信息
@@ -55,7 +54,7 @@ class Error extends \Exception
 	    }
 		global $php;
 		//如果定义了错误监听程序
-        if(isset($php->error_call[$error_id])) call_user_func($php->error_call[$error_id],$error);
+        if(isset($php->error_call[$this->error_id])) call_user_func($php->error_call[$this->error_id],$error);
         if(self::$stop) exit(Error::info('Swoole Error',$this->error_msg));
 	}
 	/**

@@ -22,10 +22,10 @@ class Parser implements \Swoole\IFace\HttpParser
         // parts[0] = HTTP头;
         // parts[1] = HTTP主体，GET请求没有body
         $headerLines = explode("\r\n", $parts[0]);
-        file_put_contents('/tmp/head.log', var_export($headerLines, 1).PHP_EOL, FILE_APPEND);
+//        file_put_contents('/tmp/head.log', var_export($headerLines, 1).PHP_EOL, FILE_APPEND);
         // HTTP协议头,方法，路径，协议[RFC-2616 5.1]
         list($meta['method'], $meta['uri'], $meta['protocol']) = explode(' ', $headerLines[0], 3);
-        file_put_contents('/tmp/head.log', $data.PHP_EOL, FILE_APPEND);
+//        file_put_contents('/tmp/head.log', $data.PHP_EOL, FILE_APPEND);
         //$this->log($headerLines[0]);
         //错误的HTTP请求
         if (empty($meta['method']) or empty($meta['uri']) or empty($meta['protocol']))

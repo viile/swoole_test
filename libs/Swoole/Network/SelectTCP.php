@@ -45,8 +45,9 @@ class SelectTCP extends \Swoole\Server
     function shutdown()
     {
         //关闭所有客户端
-        foreach ($this->client_sock as $k => $sock) {
-            sw_socket_close($sock, $this->client_event[$k]);
+        foreach ($this->client_sock as $k => $sock)
+        {
+            Stream::close($sock, $this->client_event[$k]);
         }
         //关闭服务器端
         Stream::close($this->server_sock, $this->server_event);

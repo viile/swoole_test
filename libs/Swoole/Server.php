@@ -70,7 +70,8 @@ abstract class Server implements Server\Driver
     {
         if(!extension_loaded('pcntl'))
         {
-            return new Error("Require pcntl extension!");
+            trigger_error(__METHOD__." require pcntl extension!");
+            return;
         }
         $num = 0;
         if(isset($setting['worker_num']))

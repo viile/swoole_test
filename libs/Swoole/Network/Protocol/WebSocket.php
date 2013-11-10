@@ -110,7 +110,7 @@ abstract class WebSocket extends HttpServer
             $request = $this->requests[$client_id];
             $response = new Swoole\Response;
             $this->doHandshake($request, $response);
-            $this->response($request, $client_id, $response);
+            $this->response($client_id, $request, $response);
 
             $conn = array('header' => $request->head, 'time' => time());
             $this->connections[$client_id] = $conn;

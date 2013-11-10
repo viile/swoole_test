@@ -35,7 +35,7 @@ abstract class WebSocket extends HttpServer
     public $ws_list = array();
     public $connections = array();
     public $max_connect = 10000;
-    public $heart_time = 600; //600ÃëÄÚÃ»ÓÐÐÄÌøµÄ½«±»ÇåÀí
+    public $heart_time = 600; //600ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     /**
      * Do the handshake.
      *
@@ -74,7 +74,7 @@ abstract class WebSocket extends HttpServer
     }
 
     /**
-     * ÇåÀíµô³¤Ê±¼äÃ»ÓÐÐÄÌøµÄÁ¬½Ó
+     * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
      */
     function cleanConnection()
     {
@@ -98,7 +98,7 @@ abstract class WebSocket extends HttpServer
     public function onReceive($server, $client_id, $from_id, $data)
     {
 //        $this->log("client_id=$client_id|from_id=$from_id");
-        //½¨Á¢Á¬½Ó
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         if(!isset($this->connections[$client_id]))
         {
             $st = $this->checkData($client_id, $data);
@@ -110,7 +110,7 @@ abstract class WebSocket extends HttpServer
             $request = $this->requests[$client_id];
             $response = new Swoole\Response;
             $this->doHandshake($request, $response);
-            $this->response($client_id, $response);
+            $this->response($request, $client_id, $response);
 
             $conn = array('header' => $request->head, 'time' => time());
             $this->connections[$client_id] = $conn;
@@ -121,7 +121,7 @@ abstract class WebSocket extends HttpServer
             }
 //            $this->log("websocket connected client_id = $client_id");
         }
-        //»º´æÇøÃ»ÓÐÊý¾Ý
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½
         else if(empty($this->ws_list[$client_id]))
         {
             $ws = $this->parse_wsframe($data);
@@ -141,7 +141,7 @@ abstract class WebSocket extends HttpServer
             }
             else if(strlen($ws['message']) > $message_len)
             {
-                //TODO ³ö´íÁË
+                //TODO ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             }
         }
     }
@@ -150,7 +150,7 @@ abstract class WebSocket extends HttpServer
         //websocketÍ·
         $ws  = array();
         $data_offset = 0;
-        //µÚÒ»¸ö×Ö½Ú fin:1 rsv1:1 rsv2:1 rsv3:1 opcode:4
+        //ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö½ï¿½ fin:1 rsv1:1 rsv2:1 rsv3:1 opcode:4
         $handle        = ord($data[$data_offset]);
         $ws['fin']    = ($handle >> 7) & 0x1;
         $ws['rsv1']   = ($handle >> 6) & 0x1;
@@ -159,7 +159,7 @@ abstract class WebSocket extends HttpServer
         $ws['opcode'] =  $handle       & 0xf;
         $data_offset++;
 
-        //µÚ¶þ¸ö×Ö½Ú mask:1 length:7
+        //ï¿½Ú¶ï¿½ï¿½ï¿½ï¿½Ö½ï¿½ mask:1 length:7
         $handle        = ord($data[$data_offset]);
         $ws['mask']   = ($handle >> 7) & 0x1;
         //0-125
@@ -177,18 +177,18 @@ abstract class WebSocket extends HttpServer
             $ws['message'] = '';
             return $ws;
         }
-        //126Ê¹ÓÃshort×÷Îª³¤¶È
+        //126Ê¹ï¿½ï¿½shortï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½
         elseif(0x7e === $length)
         {
-            //2×Ö½Ú
+            //2ï¿½Ö½ï¿½
             $handle = unpack('nl', substr($data, $data_offset, 2));
             $data_offset += 2;
             $length = $handle['l'];
         }
-        //127Ê¹ÓÃint64×÷Îª³¤¶È
+        //127Ê¹ï¿½ï¿½int64ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½
         elseif(0x7f === $length)
         {
-            //8×Ö½Ú
+            //8ï¿½Ö½ï¿½
             $handle = unpack('N*l', substr($data, $data_offset, 8));
             $data_offset += 8;
             $length = $handle['l2'];
@@ -217,7 +217,7 @@ abstract class WebSocket extends HttpServer
                 $maskC      = ($maskC + 1) % 4;
             }
             $ws['message'] = $message;
-            //Êý¾Ý°üÍêÕû
+            //ï¿½ï¿½Ý°ï¿½ï¿½ï¿½ï¿½ï¿½
             $ws['finish'] = (strlen($ws['message']) == $length);
             return $ws;
         }
@@ -271,7 +271,7 @@ abstract class WebSocket extends HttpServer
     {
         if((self::OPCODE_TEXT_FRAME  === $opcode or self::OPCODE_CONTINUATION_FRAME === $opcode) and false === (bool) preg_match('//u', $message))
         {
-            $this->log('Message ¡°%s¡± is not in UTF-8, cannot send it.', 2, 32 > strlen($message) ? substr($message, 0, 32) . '¡­' : $message);
+            $this->log('Message ï¿½ï¿½%sï¿½ï¿½ is not in UTF-8, cannot send it.', 2, 32 > strlen($message) ? substr($message, 0, 32) . 'ï¿½ï¿½' : $message);
         }
         else
         {
@@ -283,7 +283,7 @@ abstract class WebSocket extends HttpServer
     {
         switch($ws['opcode'])
         {
-            //Êý¾ÝÖ¸Áî
+            //ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½
             case self::OPCODE_BINARY_FRAME:
             case self::OPCODE_TEXT_FRAME:
                 if(0x1 === $ws['fin'])
@@ -295,7 +295,7 @@ abstract class WebSocket extends HttpServer
                     $this->ws_list[$client_id] = &$ws;
                 }
                 break;
-            //ÐÄÌø
+            //ï¿½ï¿½ï¿½ï¿½
             case self::OPCODE_PING:
                 $message = &$ws['message'];
                 if(0x0  === $ws['fin'] or 0x7d  <  $ws['length'])
@@ -312,7 +312,7 @@ abstract class WebSocket extends HttpServer
                     $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
                 }
                 break;
-            //¿Í»§¶Ë¹Ø±ÕÁ¬½Ó
+            //ï¿½Í»ï¿½ï¿½Ë¹Ø±ï¿½ï¿½ï¿½ï¿½ï¿½
             case self::OPCODE_CONNECTION_CLOSE:
                 $length = &$frame['length'];
                 if(1    === $length || 0x7d < $length)

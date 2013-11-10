@@ -13,9 +13,9 @@ $AppSvr->setLogger(new \Swoole\Log\FileLog(__DIR__."/webserver.log")); //Logger
 Swoole\Error::$echo_html = false;
 
 /**
- *如果你没有安装swoole扩展，这里还可选择
- * BlockTCP 阻塞的TCP，支持windows平台，需要将worker_num设为1
- * SelectTCP 使用select做事件循环，支持windows平台，需要将worker_num设为1
+ * 如果你没有安装swoole扩展，这里还可选择
+ * BlockTCP 阻塞的TCP，支持windows平台
+ * SelectTCP 使用select做事件循环，支持windows平台
  * EventTCP 使用libevent，需要安装libevent扩展
  */
 $server = new \Swoole\Network\SelectTCP('0.0.0.0', 8888);

@@ -59,6 +59,15 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         {
             define('WEBROOT', $this->config['server']['webroot']);
         }
+        if (isset($this->config['server']['user']))
+        {
+            $user = posix_getpwnam($this->config['server']['user']);
+            if($user)
+            {
+                posix_setuid($user['uid']);
+                posix_setgid($user['gid']);
+            }
+        }
         $this->log(self::SOFTWARE . ". running. on {$this->server->host}:{$this->server->port}");
     }
 

@@ -349,12 +349,12 @@ abstract class WebSocket extends HttpServer
     }
     function onConnect($serv, $client_id, $from_id)
     {
-//        $this->log("connected client_id = $client_id");
+        $this->log("connected client_id = $client_id");
     }
     function onClose($serv, $client_id, $from_id)
     {
-//        $this->log("close client_id = $client_id");
-        unset($this->ws_list[$client_id], $this->connections[$client_id]);
+        $this->log("close client_id = $client_id");
+        unset($this->ws_list[$client_id], $this->connections[$client_id], $this->requests[$client_id]);
     }
     /**
      * Close a connection.

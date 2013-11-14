@@ -17,7 +17,7 @@ Swoole\Config::$debug = true;
 Swoole\Error::$echo_html = false;
 
 $AppSvr = new WebSocket();
-$AppSvr->loadSetting("./swoole.ini"); //加载配置文件
+$AppSvr->loadSetting(__DIR__."/swoole.ini"); //加载配置文件
 $AppSvr->setLogger(new \Swoole\Log\EchoLog(true)); //Logger
 
 /**

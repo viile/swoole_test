@@ -35,7 +35,7 @@ abstract class WebSocket extends HttpServer
     public $ws_list = array();
     public $connections = array();
     public $max_connect = 10000;
-    public $heart_time = 600; //600����û������Ľ�������
+    public $heart_time = 600; //600s life time
     /**
      * Do the handshake.
      *
@@ -74,7 +74,7 @@ abstract class WebSocket extends HttpServer
     }
 
     /**
-     * �������ʱ��û�����������
+     * clean all connection
      */
     function cleanConnection()
     {
@@ -98,7 +98,7 @@ abstract class WebSocket extends HttpServer
     public function onReceive($server, $client_id, $from_id, $data)
     {
 //        $this->log("client_id=$client_id|from_id=$from_id");
-        //��������
+        //已连接的
         if(!isset($this->connections[$client_id]))
         {
             $st = $this->checkData($client_id, $data);
@@ -121,7 +121,7 @@ abstract class WebSocket extends HttpServer
             }
 //            $this->log("websocket connected client_id = $client_id");
         }
-        //������û�����
+        //未连接
         else if(empty($this->ws_list[$client_id]))
         {
             $ws = $this->parse_wsframe($data);
@@ -141,16 +141,16 @@ abstract class WebSocket extends HttpServer
             }
             else if(strlen($ws['message']) > $message_len)
             {
-                //TODO ������
+                //TODO 继续
             }
         }
     }
     function parse_wsframe($data)
     {
-        //websocketͷ
+        //websocket
         $ws  = array();
         $data_offset = 0;
-        //��һ���ֽ� fin:1 rsv1:1 rsv2:1 rsv3:1 opcode:4
+        //fin:1 rsv1:1 rsv2:1 rsv3:1 opcode:4
         $handle        = ord($data[$data_offset]);
         $ws['fin']    = ($handle >> 7) & 0x1;
         $ws['rsv1']   = ($handle >> 6) & 0x1;
@@ -159,7 +159,7 @@ abstract class WebSocket extends HttpServer
         $ws['opcode'] =  $handle       & 0xf;
         $data_offset++;
 
-        //�ڶ����ֽ� mask:1 length:7
+        //mask:1 length:7
         $handle        = ord($data[$data_offset]);
         $ws['mask']   = ($handle >> 7) & 0x1;
         //0-125
@@ -177,18 +177,18 @@ abstract class WebSocket extends HttpServer
             $ws['message'] = '';
             return $ws;
         }
-        //126ʹ��short��Ϊ����
+        //126 short
         elseif(0x7e === $length)
         {
-            //2�ֽ�
+            //2
             $handle = unpack('nl', substr($data, $data_offset, 2));
             $data_offset += 2;
             $length = $handle['l'];
         }
-        //127ʹ��int64��Ϊ����
+        //127 int64
         elseif(0x7f === $length)
         {
-            //8�ֽ�
+            //8
             $handle = unpack('N*l', substr($data, $data_offset, 8));
             $data_offset += 8;
             $length = $handle['l2'];
@@ -217,7 +217,7 @@ abstract class WebSocket extends HttpServer
                 $maskC      = ($maskC + 1) % 4;
             }
             $ws['message'] = $message;
-            //��ݰ�����
+            //finish
             $ws['finish'] = (strlen($ws['message']) == $length);
             return $ws;
         }
@@ -271,7 +271,7 @@ abstract class WebSocket extends HttpServer
     {
         if((self::OPCODE_TEXT_FRAME  === $opcode or self::OPCODE_CONTINUATION_FRAME === $opcode) and false === (bool) preg_match('//u', $message))
         {
-            $this->log('Message ��%s�� is not in UTF-8, cannot send it.', 2, 32 > strlen($message) ? substr($message, 0, 32) . '��' : $message);
+            $this->log('Message [%s] is not in UTF-8, cannot send it.', 2, 32 > strlen($message) ? substr($message, 0, 32) . ' ' : $message);
         }
         else
         {
@@ -283,7 +283,6 @@ abstract class WebSocket extends HttpServer
     {
         switch($ws['opcode'])
         {
-            //���ָ��
             case self::OPCODE_BINARY_FRAME:
             case self::OPCODE_TEXT_FRAME:
                 if(0x1 === $ws['fin'])
@@ -295,7 +294,6 @@ abstract class WebSocket extends HttpServer
                     $this->ws_list[$client_id] = &$ws;
                 }
                 break;
-            //����
             case self::OPCODE_PING:
                 $message = &$ws['message'];
                 if(0x0  === $ws['fin'] or 0x7d  <  $ws['length'])
@@ -312,7 +310,6 @@ abstract class WebSocket extends HttpServer
                     $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
                 }
                 break;
-            //�ͻ��˹ر�����
             case self::OPCODE_CONNECTION_CLOSE:
                 $length = &$frame['length'];
                 if(1    === $length || 0x7d < $length)

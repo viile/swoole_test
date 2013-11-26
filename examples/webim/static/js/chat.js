@@ -198,7 +198,7 @@ function xssFilter(val) {
 }
 
 function parseXss(val) {
-    val = val.replace(/#(\d*)/g, '<img src="resource/img/face/$1.gif" />');
+    val = val.replace(/#(\d*)/g, '<img src="/static/img/face/$1.gif" />');
     val = val.replace('&amp;', '&');
     return val;
 }
@@ -280,7 +280,7 @@ function sendMsg() {
 $(document).ready(function () {
     var a = '';
     for (var i = 1; i < 20; i++) {
-        a = a + '<a class="face" href="#" onclick="selectFace(' + i + ');return false;"><img src="resource/img/face/' + i + '.gif" /></a>';
+        a = a + '<a class="face" href="#" onclick="selectFace(' + i + ');return false;"><img src="/static/img/face/' + i + '.gif" /></a>';
     }
     $("#show_face").html(a);
 });

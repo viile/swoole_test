@@ -1,4 +1,5 @@
 <?php
+namespace Swoole;
 /**
  * 客户端工具
  * 获取客户端IP、操作系统、浏览器，以及HTTP操作等功能
@@ -6,7 +7,7 @@
  * @package SwooleSystem
  * @subpackage tools
  */
-class Swoole_client
+class Client
 {
 	/**
 	 * 跳转网址
@@ -15,7 +16,7 @@ class Swoole_client
 	 */
 	public static function redirect($url,$mode=302)
 	{
-		Swoole\Http::redirect($url, $mode);
+		Http::redirect($url, $mode);
         return;
 	}
 	/**
@@ -114,4 +115,3 @@ class Swoole_client
 		return $_SERVER['REQUEST_METHOD'];
 	}
 }
-?>

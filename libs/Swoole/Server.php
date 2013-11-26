@@ -146,9 +146,9 @@ abstract class Server implements Server\Driver
 		socket_listen($sock);
 		return $sock;
 	}
-	function sendData($sock,$data)
+	function sendData($sock, $data)
 	{
-		return Network\Stream::write($sock,$data);
+		return Network\Stream::write($sock, $data);
 	}
 	function log($log)
 	{

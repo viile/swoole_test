@@ -31,7 +31,10 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
             trigger_error("Mysqli connect failed: %s\n".mysqli_connect_error());
             return false;
         }
-        $this->set_charset($db_config['charset']);
+        if (!empty($db_config['charset']))
+        {
+			$this->set_charset($db_config['charset']);
+		}        
         return true;
     }
     function quote($value)

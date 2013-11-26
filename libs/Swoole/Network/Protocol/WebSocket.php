@@ -276,7 +276,7 @@ abstract class WebSocket extends HttpServer
         else
         {
             $out = $this->newFrame($message, $opcode, $end);
-            $this->server->send($client_id, $out);
+            return $this->server->send($client_id, $out);
         }
     }
     function opcodeSwitch($client_id, $ws)

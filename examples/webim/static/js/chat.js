@@ -14,7 +14,7 @@ $(document).ready(
             ws.onopen = function (e) {
                 //必须的输入一个名称和一个图像才可以聊天
                 if (GET['name'] == undefined || GET['avatar'] == undefined) {
-                    alert('非法请求');
+                    alert('必须的输入一个名称和一个图像才可以聊天');
                     ws.close();
                     return false;
                 }
@@ -61,9 +61,9 @@ $(document).ready(
              * 连接关闭事件
              */
             ws.onclose = function (e) {
-                if (confirm("您已退出聊天室")) {
+                if (confirm("聊天服务器已关闭")) {
                     //alert('您已退出聊天室');
-                    location.href = 'login.html';
+                    location.href = 'index.html';
                 }
             };
 

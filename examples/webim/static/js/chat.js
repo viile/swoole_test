@@ -273,7 +273,6 @@ function sendMsg() {
     }
     $('#msg_content').val("");
     return false;
-
 }
 
 
@@ -284,7 +283,6 @@ $(document).ready(function () {
     }
     $("#show_face").html(a);
 });
-
 
 (function ($) {
     $.fn.extend({

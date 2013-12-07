@@ -6,82 +6,77 @@ GET = getRequest();
 
 $(document).ready(
     function () {
-        if (window.WebSocket || window.MozWebSocket) {
-            ws = new WebSocket(webim.server);
-            /**
-             * 连接建立时触发
-             */
-            ws.onopen = function (e) {
-                //必须的输入一个名称和一个图像才可以聊天
-                if (GET['name'] == undefined || GET['avatar'] == undefined) {
-                    alert('必须的输入一个名称和一个图像才可以聊天');
-                    ws.close();
-                    return false;
-                }
-
-                //发送登录信息
-
-                msg = new Object();
-                msg.cmd = 'login';
-                msg.name = GET['name'];
-                msg.avatar = GET['avatar'];
-                ws.send($.toJSON(msg));
-            };
-
-            //有消息到来时触发
-            ws.onmessage = function (e) {
-                var cmd = $.evalJSON(e.data).cmd;
-                if (cmd == 'login') {
-                    client_id = $.evalJSON(e.data).fd;
-                    //获取在线列表
-                    msg = new Object();
-                    msg.cmd = 'getOnline';
-                    ws.send($.toJSON(msg));
-
-                    //alert( "收到消息了:"+e.data );
-                }
-                else if (cmd == 'getOnline') {
-                    showOnlineList(e.data);
-                }
-                else if (cmd == 'newUser') {
-                    showNewUser(e.data);
-                }
-                else if (cmd == 'fromMsg') {
-                    showNewMsg(e.data);
-                }
-                else if (cmd == 'offline') {
-                    var cid = $.evalJSON(e.data).fd;
-                    delUser(cid);
-                    showNewMsg(e.data);
-                }
-            };
-
-
-            /**
-             * 连接关闭事件
-             */
-            ws.onclose = function (e) {
-                if (confirm("聊天服务器已关闭")) {
-                    //alert('您已退出聊天室');
-                    location.href = 'index.html';
-                }
-            };
-
-            /**
-             * 异常事件
-             */
-            ws.onerror = function (e) {
-                alert("异常:" + e.data);
-                console.log("onerror");
-            };
-
-            function selectUser(userid) {
-                $('#userlist').val(userid);
+        if (!window.WebSocket && !window.MozWebSocket) {
+            WEB_SOCKET_SWF_LOCATION = "/static/flash-websocket/WebSocketMain.swf";
+            $.getScript("/static/flash-websocket/swfobject.js");
+            $.getScript("/static/flash-websocket/web_socket.js");
+        }
+        ws = new WebSocket(webim.server);
+        /**
+         * 连接建立时触发
+         */
+        ws.onopen = function (e) {
+            //必须的输入一个名称和一个图像才可以聊天
+            if (GET['name'] == undefined || GET['avatar'] == undefined) {
+                alert('必须的输入一个名称和一个图像才可以聊天');
+                ws.close();
+                return false;
             }
-        }
-        else {
-            alert("您的浏览器不支持WebSocket，请使用Chrome/FireFox/Safari/IE10浏览器");
-        }
+
+            //发送登录信息
+
+            msg = new Object();
+            msg.cmd = 'login';
+            msg.name = GET['name'];
+            msg.avatar = GET['avatar'];
+            ws.send($.toJSON(msg));
+        };
+
+        //有消息到来时触发
+        ws.onmessage = function (e) {
+            var cmd = $.evalJSON(e.data).cmd;
+            if (cmd == 'login') {
+                client_id = $.evalJSON(e.data).fd;
+                //获取在线列表
+                msg = new Object();
+                msg.cmd = 'getOnline';
+                ws.send($.toJSON(msg));
+
+                //alert( "收到消息了:"+e.data );
+            }
+            else if (cmd == 'getOnline') {
+                showOnlineList(e.data);
+            }
+            else if (cmd == 'newUser') {
+                showNewUser(e.data);
+            }
+            else if (cmd == 'fromMsg') {
+                showNewMsg(e.data);
+            }
+            else if (cmd == 'offline') {
+                var cid = $.evalJSON(e.data).fd;
+                delUser(cid);
+                showNewMsg(e.data);
+            }
+        };
+
+        /**
+         * 连接关闭事件
+         */
+        ws.onclose = function (e) {
+            if (confirm("聊天服务器已关闭")) {
+                //alert('您已退出聊天室');
+                location.href = 'index.html';
+            }
+        };
+
+        /**
+         * 异常事件
+         */
+        ws.onerror = function (e) {
+            alert("异常:" + e.data);
+            console.log("onerror");
+        };
     });
 
 
@@ -90,6 +85,10 @@ document.onkeydown = function (e) {
     if (ev.keyCode == 13) {
         sendMsg();
     }
+}
+
+function selectUser(userid) {
+    $('#userlist').val(userid);
 }
 
 /**

@@ -36,7 +36,8 @@ class SelectTCP extends \Swoole\Server
      */
     function sendAll($client_id = null, $data)
     {
-        foreach ($this->client_sock as $k => $sock) {
+        foreach ($this->client_sock as $k => $sock)
+        {
             if ($client_id and $k == $client_id) continue;
             $this->sendData($sock, $data);
         }

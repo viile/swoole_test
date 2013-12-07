@@ -115,5 +115,5 @@ $AppSvr->setLogger(new \Swoole\Log\EchoLog(true)); //Logger
  */
 $server = new \Swoole\Network\Server('0.0.0.0', 9503);
 $server->setProtocol($AppSvr);
-$server->daemonize(); //作为守护进程
+//$server->daemonize(); //作为守护进程
 $server->run(array('worker_num' => 1, 'max_request' => 0));

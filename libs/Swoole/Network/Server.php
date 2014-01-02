@@ -18,12 +18,12 @@ class Server extends \Swoole\Server implements \Swoole\Server\Driver
         \Swoole\Error::$stop = false;
         \Swoole_js::$return = true;
         $this->swooleSetting = array('timeout' => 2.5,  //select and epoll_wait timeout.
-            'poll_thread_num' => 4,  //reactor thread num
-            'writer_num' => 4,       //writer thread num
-            'worker_num' => 4,       //worker process num
+            //'poll_thread_num' => 4,  //reactor thread num
+            //'writer_num' => 4,       //writer thread num
+            //'worker_num' => 4,       //worker process num
             'backlog' => 128,        //listen backlog
-            'open_cpu_affinity' => 1,
-            'open_tcp_nodelay' => 1,
+            //'open_cpu_affinity' => 1,
+            //'open_tcp_nodelay' => 1,
             'log_file' => '/tmp/swoole.log', 
         );
     }

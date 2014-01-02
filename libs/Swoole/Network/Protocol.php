@@ -35,4 +35,21 @@ class Protocol
     {
         $this->log->put($type, $msg);
     }
+
+    function onStart($server)
+    {
+
+    }
+    function onConnect($server, $client_id, $from_id)
+    {
+
+    }
+    function onClose($server, $client_id, $from_id)
+    {
+
+    }
+    function onShutdown($server)
+    {
+
+    }
 }

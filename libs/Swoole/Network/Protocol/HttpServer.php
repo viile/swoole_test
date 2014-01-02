@@ -30,7 +30,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
     protected $document_root;
     protected $deny_dir;
 
-    public $requests = array(); //保存请求信息
+    public $requests = array(); //保存请求信息,里面全部是Request对象
     protected $buffer_maxlen = 65535; //最大POST尺寸，超过将写文件
 
     const SOFTWARE = "Swoole";

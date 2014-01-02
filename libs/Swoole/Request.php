@@ -13,6 +13,7 @@ class Request
     public $body;
     public $meta = array();
 
+    public $finish = false;
     public $ext_name;
     public $status;
     /**

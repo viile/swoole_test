@@ -46,10 +46,10 @@ class AppServer extends HttpServer
         $php = Swoole::getInstance();
         $request->setGlobal();
 
-        if($this->doStaticRequest($request, $response))
-        {
-            return $response;
-        }
+//        if($this->doStaticRequest($request, $response))
+//        {
+//            return $response;
+//        }
         //将对象赋值到控制器
         $php->request = $request;
         $php->response = $response;
@@ -66,7 +66,7 @@ class AppServer extends HttpServer
         }
         catch(\Exception $e)
         {
-            if($request->finish!=1) $this->http_error(404,$response,$e->getMessage());
+            if ($request->finish != 1) $this->http_error(404, $response, $e->getMessage());
         }
         if(!isset($response->head['Content-Type']))
         {

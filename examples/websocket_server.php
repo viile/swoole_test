@@ -5,10 +5,35 @@ require __DIR__ . '/../libs/lib_config.php';
 
 class WebSocket extends Swoole\Network\Protocol\WebSocket
 {
+    /**
+     * 下线时，通知所有人
+     */
+    function onClose($serv, $client_id, $from_id)
+    {
+        //将下线消息发送给所有人
+        $this->log("onOffline: " . $client_id);
+        $this->broadcast($client_id, "onOffline: " . $client_id);
+        parent::onClose($serv, $client_id, $from_id);
+    }
+
+    /**
+     * 接收到消息时
+     * @see WSProtocol::onMessage()
+     */
     function onMessage($client_id, $ws)
     {
-        $this->log("onMessage: ".$ws['message']);
-        $this->send($client_id, "Hello world");
+        $this->log("onMessage: ".$client_id.' = '.$ws['message']);
+		$this->broadcast($client_id, $ws['message']);
+    }
+
+    function broadcast($client_id, $msg)
+    {
+		//var_dump($this->connections);
+        foreach ($this->connections as $clid => $info) {
+           // if ($client_id != $clid) {
+                $this->send($clid, $msg);
+           // }
+        }
     }
 }
 
@@ -26,7 +51,7 @@ $AppSvr->setLogger(new \Swoole\Log\EchoLog(true)); //Logger
  * SelectTCP 使用select做事件循环，支持windows平台
  * EventTCP 使用libevent，需要安装libevent扩展
  */
-$server = new \Swoole\Network\SelectTCP('0.0.0.0', 9503);
+$server = new \Swoole\Network\Server('127.0.0.1', 9503);
 $server->setProtocol($AppSvr);
 //$server->daemonize(); //作为守护进程
-$server->run(array('worker_num' => 1, 'max_request' => 5000));
+$server->run(array('worker_num' =>1, 'max_request' =>1000));

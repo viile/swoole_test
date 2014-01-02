@@ -1,31 +1,19 @@
-<script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.2.min.js" type="text/javascript"></script>
 <script>
 var wsServer = 'ws://127.0.0.1:9503';
-var websocket = new WebSocket(wsServer);
-websocket.onopen = function (evt) {
+var websocket = new WebSocket(wsServer); 
+websocket.onopen = function (evt) { 
 	console.log("Connected to WebSocket server.");
-};
+}; 
 
-websocket.onclose = function (evt) {
-	console.log("Disconnected");
-};
+websocket.onclose = function (evt) { 
+	console.log("Disconnected"); 
+}; 
 
-websocket.onmessage = function (evt) {
-	console.log('Retrieved data from server: ' + evt.data);
-};
+websocket.onmessage = function (evt) { 
+	console.log('Retrieved data from server: ' + evt.data); 
+}; 
 
-websocket.onerror = function (evt) {
+websocket.onerror = function (evt) { 
 	console.log('Error occured: ' + evt.data);
 };
-
-$(document).ready(function(){
-	$('#b2').click(function(){
-		var msg=$('#t1').val();
-		websocket.send(msg);
-	});
-});
 </script>
-
-	<input type="test" name="t1" id="t1" />
-	<input type="button" value="button" name="b2" id="b2" />
-</form>

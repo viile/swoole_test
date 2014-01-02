@@ -11,8 +11,8 @@ class WebSocket extends Swoole\Network\Protocol\WebSocket
     function onClose($serv, $client_id, $from_id)
     {
         //将下线消息发送给所有人
-        $this->log("onOffline: " . $client_id);
-        $this->broadcast($client_id, "onOffline: " . $client_id);
+        //$this->log("onOffline: " . $client_id);
+        //$this->broadcast($client_id, "onOffline: " . $client_id);
         parent::onClose($serv, $client_id, $from_id);
     }
 
@@ -23,16 +23,18 @@ class WebSocket extends Swoole\Network\Protocol\WebSocket
     function onMessage($client_id, $ws)
     {
         $this->log("onMessage: ".$client_id.' = '.$ws['message']);
-		$this->broadcast($client_id, $ws['message']);
+        $this->send($client_id, "Server: ".$ws['message']);
+		//$this->broadcast($client_id, $ws['message']);
     }
 
     function broadcast($client_id, $msg)
     {
-		//var_dump($this->connections);
-        foreach ($this->connections as $clid => $info) {
-           // if ($client_id != $clid) {
+        foreach ($this->connections as $clid => $info)
+        {
+            if ($client_id != $clid)
+            {
                 $this->send($clid, $msg);
-           // }
+            }
         }
     }
 }

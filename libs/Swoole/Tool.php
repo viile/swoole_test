@@ -163,15 +163,20 @@ class Tool
     static function url_parse_into($url, &$request)
     {
         $url = str_replace(self::$url_add_end, '', $url);
-        if (self::$url_key_join == self::$url_param_join) {
+        if (self::$url_key_join == self::$url_param_join)
+        {
             $urls = explode(self::$url_param_join, $url);
             $c = intval(count($urls) / 2);
-            for ($i = 0; $i < $c; $i++) {
+            for ($i = 0; $i < $c; $i++)
+            {
                 $request[$urls[$i * 2]] = $urls[$i * 2 + 1];
             }
-        } else {
+        }
+        else
+        {
             $urls = explode(self::$url_param_join, $url);
-            foreach ($urls as $u) {
+            foreach ($urls as $u)
+            {
                 $us = explode(self::$url_key_join, $u);
                 $request[$us[0]] = $us[1];
             }

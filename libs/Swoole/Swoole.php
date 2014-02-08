@@ -116,7 +116,8 @@ class Swoole
         });
 
         //mvc
-        $this->addHook(Swoole::HOOK_ROUTE, function(&$uri) {
+        $this->addHook(Swoole::HOOK_ROUTE, function(&$uri)
+        {
             $array = array('controller'=>'page', 'view'=>'index');
             if(!empty($_GET["c"])) $array['controller'] = $_GET["c"];
             if(!empty($_GET["v"])) $array['view'] = $_GET["v"];
@@ -135,9 +136,10 @@ class Swoole
             if(isset($request[2]))
             {
                 $request[2] = trim($request[2], '/');
-                if(is_numeric($request[2]))
+                $_id = str_replace('.html', '', $request[2]);
+                if(is_numeric($_id))
                 {
-                    $_GET['id'] = $request[2];
+                    $_GET['id'] = $_id;
                 }
                 else
                 {

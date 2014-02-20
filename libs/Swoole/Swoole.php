@@ -22,8 +22,6 @@ class Swoole
      * @var Swoole\Response
      */
     public $response;
-
-    static public $app_root;
     static public $app_path;
     /**
      * 可使用的组件
@@ -72,26 +70,18 @@ class Swoole
         if(!defined('DEBUG')) define('DEBUG', 'off');
         if(DEBUG=='off') \error_reporting(0);
 
-        #初始化App环境
-        //为了兼容老的APPSPATH预定义常量方式
-        if(defined('APPSPATH'))
+        if(empty(self::$app_path))
         {
-            self::$app_root = str_replace(WEBPATH, '', APPSPATH);
+            self::$app_path = WEBPATH.'/apps';
         }
-        //新版全部使用类静态变量 self::$app_root
-        elseif(empty(self::$app_root))
-        {
-            self::$app_root = "/apps";
-        }
-
-        self::$app_path = WEBPATH.self::$app_root;
-        $this->env['app_root'] = self::$app_root;
         $this->env['sapi_name'] = php_sapi_name();
-
         if ($this->env['sapi_name'] != 'cli')
         {
             Swoole\Error::$echo_html = true;
         }
+
+        //将此目录作为App命名空间的根目录
+        Swoole\Loader::setRootNS('App', self::$app_path.'/classes');
 
 //        $this->__init();
         $this->load = new Swoole\Loader($this);

@@ -48,4 +48,10 @@ class page extends Swoole\Controller
         $this->assign('my_var', 'swoole view');
         $this->display('view_test.tpl.php');
     }
+
+    //class autoload
+    function class_load()
+    {
+        App\Test::hello();
+    }
 }

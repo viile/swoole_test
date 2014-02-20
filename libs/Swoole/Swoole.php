@@ -336,7 +336,7 @@ class Swoole
             if(!is_file($controller_path))
             {
                 \Swoole\Http::status(404);
-                return Swoole\Error::info('MVC Error', "Controller <b>{$mvc['controller']}</b> not exist!");
+                return Swoole\Error::info('MVC Error', "Controller <b>{$mvc['controller']}</b>[{$controller_path}] not exist!");
             }
             else
             {

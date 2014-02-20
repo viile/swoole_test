@@ -1,13 +1,14 @@
-Swoole应用服务器
+SwooleFramework: PHP的高级Web开发框架
 ====================
-框架
------
-PHP高级Web开发框架，内置PHP应用服务器。提供统一注册树，数据库操作，模板，Cache，日志，队列，上传管理，用户管理等丰富的功能特性。
+* 内置PHP应用服务器，可脱离nginx/fpm/apache独立运行
+* 配置化与资源自动工厂，可实现从配置中创建资源对象，完全无需new对象
+* 全面采用命名空间+autoload，代码中无需任何的include/require
+* 全局注册树，所有资源都挂载到全局树上，彻底烂加载，如当你执行$php->db->query($sql)时才会去创建Database对象，连接到数据库
+* 全栈框架，提供了数据库操作，模板，Cache，日志，队列，上传管理，用户管理等几乎所有的功能
+
 使用内置应用服务器，可节省每次请求代码来的额外消耗。连接池技术可以很好的帮助存储系统节省连接资源。
-
-###Swoole框架支持的特性###
-
-* 热部署，代码更新后即刻生效。依赖runkit扩展（ https://github.com/zenovich/runkit ）
+###Swoole应用服务器支持的特性###
+* 热部署，代码更新后即刻生效。依赖runkit扩展（ <https://github.com/zenovich/runkit> ）
 * MaxRequest进程回收机制，防止内存泄露
 * 支持使用Windows作为开发环境
 * http KeepAlive，可节省tcp connect带来的开销
@@ -18,15 +19,13 @@ PHP高级Web开发框架，内置PHP应用服务器。提供统一注册树，�
 * 支持POST大文本
 * 支持Session/Cookie
 
-###Swoole框架额外提供的功能###
+###Swoole框架额外提供的网络协议###
 * WebSocket协议支持，并附带一个基于websocket协议的webim系统
 * 普通Web服务器，可支持静态文件和普通include php方式的程序
 * SOA逻辑层服务器/客户端，支持并行请求
 * 一个简单的SMTP服务器
 
-
 在线体验地址：<http://www.swoole.com/page/index/>
-
 
 赞助Swoole开源项目
 -----

@@ -29,22 +29,22 @@ class MySQL implements \Swoole\IDatabase
 	function connect()
 	{
 		$db_config = $this->config;
-		if(isset($db_config['persistent']) and $db_config['persistent'])
+		if(empty($db_config['persistent']))
         {
-            $this->conn = \mysql_pconnect($db_config['host'].':'.$db_config['port'], $db_config['user'],$db_config['passwd']);
+            $this->conn = mysql_connect($db_config['host'].':'.$db_config['port'], $db_config['user'],$db_config['passwd']);
         }
         else
         {
-            $this->conn = \mysql_connect($db_config['host'].':'.$db_config['port'], $db_config['user'],$db_config['passwd']);
+            $this->conn = mysql_pconnect($db_config['host'].':'.$db_config['port'], $db_config['user'],$db_config['passwd']);
         }
         if(!$this->conn)
         {
-            Swoole\Error::info("SQL Error", \mysql_error($this->conn));
+            Swoole\Error::info("SQL Error", mysql_error($this->conn));
         }
-		\mysql_select_db($db_config['name'],$this->conn) or Swoole\Error::info("SQL Error", \mysql_error($this->conn));
-		if($db_config['setname'])
+		mysql_select_db($db_config['name'],$this->conn) or Swoole\Error::info("SQL Error", mysql_error($this->conn));
+        if ($db_config['setname'])
         {
-            \mysql_query('set names '.$db_config['charset'],$this->conn) or Swoole\Error::info("SQL Error", \mysql_error($this->conn));
+            mysql_query('set names '.$db_config['charset'],$this->conn) or Swoole\Error::info("SQL Error", mysql_error($this->conn));
         }
 	}
 	/**
@@ -53,9 +53,9 @@ class MySQL implements \Swoole\IDatabase
 	 */
 	function query($sql)
 	{
-		\mysql_real_escape_string($sql, $this->conn);
-		$res = \mysql_query($sql,$this->conn);
-		if(!$res) echo Swoole\Error::info("SQL Error", \mysql_error($this->conn)."<hr />$sql");
+		mysql_real_escape_string($sql, $this->conn);
+		$res = mysql_query($sql,$this->conn);
+		if(!$res) echo Swoole\Error::info("SQL Error", mysql_error($this->conn)."<hr />$sql");
 		return new MySQLRecord($res);
 	}
 	/**
@@ -64,7 +64,7 @@ class MySQL implements \Swoole\IDatabase
 	 */
 	function lastInsertId()
 	{
-		return \mysql_insert_id($this->conn);
+		return mysql_insert_id($this->conn);
 	}
 
     function quote($value)
@@ -74,7 +74,7 @@ class MySQL implements \Swoole\IDatabase
 
 	function ping()
 	{
-		if(!\mysql_ping($this->conn)) return false;
+		if(!mysql_ping($this->conn)) return false;
 		else return true;
 	}
 	/**
@@ -83,7 +83,7 @@ class MySQL implements \Swoole\IDatabase
 	 */
 	function affected_rows()
 	{
-		return \mysql_affected_rows($this->conn);
+		return mysql_affected_rows($this->conn);
 	}
 	/**
 	 * 关闭连接
@@ -91,7 +91,7 @@ class MySQL implements \Swoole\IDatabase
 	 */
 	function close()
 	{
-		\mysql_close($this->conn);
+		mysql_close($this->conn);
 	}
 }
 class MySQLRecord implements \Swoole\IDbRecord
@@ -104,13 +104,13 @@ class MySQLRecord implements \Swoole\IDbRecord
 
 	function fetch()
 	{
-		return \mysql_fetch_assoc($this->result);
+		return mysql_fetch_assoc($this->result);
 	}
 
 	function fetchall()
 	{
 		$data = array();
-		while($record = \mysql_fetch_assoc($this->result))
+		while($record = mysql_fetch_assoc($this->result))
 		{
 			$data[] = $record;
 		}
@@ -118,6 +118,6 @@ class MySQLRecord implements \Swoole\IDbRecord
 	}
 	function free()
 	{
-		\mysql_free_result($this->result);
+		mysql_free_result($this->result);
 	}
 }

@@ -6,7 +6,7 @@ namespace Swoole\Cache;
  * @package Swoole
  * @subpackage cache
  */
-class CMemcache implements \Swoole\IFace\Cache
+class Memcache implements \Swoole\IFace\Cache
 {
     /**
      * memcached扩展采用libmemcache，支持更多特性，更标准通用

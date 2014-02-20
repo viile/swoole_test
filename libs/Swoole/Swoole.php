@@ -83,8 +83,15 @@ class Swoole
         {
             self::$app_root = "/apps";
         }
+
         self::$app_path = WEBPATH.self::$app_root;
         $this->env['app_root'] = self::$app_root;
+        $this->env['sapi_name'] = php_sapi_name();
+
+        if ($this->env['sapi_name'] != 'cli')
+        {
+            Swoole\Error::$echo_html = true;
+        }
 
 //        $this->__init();
         $this->load = new Swoole\Loader($this);

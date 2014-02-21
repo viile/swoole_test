@@ -70,17 +70,17 @@ class Loader
 		$root = explode('\\', trim($class, '\\'), 2);
 		if(count($root) > 1 and isset(self::$nsPath[$root[0]]))
 		{
-            include_once self::$nsPath[$root[0]].'/'.str_replace('\\', '/', $root[1]).'.php';
+            include self::$nsPath[$root[0]].'/'.str_replace('\\', '/', $root[1]).'.php';
 		}
 		elseif(count($root) < 2)
 		{
 			if(is_file(__DIR__.'/'.$class.'.php'))
 			{
-				include_once __DIR__.'/'.$class.'.php';
+                include __DIR__.'/'.$class.'.php';
 			}
 			elseif(is_file(WEBPATH.'/class/'.$class.'.class.php'))
 			{
-                include_once WEBPATH.'/class/'.$class.'.class.php';
+                include WEBPATH.'/class/'.$class.'.class.php';
 			}
 		}
 	}

@@ -1,4 +1,5 @@
 <?php
+namespace Swoole;
 /**
  * 标准输入和输出
  * @author htf

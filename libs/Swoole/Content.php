@@ -1,4 +1,5 @@
 <?php
+namespace Swoole;
 /**
  * 内容处理工具类
  * 提供远程图片获取、内容分页、汉字转拼音等功能
@@ -7,7 +8,7 @@
  * @subpackage tools
  *
  */
-class Swoole_content
+class Content
 {
 	/**
 	 * 自动产生分页代码
@@ -15,11 +16,11 @@ class Swoole_content
 	 * 将$content分成$sptag分割开的一个文本，可以使用explode实现内容划分
 	 *
 	 * @param $content 内容
-	 * @param $size   每页内容长度
+	 * @param $spsize 每页内容长度
 	 * @param $sptag  分隔符
 	 * @return bool   是否成功
 	 */
-	function paging(&$content,$size,$sptag)
+	function paging(&$content, $spsize, $sptag)
 	{
 		if(strlen($content)<$spsize) return false;
 		$bds = explode('<',$content);
@@ -57,7 +58,7 @@ class Swoole_content
 	 * @param $data
 	 * @return unknown_type
 	 */
-	function image_local(&$content,$dir='')
+	function image_local(&$content, $dir='')
 	{
 	    if(empty($dir)) $dir = UPLOAD_DIR.'/extend/'.date('Ym')."/".date("d");
 		if(!file_exists($dir))
@@ -102,13 +103,13 @@ class Swoole_content
 	 * @param $str 中文
 	 * @return $res 拼音
 	 */
-	function pinyin($str,$charset='gb2312')
+	function pinyin($str, $charset='gb2312')
 	{
-		return Pinyin($ret,$charset);
+		return Pinyin($str, $charset);
 	}
 
 	//主要是用于pinyin方法
-	private function _pinyin($num,&$pinyin)
+	private function _pinyin($num, &$pinyin)
 	{
 		if($num>0&&$num<160)
 		{

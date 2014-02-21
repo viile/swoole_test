@@ -358,6 +358,16 @@ class Swoole
         else $param = $mvc['param'];
 
         $method = $mvc['view'];
+
+        //设置头
+        if($controller->is_ajax)
+        {
+            Swoole\Http::header('Cache-Control', 'no-cache, must-revalidate');
+            Swoole\Http::header('Last-Modified', gmdate('D, d M Y H:i:s').' GMT');
+            Swoole\Http::header('Content-Type', 'application/json');
+        }
+
+        //doAction
         $return = $controller->$method($param);
 
         //保存Session
@@ -369,9 +379,6 @@ class Swoole
         //响应请求
         if($controller->is_ajax)
         {
-            Swoole\Http::header('Cache-Control', 'no-cache, must-revalidate');
-            Swoole\Http::header('Last-Modified', gmdate('D, d M Y H:i:s').' GMT');
-            Swoole\Http::header('Content-type', 'application/json');
             $return = json_encode($return);
         }
         if(defined('SWOOLE_SERVER')) return $return;

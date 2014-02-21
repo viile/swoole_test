@@ -1,6 +1,11 @@
 <?php
-//Swoole_pageCache，页面缓存类
-class Swoole_pageCache
+namespace Swoole;
+/**
+ * 页面缓存类
+ * Class PageCache
+ * @package Swoole
+ */
+class PageCache
 {
 	public $cache_dir;
 	public $expire;
@@ -21,7 +26,7 @@ class Swoole_pageCache
 	//加载缓存
 	function load()
 	{
-		require($this->cache_dir.'/'.base64_encode($_SERVER['REQUEST_URI']).'.html');
+		include ($this->cache_dir.'/'.base64_encode($_SERVER['REQUEST_URI']).'.html');
 	}
 	
 	//检查是否存在有效缓存
@@ -33,4 +38,3 @@ class Swoole_pageCache
 		else return true;
 	}
 }
-?>

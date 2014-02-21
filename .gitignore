@@ -1,3 +1,6 @@
 /.idea/
 /vendor/
 /examples/webserver.log
+/apps/templates/
+/apps/controllers/
+/cache/

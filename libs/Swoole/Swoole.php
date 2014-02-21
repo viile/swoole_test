@@ -27,6 +27,7 @@ class Swoole
      * 可使用的组件
      */
     static $autoload_libs = array(
+		'redis' => true,  //redis
     	'db' => true,  //数据库
     	'tpl' => true, //模板系统
     	'cache' => true, //缓存

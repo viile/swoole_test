@@ -349,9 +349,9 @@ class Swoole
 
         $class = $mvc['controller'];
         $controller = new $class($this);
-        if(!is_callable(array($controller,$mvc['view'])))
+        if(!is_callable(array($controller, $mvc['view'])))
         {
-            \Swoole\Http::status(404);
+            Swoole\Http::status(404);
             return Swoole\Error::info('MVC Error!'.$mvc['view'],"View <b>{$mvc['controller']}->{$mvc['view']}</b> Not Found!");
         }
         if(empty($mvc['param'])) $param = null;
@@ -369,9 +369,9 @@ class Swoole
         //响应请求
         if($controller->is_ajax)
         {
-            header('Cache-Control: no-cache, must-revalidate');
-            header('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT');
-            header('Content-type: application/json');
+            Swoole\Http::header('Cache-Control', 'no-cache, must-revalidate');
+            Swoole\Http::header('Last-Modified', gmdate('D, d M Y H:i:s').' GMT');
+            Swoole\Http::header('Content-type', 'application/json');
             $return = json_encode($return);
         }
         if(defined('SWOOLE_SERVER')) return $return;
@@ -445,20 +445,5 @@ class Swoole
             $this->tpl->assign($key,$param);
             $this->tpl->display($view.'.html');
         }
-    }
-
-    function runServer($ini_file='')
-    {
-        if(empty($ini_file)) $ini_file = WEBPATH.'/swoole.ini';
-        import('#net.protocol.AppServer');
-        $protocol = new AppServer($ini_file);
-        global $argv;
-        $server_conf = $protocol->config['server'];
-        import('#net.driver.'.$server_conf['driver']);
-        $server = new $server_conf['driver']($server_conf['host'],$argv[1],60);
-        $this->server = $server;
-        $this->protocol = $protocol;
-        $server->setProtocol($protocol);
-        $server->run($server_conf['processor_num']);
     }
 }

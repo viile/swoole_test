@@ -39,7 +39,7 @@ class Http_LAMP
 {
     static function header($k,$v)
     {
-        header($k.':'.$v);
+        header($k.': '.$v);
     }
     static function status($code)
     {
@@ -47,8 +47,8 @@ class Http_LAMP
     }
     static function redirect($url, $mode=301)
     {
-        header( "HTTP/1.1 ".\Swoole\Response::$HTTP_HEADERS[$mode]);
-        header("Location:".$url);
+        header("HTTP/1.1 ".\Swoole\Response::$HTTP_HEADERS[$mode]);
+        header("Location: ".$url);
     }
     static function finish()
     {

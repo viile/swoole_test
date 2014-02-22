@@ -38,7 +38,9 @@ class Swoole
     	'upload' => true, //上传组件
     	'user' => true,   //用户验证组件
         'session' => true, //session
+        'http' => true, //http
     );
+
     static $charset = 'utf-8';
     static $setting = array();
     public $error_call = array();

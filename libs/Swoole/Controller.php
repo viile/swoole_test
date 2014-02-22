@@ -136,6 +136,11 @@ HTMLS;
          return $html;
     }
 
+    function __get($key)
+    {
+        return $this->swoole->$key;
+    }
+
     function __destruct()
     {
         $this->swoole->__clean();

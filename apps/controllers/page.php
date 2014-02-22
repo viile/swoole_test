@@ -10,21 +10,21 @@ class page extends Swoole\Controller
     //数据库测试
     function db_test()
     {
-        $result = $this->swoole->db->query("show tables");
+        $result = $this->db->query("show tables");
         var_dump($result->fetchall());
     }
 
     //缓存获取
     function cache_get()
     {
-        $result = $this->swoole->cache->get("swoole_var_1");
+        $result = $this->cache->get("swoole_var_1");
         var_dump($result);
     }
 
     //缓存设置
     function cache_set()
     {
-        $result = $this->swoole->cache->set("swoole_var_1", "swoole");
+        $result = $this->cache->set("swoole_var_1", "swoole");
         if($result)
         {
             echo "cache set success. Key=swoole_var_1";
@@ -38,8 +38,8 @@ class page extends Swoole\Controller
     //使用smarty引擎
     function tpl_test()
     {
-        $this->swoole->tpl->assign('my_var', 'swoole use smarty');
-        $this->swoole->tpl->display('tpl_test.html');
+        $this->tpl->assign('my_var', 'swoole use smarty');
+        $this->tpl->display('tpl_test.html');
     }
 
     //使用php直接作为模板
@@ -53,5 +53,11 @@ class page extends Swoole\Controller
     function class_load()
     {
         App\Test::hello();
+    }
+
+    //exit or die
+    function exit_php()
+    {
+        $this->http->finish("die.");
     }
 }

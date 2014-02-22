@@ -8,22 +8,22 @@ namespace Swoole;
  */
 class SelectDB
 {
-    static $error_call='';
+    static $error_call = '';
     static $allow_regx = '#^([a-z0-9\(\)\._=\-\+\*\`\s\'\",]+)$#i';
 
-    public $table='';
-    public $primary='id';
-    public $select='*';
-    public $sql='';
-    public $limit='';
-    public $where='';
-    public $order='';
-    public $group='';
-    public $use_index='';
-    public $having='';
-    public $join='';
-    public $union='';
-    public $for_update='';
+    public $table = '';
+    public $primary = 'id';
+    public $select = '*';
+    public $sql = '';
+    public $limit = '';
+    public $where = '';
+    public $order = '';
+    public $group = '';
+    public $use_index = '';
+    public $having = '';
+    public $join = '';
+    public $union = '';
+    public $for_update = '';
 
     //Union联合查询
     private $if_union = false;
@@ -54,6 +54,9 @@ class SelectDB
 
     public $call_by = 'func';
 
+    /**
+     * @var \Swoole\Database
+     */
     public $db;
 
     function __construct($db)
@@ -106,7 +109,7 @@ class SelectDB
     /**
      * 指定表名，可以使用table1,table2
      * @param $table_name
-     * @return None
+     * @return null
      */
     function from($table)
     {
@@ -116,7 +119,7 @@ class SelectDB
      * 指定查询的字段，select * from table
      * 可多次使用，连接多个字段
      * @param $select
-     * @return unknown_type
+     * @return null
      */
     function select($select,$force=false)
     {
@@ -126,7 +129,7 @@ class SelectDB
     /**
      * where参数，查询的条件
      * @param $where
-     * @return unknown_type
+     * @return null
      */
     function where($where)
     {
@@ -143,7 +146,7 @@ class SelectDB
     /**
      * 指定查询所使用的索引字段
      * @param $fields
-     * @return unknown_type
+     * @return null
      */
     function useIndex($field)
     {
@@ -154,7 +157,7 @@ class SelectDB
      * 相似查询like
      * @param $field
      * @param $like
-     * @return unknown_type
+     * @return null
      */
     function like($field,$like)
     {
@@ -164,7 +167,7 @@ class SelectDB
     /**
      * 使用or连接的条件
      * @param $where
-     * @return unknown_type
+     * @return null
      */
     function orwhere($where)
     {
@@ -180,7 +183,7 @@ class SelectDB
     /**
      * 查询的条数
      * @param $limit
-     * @return unknown_type
+     * @return null
      */
     function limit($limit)
     {
@@ -195,7 +198,7 @@ class SelectDB
     /**
      * 指定排序方式
      * @param $order
-     * @return unknown_type
+     * @return null
      */
     function order($order)
     {
@@ -209,7 +212,7 @@ class SelectDB
     /**
      * 组合方式
      * @param $group
-     * @return unknown_type
+     * @return null
      */
     function group($group)
     {
@@ -223,7 +226,7 @@ class SelectDB
     /**
      * group后条件
      * @param $having
-     * @return unknown_type
+     * @return null
      */
     function having($having)
     {
@@ -238,7 +241,7 @@ class SelectDB
      * IN条件
      * @param $field
      * @param $ins
-     * @return unknown_type
+     * @return null
      */
     function in($field, $ins)
     {
@@ -249,7 +252,7 @@ class SelectDB
      * NOT IN条件
      * @param $field
      * @param $ins
-     * @return unknown_type
+     * @return null
      */
     function notin($field,$ins)
     {
@@ -259,7 +262,7 @@ class SelectDB
      * INNER连接
      * @param $table_name
      * @param $on
-     * @return unknown_type
+     * @return null
      */
     function join($table_name,$on)
     {
@@ -269,7 +272,7 @@ class SelectDB
      * 左连接
      * @param $table_name
      * @param $on
-     * @return unknown_type
+     * @return null
      */
     function leftjoin($table_name,$on)
     {
@@ -279,7 +282,7 @@ class SelectDB
      * 右连接
      * @param $table_name
      * @param $on
-     * @return unknown_type
+     * @return null
      */
     function rightjoin($table_name,$on)
     {
@@ -288,7 +291,7 @@ class SelectDB
     /**
      * 分页参数,指定每页数量
      * @param $pagesize
-     * @return unknown_type
+     * @return null
      */
     function pagesize($pagesize)
     {
@@ -297,7 +300,7 @@ class SelectDB
     /**
      * 分页参数,指定当前页数
      * @param $page
-     * @return unknown_type
+     * @return null
      */
     function page($page)
     {
@@ -306,7 +309,7 @@ class SelectDB
     /**
      * 主键查询条件
      * @param $id
-     * @return unknown_type
+     * @return null
      */
     function id($id)
     {
@@ -314,7 +317,7 @@ class SelectDB
     }
     /**
      * 产生分页
-     * @return unknown_type
+     * @return null
      */
     function paging()
     {
@@ -332,7 +335,7 @@ class SelectDB
     /**
      * 使SQL元素安全
      * @param $sql_sub
-     * @return unknown_type
+     * @return null
      */
     static function sql_safe($sql_sub)
     {
@@ -346,7 +349,7 @@ class SelectDB
     /**
      * 获取组合成的SQL语句字符串
      * @param $ifreturn
-     * @return unknown_type
+     * @return null
      */
     function getsql($ifreturn=true)
     {
@@ -371,7 +374,7 @@ class SelectDB
     }
     /**
      * 锁定行或表
-     * @return unknown_type
+     * @return null
      */
     function lock()
     {
@@ -380,7 +383,7 @@ class SelectDB
     /**
      * 执行生成的SQL语句
      * @param $sql
-     * @return unknown_type
+     * @return null
      */
     function exeucte($sql='')
     {
@@ -392,7 +395,7 @@ class SelectDB
     /**
      * SQL联合
      * @param $sql
-     * @return unknown_type
+     * @return null
      */
     function union($sql)
     {
@@ -408,7 +411,7 @@ class SelectDB
     /**
      * 将数组作为指令调用
      * @param $params
-     * @return unknown_type
+     * @return null
      */
     function put($params)
     {
@@ -429,7 +432,7 @@ class SelectDB
         {
             $orwheres = $params['orwhere'];
             if(is_array($orwheres)) foreach($orwheres as $orwhere) $this->orwhere($orwhere);
-            else $this->$orwheres($orwhere);
+            else $this->$orwheres($orwheres);
             unset($params['orwhere']);
         }
         //处理walk调用

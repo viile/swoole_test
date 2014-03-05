@@ -149,20 +149,20 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         //新的连接
         if (!isset($this->requests[$client_id]))
         {
-            if(isset($this->buffer_header[$client_id]))
+            if(!empty($this->buffer_header[$client_id]))
             {
                 $http_data = $this->buffer_header[$client_id].$http_data;
             }
             //HTTP结束符
             $ret = strpos($http_data, self::HTTP_EOF);
-            //没有找到EOF
+            //没有找到EOF，继续等待数据
             if($ret === false)
             {
-                $this->log("parseHeader fail. Not found EOF.");
                 return false;
             }
             else
             {
+                $this->buffer_header[$client_id] = '';
                 $request = new Swoole\Request;
                 //GET没有body
                 list($header, $request->body) = explode(self::HTTP_EOF, $http_data, 2);

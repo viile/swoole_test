@@ -152,6 +152,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
             //没有找到EOF
             if($ret === false)
             {
+                $this->log("parseHeader fail. Not found EOF.");
                 return false;
             }
             else
@@ -189,6 +190,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
             //超过最大尺寸
             if(intval($request->head['Content-Length']) > $this->config['access']['post_maxsize'])
             {
+                $this->log("checkPost fail. post_data is too long.");
                 return self::ST_ERROR;
             }
             //不完整，继续等待数据
@@ -202,6 +204,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
                 return self::ST_FINISH;
             }
         }
+        $this->log("checkPost fail. Not have Content-Length.");
         //POST请求没有Content-Length，丢弃此请求
         return self::ST_ERROR;
     }

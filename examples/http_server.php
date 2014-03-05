@@ -1,7 +1,8 @@
 <?php
 define('DEBUG', 'on');
+define("WEBPATH", realpath(__DIR__.'/../'));
 require __DIR__ . '/../libs/lib_config.php';
-//require __DIR__'/phar://swoole.phar';
+
 Swoole\Config::$debug = false;
 $AppSvr = new Swoole\Network\Protocol\HttpServer();
 $AppSvr->loadSetting(__DIR__.'/swoole.ini'); //加载配置文件

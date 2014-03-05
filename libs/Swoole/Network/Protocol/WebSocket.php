@@ -35,6 +35,7 @@ abstract class WebSocket extends HttpServer
     public $ws_list = array();
     public $connections = array();
     public $max_connect = 10000;
+    public $max_frame_size = 2097152; //数据包最大长度，超过此长度会被认为是非法请求
     public $heart_time = 600; //600s life time
     /**
      * Do the handshake.
@@ -195,6 +196,12 @@ abstract class WebSocket extends HttpServer
             break;
         } while(true);
     }
+
+    /**
+     * 解析数据帧
+     * @param $data
+     * @return array|bool
+     */
     function parseFrame(&$data)
     {
         //websocket
@@ -249,6 +256,13 @@ abstract class WebSocket extends HttpServer
                 $this->log('Message is too long.');
                 return false;
             }
+        }
+
+        //超过最大允许的长度了
+        if ($length > $this->max_frame_size)
+        {
+            $this->log('Message is too long.');
+            return false;
         }
 
         if(0x0 !== $ws['mask'])

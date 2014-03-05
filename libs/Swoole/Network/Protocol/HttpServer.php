@@ -31,6 +31,8 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
     protected $deny_dir;
 
     public $requests = array(); //保存请求信息,里面全部是Request对象
+
+    protected $buffer_header = array();
     protected $buffer_maxlen = 65535; //最大POST尺寸，超过将写文件
 
     const SOFTWARE = "Swoole";
@@ -147,6 +149,10 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         //新的连接
         if (!isset($this->requests[$client_id]))
         {
+            if(isset($this->buffer_header[$client_id]))
+            {
+                $http_data = $this->buffer_header[$client_id].$http_data;
+            }
             //HTTP结束符
             $ret = strpos($http_data, self::HTTP_EOF);
             //没有找到EOF
@@ -211,12 +217,26 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
 
     function checkData($client_id, $http_data)
     {
+        if(isset($this->buffer_header[$client_id]))
+        {
+            $http_data = $this->buffer_header[$client_id].$http_data;
+        }
         //检测头
         $request = $this->checkHeader($client_id, $http_data);
         //错误的http头
         if($request === false)
         {
-            return self::ST_ERROR;
+            $this->buffer_header[$client_id] = $http_data;
+            //超过最大HTTP头限制了
+            if(strlen($http_data) > self::HTTP_HEAD_MAXLEN)
+            {
+                $this->log("http header is too long.");
+                return self::ST_ERROR;
+            }
+            else
+            {
+                return self::ST_WAIT;
+            }
         }
         //POST请求需要检测body是否完整
         if($request->meta['method'] == 'POST')

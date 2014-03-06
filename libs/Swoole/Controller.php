@@ -51,6 +51,13 @@ class Controller
         ob_end_clean();
         return $content;
     }
+
+    function message($code = 0, $msg = 'success')
+    {
+        $ret = array('code' => $code, 'msg' => $msg);
+        return $this->is_ajax ? $ret : json_encode($ret);
+    }
+
     function assign($key, $value)
     {
         $this->tpl_var[$key] = $value;

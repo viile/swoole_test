@@ -5,7 +5,6 @@ class Queue
 
 	function __construct($config, $server_type)
     {
-    	import('#queue.'.$server_type);
     	$this->queue = new $server_type($config);
     }
 

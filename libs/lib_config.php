@@ -8,6 +8,7 @@ define("LIBPATH", str_replace("\\","/", __DIR__));
 if(PHP_OS=='WINNT') define("NL","\r\n");
 else define("NL","\n");
 define("BL","<br />".NL);
+
 require_once __DIR__.'/Swoole/Swoole.php';
 require_once __DIR__.'/Swoole/Loader.php';
 /**
@@ -57,46 +58,7 @@ function table($table_name)
         return $model;
     }
 }
-/**
- * 导入类库
- */
-function import($lib_name)
-{
-    $file = str_replace('.','/',$lib_name);
-    if($file{0}=='@') $lib_file = WEBPATH.'/class/'.substr($file,1).'.class.php';
-    elseif($file{0}=='#') $lib_file = LIBPATH.'/class/swoole/'.substr($file,1).'.class.php';
-    else $lib_file = LIBPATH.'/class/'.$file.".class.php";
 
-    if(file_exists($lib_file))
-    {
-        require_once($lib_file);
-        return true;
-    }
-    else
-    {
-        Swoole\Error::info("Import Error!","Class <b>$lib_file</b> not fountd!<br />\n $lib_name load fail!<br />\n");
-        return false;
-    }
-}
-/**
- * 工厂方法，产生一个类的对象
- * @param $name
- * @return unknown_type
- */
-function create($name)
-{
-    import($name);
-    $classinfo = explode('.',$name);
-    $classname = $classinfo[-1];
-    if(func_num_args()!=1)
-    {
-        $args=func_get_args();
-        for($i=1;$i<count($args);$i++) $el[]='$args['.$i.']';
-        $object=eval("return new $classname(".implode(",",$el).");");
-        return $object;
-    }
-    else return new $classname;
-}
 /**
  * 开启会话
  */
@@ -113,16 +75,7 @@ function session($readonly = false)
         $php->session->start($readonly);
     }
 }
-/**
- * 导入插件
- * @param $plugin_name
- * @return None
- */
-function loadPlugin($plugin_name)
-{
-    global $php;
-    $php->plugin->load($plugin_name);
-}
+
 /**
  * 调试数据，终止程序的运行
  * @param $var

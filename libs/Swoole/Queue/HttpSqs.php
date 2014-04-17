@@ -1,5 +1,5 @@
 <?php
-class HttpQueue implements IQueue
+class HttpQueue implements Swoole\IFace\Queue
 {
     public $host = 'localhost';
     public $debug = false;
@@ -22,31 +22,32 @@ class HttpQueue implements IQueue
 
         if(!extension_loaded('curl'))
         {
-            import('http.CURL');
             $header[] = "Connection: keep-alive";
             $header[] = "Keep-Alive: 300";
             $this->client_type = 'curl';
-            $this->http = new CURL($this->debug);
-            $this->http->set_header($headers);
+            $this->http = new \Swoole\Network\CURL($this->debug);
+            $this->http->set_header($header);
         }
         else
         {
-            import('http.HttpClient');
-            $this->client_type = 'HttpClient';
+            $this->client_type = 'Swoole\Client\Http';
         }
     }
+
     function http_get($opt)
     {
         $url = $this->base.'&opt='.$opt;
         if($this->client_type=='curl') return $this->http->get($url);
-        else return HttpClient::quickGet($url);
+        else return Swoole\Client\Http::quickGet($url);
     }
+
     function http_post($opt,$data)
     {
         $url = $this->base.'&opt='.$opt;
         if($this->client_type=='curl') return $this->http->post($url,$data);
-        else return HttpClient::quickPost($url,$data);
+        else return Swoole\Client\Http::quickPost($url,$data);
     }
+
     function push($data)
     {
         $result = $this->http_post("put",$data);
@@ -54,6 +55,7 @@ class HttpQueue implements IQueue
         else if($result== "HTTPSQS_PUT_END") return $result;
         else return false;
     }
+
     function pop()
     {
         $result = $this->http_get("get");

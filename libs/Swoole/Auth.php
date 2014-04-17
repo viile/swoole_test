@@ -60,9 +60,8 @@ class Auth
     {
         if(!is_object($this->dict))
         {
-            import('#cache.DBCache');
             global $php;
-            $dbc = new DBCache($table);
+            $dbc = new Swoole\Cache\DBCache($table);
             $dbc->shard_id = $this->getUid();
             $this->dict = $dbc;
         }

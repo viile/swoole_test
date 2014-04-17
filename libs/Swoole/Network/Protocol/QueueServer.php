@@ -1,5 +1,6 @@
 <?php
-class UDPQueue implements Swoole_UDP_Server_Protocol
+namespace Swoole\Network\Protocol;
+class UDPQueue implements \Swoole\Server\Protocol
 {
     public $queue;
     function __construct($name)
@@ -22,7 +23,7 @@ class UDPQueue implements Swoole_UDP_Server_Protocol
     }
 }
 
-class TCPQueue implements Swoole_TCP_Server_Protocol
+class TCPQueue implements \Swoole\Server\Protocol
 {
     public $queue;
     function __construct($name)

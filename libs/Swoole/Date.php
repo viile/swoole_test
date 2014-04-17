@@ -20,4 +20,3 @@ class Date
         return date($date_format,strtotime($param,$tm));
     }
 }
-?>

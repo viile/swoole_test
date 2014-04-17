@@ -17,8 +17,6 @@ class Rest
     function __construct($url,$user='',$password='')
     {
         $this->server_url = $url."?user=$user&pass=".\Auth::mkpasswd($user,$password).'&';
-
-        import('http.CURL');
         $this->client_type = 'curl';
         $this->http = new CURL($this->debug);
         if($this->keep_alive)

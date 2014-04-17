@@ -51,7 +51,7 @@ class SelectUDP extends \Swoole\Server implements \Swoole\UDP_Server_Driver
     function shutdown()
     {
         //关闭服务器端
-        sw_socket_close($this->server_sock);
+        \Swoole\Network\Stream::close($this->server_sock);
         //关闭事件循环
         $this->protocol->onShutdown();
     }

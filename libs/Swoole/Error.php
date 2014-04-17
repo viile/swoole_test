@@ -186,11 +186,10 @@ HTMLS;
 	static function output($var)
 	{
 		if(!is_array($var)) self::warn('Error Debug!','Not is a array!');
-		import('#html.HTML_table');
 		$attr['border'] = 1;
 		$attr['style'] = 'font-size:14px';
 
-		$table = new HTML_table($var,$attr);
+		$table = new HTML_table($var, $attr);
 		echo $table->html();
 	}
 	static function parray($array)

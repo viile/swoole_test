@@ -1,9 +1,9 @@
 <?php
-namespace Swoole\Network;
+namespace Swoole\Client;
 /**
  * UDP客户端
  */
-class ClientUDP extends Client
+class UDP extends Socket
 {
     public $remote_host;
     public $remote_port;

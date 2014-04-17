@@ -77,7 +77,7 @@ class Filter
     {
         if(self::$error_url) Swoole_client::redirect(self::$error_url);
         if($text) exit($text);
-        else exit('Web input param error!');
+        else exit('Client input param error!');
     }
     /**
      * 过滤$_GET $_POST $_REQUEST $_COOKIE

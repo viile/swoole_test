@@ -1,12 +1,12 @@
 <?php
-namespace Swoole\Web;
+namespace Swoole\Client;
 /**
  * Swoole WebService客户端
  * @author Tianfeng.Han
  * @package Swoole
- * @subpackage Web
+ * @subpackage Client
  */
-class RestClient
+class Rest
 {
     public $server_url;
     public $keep_alive = false;

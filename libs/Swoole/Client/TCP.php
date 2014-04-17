@@ -1,10 +1,10 @@
 <?php
-namespace Swoole\Network;
+namespace Swoole\Client;
 /**
  * TCP客户端
  * @author 兰戈
  */
-class ClientTCP extends Client
+class TCP extends Socket
 {
     /**
      * 是否重新连接

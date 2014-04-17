@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/../vendor/autoload.php';
 
-$cloud = new Swoole\Network\SOAClient;
+$cloud = new Swoole\Client\SOA;
 //$cloud->setServer('task', array('10.232.41.141:9502'));
 $cloud->addServers(array('127.0.0.1:8888'));
 $s = microtime(true);

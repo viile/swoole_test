@@ -1,8 +1,8 @@
 <?php
-namespace Swoole\Network;
+namespace Swoole\Client;
 use Swoole\Network\Protocol;
 
-class SOAClient
+class SOA
 {
     protected $servers = array();
 

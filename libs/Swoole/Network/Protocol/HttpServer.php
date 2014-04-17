@@ -275,6 +275,9 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         //完整的请求
         //开始处理
         $request = $this->requests[$client_id];
+	$info = $serv->connection_info($client_id);
+	$_SERVER['REMOTE_ADDR'] = $info['remote_ip'];
+	$_SERVER['SWOOLE_CONNECTION_INFO'] = $info;
         $this->parseRequest($request);
         //处理请求，产生response对象
         $response = $this->onRequest($request);

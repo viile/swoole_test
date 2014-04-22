@@ -1,7 +1,7 @@
 <?php
 define('DEBUG', 'on');
 define("WEBPATH", realpath(__DIR__ . '/../'));
-require __DIR__ . '/../libs/lib_config.php';
+require __DIR__ . '/../../libs/lib_config.php';
 
 class WebIM extends Swoole\Network\Protocol\WebSocket
 {
@@ -19,17 +19,8 @@ class WebIM extends Swoole\Network\Protocol\WebSocket
         );
         //将下线消息发送给所有人
         $this->log("onOffline: " . $client_id);
-        $this->broadcast($client_id, $resMsg);
+        $this->broadcast_json($client_id, $resMsg);
         parent::onClose($serv, $client_id, $from_id);
-    }
-
-    function broadcast($client_id, $msg)
-    {
-        foreach ($this->connections as $clid => $info) {
-            if ($client_id != $clid) {
-                $this->send($clid, json_encode($msg));
-            }
-        }
     }
 
     /**
@@ -40,7 +31,9 @@ class WebIM extends Swoole\Network\Protocol\WebSocket
     {
         $this->log("onMessage: " . $ws['message']);
         $msg = json_decode($ws['message'], true);
-        if ($msg['cmd'] == 'login') {
+
+        if ($msg['cmd'] == 'login')
+        {
             $this->connections[$client_id]['name'] = $msg['name'];
             $this->connections[$client_id]['avatar'] = $msg['avatar'];
 
@@ -51,25 +44,26 @@ class WebIM extends Swoole\Network\Protocol\WebSocket
                 'name' => $msg['name'],
                 'avatar' => $msg['avatar'],
             );
-            $this->send($client_id, json_encode($resMsg));
+            $this->send_json($client_id, $resMsg);
 
             //广播给其它在线用户
             $resMsg['cmd'] = 'newUser';
-
+            //将上线消息发送给所有人
+            $this->broadcast_json($client_id, $resMsg);
+            //用户登录消息
             $loginMsg = array(
                 'cmd' => 'fromMsg',
                 'from' => 0,
                 'channal' => 0,
                 'data' => $msg['name'] . "上线鸟。。",
             );
-
-            //将上线消息发送给所有人
-            $this->broadcast($client_id, json_encode($resMsg));
-            $this->broadcast($client_id, json_encode($loginMsg));
-        } /**
+            $this->broadcast_json($client_id, $loginMsg);
+        }
+        /**
          * 获取在线列表
          */
-        elseif ($msg['cmd'] == 'getOnline') {
+        elseif ($msg['cmd'] == 'getOnline')
+        {
             $resMsg = array(
                 'cmd' => 'getOnline',
             );
@@ -80,31 +74,67 @@ class WebIM extends Swoole\Network\Protocol\WebSocket
                     'avatar' => $info['avatar'],
                 );
             }
-            $this->send($client_id, json_encode($resMsg));
+            $this->send_json($client_id, $resMsg);
         } /**
          * 发送信息请求
          */
-        elseif ($msg['cmd'] == 'message') {
+        elseif ($msg['cmd'] == 'message')
+        {
             $resMsg = $msg;
             $resMsg['cmd'] = 'fromMsg';
 
             //表示群发
-            if ($msg['channal'] == 0) {
+            if ($msg['channal'] == 0)
+            {
                 foreach ($this->connections as $clid => $info) {
-                    $this->send($clid, json_encode($resMsg));
+                    $this->send_json($clid, $resMsg);
                 }
 
             } //表示私聊
-            elseif ($msg['channal'] == 1) {
-                $this->send($msg['to'], json_encode($resMsg));
-                $this->send($msg['from'], json_encode($resMsg));
+            elseif ($msg['channal'] == 1)
+            {
+                $this->send_json($msg['to'], $resMsg);
+                $this->send_json($msg['from'], $resMsg);
+            }
+        }
+    }
+
+    /**
+     * 发送JSON数据
+     * @param $client_id
+     * @param $array
+     */
+    function send_json($client_id, $array)
+    {
+        $msg = json_encode($array);
+        $this->send($client_id, $msg);
+    }
+
+    /**
+     * 广播JSON数据
+     * @param $client_id
+     * @param $array
+     */
+    function broadcast_json($client_id, $array)
+    {
+        $msg = json_encode($array);
+        $this->broadcast($client_id, $msg);
+    }
+
+    function broadcast($client_id, $msg)
+    {
+        foreach ($this->connections as $clid => $info)
+        {
+            if ($client_id != $clid)
+            {
+                $this->send($clid, $msg);
             }
         }
     }
 }
 
 $AppSvr = new WebIM();
-$AppSvr->loadSetting(__DIR__."/swoole.ini"); //加载配置文件
+$AppSvr->loadSetting(__DIR__."/../swoole.ini"); //加载配置文件
 $AppSvr->setLogger(new \Swoole\Log\EchoLog(true)); //Logger
 
 /**

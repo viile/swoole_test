@@ -2,10 +2,10 @@
 define('DEBUG', 'on');
 define('WEBPATH', __DIR__);
 
-require __DIR__ . '/../../libs/lib_config.php';
+require __DIR__ . '/../../../libs/lib_config.php';
 
 $AppSvr = new Swoole\Network\Protocol\HttpServer();
-$AppSvr->loadSetting(__DIR__.'/../swoole.ini'); //加载配置文件
+$AppSvr->loadSetting(__DIR__.'/../../swoole.ini'); //加载配置文件
 $AppSvr->setDocumentRoot(__DIR__);
 $AppSvr->setLogger(new \Swoole\Log\EchoLog(true)); //Logger
 

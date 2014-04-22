@@ -21,6 +21,6 @@ $server->setProtocol($webim);
 //$server->daemonize(); //作为守护进程
 $server->run(array(
     'worker_num' => 4,
-    'max_request' => 0,
+    'max_request' => 100000,
     'task_worker_num' => 2,
 ));

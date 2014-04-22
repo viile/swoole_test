@@ -47,29 +47,29 @@ abstract class WebSocket extends HttpServer
      */
     public function doHandshake(Swoole\Request $request,  Swoole\Response $response)
     {
-        if (!isset($request->head['Sec-WebSocket.php-Key']))
+        if (!isset($request->head['Sec-WebSocket-Key']))
         {
             $this->log('Bad protocol implementation: it is not RFC6455.');
             return false;
         }
-        $key = $request->head['Sec-WebSocket.php-Key'];
+        $key = $request->head['Sec-WebSocket-Key'];
         if (0 === preg_match('#^[+/0-9A-Za-z]{21}[AQgw]==$#', $key) || 16 !== strlen(base64_decode($key)))
         {
-            $this->log('Header Sec-WebSocket.php-Key: $key is illegal.');
+            $this->log('Header Sec-WebSocket-Key: $key is illegal.');
             return false;
         }
         /**
          * @TODO
          *   ? Origin;
-         *   ? Sec-WebSocket.php-Protocol;
-         *   ? Sec-WebSocket.php-Extensions.
+         *   ? Sec-WebSocket-Protocol;
+         *   ? Sec-WebSocket-Extensions.
          */
         $response->send_http_status(101);
         $response->addHeader(array(
             'Upgrade' => 'websocket',
             'Connection' => 'Upgrade',
-            'Sec-WebSocket.php-Accept' => base64_encode(sha1($key . static::GUID, true)),
-            'Sec-WebSocket.php-Version' => self::WEBSOCKET_VERSION,
+            'Sec-WebSocket-Accept' => base64_encode(sha1($key . static::GUID, true)),
+            'Sec-WebSocket-Version' => self::WEBSOCKET_VERSION,
         ));
         return true;
     }

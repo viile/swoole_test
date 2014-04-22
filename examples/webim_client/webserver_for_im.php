@@ -1,5 +1,7 @@
 <?php
 define('DEBUG', 'on');
+define('WEBPATH', __DIR__);
+
 require __DIR__ . '/../../libs/lib_config.php';
 
 $AppSvr = new Swoole\Network\Protocol\HttpServer();

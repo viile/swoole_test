@@ -430,7 +430,7 @@ function swoole_urlrouter_mvc(&$uri)
     if(!empty($_GET["c"])) $array['controller'] = $_GET["c"];
     if(!empty($_GET["v"])) $array['view'] = $_GET["v"];
 
-    if(empty($uri['path']) or $uri['path']=='/' or $uri['path']=='/index.php')
+    if(empty($uri['path']) or $uri['path']=='/' or substr($uri['path'], -9) == 'index.php')
     {
         return $array;
     }

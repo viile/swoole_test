@@ -3,14 +3,8 @@ namespace Swoole\Network;
 
 class SelectTCP extends \Swoole\Server
 {
-    public $server_sock;
     public $server_socket_id;
 
-    /**
-     * 文件描述符
-     * @var unknown_type
-     */
-    public $fds;
     //客户端数量
     public $client_num = 0;
 

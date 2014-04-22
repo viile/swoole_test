@@ -15,10 +15,19 @@ abstract class Server implements Server\Driver
 	public $write_buffer_size = 2097152;
 	public $server_block = 0; //0 block,1 noblock
 	public $client_block = 0; //0 block,1 noblock
+
 	//最大连接数
 	public $max_connect=1000;
+    public $client_num = 0;
+
 	//客户端socket列表
 	public $client_sock;
+    public $server_sock;
+    /**
+     * 文件描述符
+     * @var array
+     */
+    public $fds = array();
 
 	function __construct($host,$port,$timeout=30)
 	{
@@ -40,6 +49,13 @@ abstract class Server implements Server\Driver
 		$this->protocol = $protocol;
 		$this->protocol->server = $this;
 	}
+
+    function connection_info($fd)
+    {
+        $peername = stream_socket_get_name($this->fds[$fd], true);
+        list($ip, $port) = explode(':', $peername);
+        return array('remote_port' => $port, 'remote_ip' => $ip);
+    }
 
 	function accept()
 	{
@@ -170,22 +186,6 @@ function sw_gc_array($array)
 	}
 	unset($array);
 	return $new;
-}
-/**
- * 关闭socket
- * @param $socket
- * @param $event
- * @return unknown_type
- */
-function sw_socket_close($socket,$event=null)
-{
-	if($event)
-	{
-		event_del($event);
-		event_free($event);
-	}
-	stream_socket_shutdown($socket,STREAM_SHUT_RDWR);
-	fclose($socket);
 }
 
 interface TCP_Server_Driver

@@ -5,7 +5,7 @@ class File
 {
     static $shm_dir = '/dev/shm/swoole_webim/';
     protected $online_dir;
-    static $save_dir;
+    protected $save_dir;
 
     static function clearDir($dir)
     {
@@ -35,7 +35,7 @@ class File
         return $n;
     }
 
-    function __construct()
+    function __construct($save_dir)
     {
         if (!is_dir(self::$shm_dir))
         {
@@ -58,6 +58,7 @@ class File
                 }
             }
         }
+        $this->save_dir = $save_dir;
     }
 
     function login($client_id, $info)

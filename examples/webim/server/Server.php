@@ -3,11 +3,19 @@ namespace WebIM;
 
 class Server extends \Swoole\Network\Protocol\WebSocket
 {
-    protected $chat;
+    /**
+     * @var Store\File;
+     */
+    protected $store;
+
     function __construct($config = array())
     {
         parent::__construct($config);
-        $this->chat = new Store\File;
+    }
+
+    function setStore($store)
+    {
+        $this->store = $store;
     }
 
     /**
@@ -15,7 +23,7 @@ class Server extends \Swoole\Network\Protocol\WebSocket
      */
     function onClose($serv, $client_id, $from_id)
     {
-        $userInfo = $this->chat->getUser($client_id);
+        $userInfo = $this->store->getUser($client_id);
         $resMsg = array(
             'cmd' => 'offline',
             'fd' => $client_id,
@@ -26,7 +34,7 @@ class Server extends \Swoole\Network\Protocol\WebSocket
         //将下线消息发送给所有人
         $this->log("onOffline: " . $client_id);
 
-        $this->chat->logout($client_id);
+        $this->store->logout($client_id);
         $this->broadcastJson($client_id, $resMsg);
         parent::onClose($serv, $client_id, $from_id);
     }
@@ -39,8 +47,8 @@ class Server extends \Swoole\Network\Protocol\WebSocket
         $resMsg = array(
             'cmd' => 'getOnline',
         );
-        $users = $this->chat->getOnlineUsers();
-        $info = $this->chat->getUsers(array_slice($users, 0, 100));
+        $users = $this->store->getOnlineUsers();
+        $info = $this->store->getUsers(array_slice($users, 0, 100));
         $resMsg['users'] = $users;
         $resMsg['list'] = $info;
         $this->sendJson($client_id, $resMsg);
@@ -63,7 +71,7 @@ class Server extends \Swoole\Network\Protocol\WebSocket
             'name' => $msg['name'],
             'avatar' => $msg['avatar'],
         );
-        $this->chat->login($client_id, $resMsg);
+        $this->store->login($client_id, $resMsg);
         $this->sendJson($client_id, $resMsg);
 
         //广播给其它在线用户

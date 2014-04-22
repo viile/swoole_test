@@ -18,6 +18,8 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
     public $gzip = false;
     public $expire = false;
 
+    private $swoole_server;
+
     /**
      * @var \Swoole\Http\Parser
      */
@@ -70,7 +72,13 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
                 posix_setgid($user['gid']);
             }
         }
+        $this->swoole_server = $serv;
         $this->log(self::SOFTWARE . ". running. on {$this->server->host}:{$this->server->port}");
+    }
+
+    function getSwooleServer()
+    {
+        return $this->swoole_server;
     }
 
     function onShutdown($serv)

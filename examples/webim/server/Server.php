@@ -27,6 +27,10 @@ class Server extends \Swoole\Network\Protocol\WebSocket
     function onClose($serv, $client_id, $from_id)
     {
         $userInfo = $this->store->getUser($client_id);
+        if (!$userInfo)
+        {
+            return;
+        }
         $resMsg = array(
             'cmd' => 'offline',
             'fd' => $client_id,

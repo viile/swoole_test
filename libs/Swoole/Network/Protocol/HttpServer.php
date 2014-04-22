@@ -128,6 +128,10 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         if (!empty($config['server']['expire_open']))
         {
             $this->expire = true;
+            if (empty($config['server']['expire_time']))
+            {
+                $config['server']['expire_time'] = 1800;
+            }
         }
         /*--------------Session------------------*/
         if (empty($config['session']['cookie_life'])) $config['session']['cookie_life'] = 86400; //保存SESSION_ID的cookie存活时间
@@ -228,7 +232,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
 
     function checkData($client_id, $http_data)
     {
-        if(isset($this->buffer_header[$client_id]))
+        if (isset($this->buffer_header[$client_id]))
         {
             $http_data = $this->buffer_header[$client_id].$http_data;
         }
@@ -239,7 +243,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         {
             $this->buffer_header[$client_id] = $http_data;
             //超过最大HTTP头限制了
-            if(strlen($http_data) > self::HTTP_HEAD_MAXLEN)
+            if (strlen($http_data) > self::HTTP_HEAD_MAXLEN)
             {
                 $this->log("http header is too long.");
                 return self::ST_ERROR;
@@ -348,7 +352,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         {
             $response->head['Server'] = self::SOFTWARE;
         }
-        if(!isset($response->head['Connection']))
+        if (!isset($response->head['Connection']))
         {
             //keepalive
             if($this->keepalive and (isset($request->head['Connection']) and $request->head['Connection'] == 'keep-alive'))

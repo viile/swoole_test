@@ -1,5 +1,7 @@
 <?php
 define('DEBUG', 'on');
+define("WEBPATH", realpath(__DIR__ . '/../'));
+
 require __DIR__ . '/../../libs/lib_config.php';
 /**
  * 如果想要支持IE浏览器，需要开启flash-websocket
@@ -13,5 +15,5 @@ $AppSvr = new Swoole\Network\Protocol\FlashPolicy();
  */
 $server = new \Swoole\Network\Server('0.0.0.0', 843);
 $server->setProtocol($AppSvr);
-$server->daemonize(); //作为守护进程
+//$server->daemonize(); //作为守护进程
 $server->run(array('worker_num' => 1, 'max_request' => 5000));

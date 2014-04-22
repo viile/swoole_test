@@ -290,9 +290,9 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         //完整的请求
         //开始处理
         $request = $this->requests[$client_id];
-	$info = $serv->connection_info($client_id);
-	$_SERVER['REMOTE_ADDR'] = $info['remote_ip'];
-	$_SERVER['SWOOLE_CONNECTION_INFO'] = $info;
+	    $info = $serv->connection_info($client_id);
+	    $_SERVER['REMOTE_ADDR'] = $info['remote_ip'];
+	    $_SERVER['SWOOLE_CONNECTION_INFO'] = $info;
         $this->parseRequest($request);
         //处理请求，产生response对象
         $response = $this->onRequest($request);
@@ -355,7 +355,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         if (!isset($response->head['Connection']))
         {
             //keepalive
-            if($this->keepalive and (isset($request->head['Connection']) and $request->head['Connection'] == 'keep-alive'))
+            if ($this->keepalive and (isset($request->head['Connection']) and strtolower($request->head['Connection']) == 'keep-alive'))
             {
                 $response->head['KeepAlive'] = 'on';
                 $response->head['Connection'] = 'keep-alive';
@@ -380,8 +380,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
             $response->body = gzdeflate($response->body, $this->config['server']['gzip_level']);
         }
         $response->head['Content-Length'] = strlen($response->body);
-        $out = $response->head();
-        $out .= $response->body;
+        $out = $response->head().$response->body;
         $this->server->send($client_id, $out);
     }
 

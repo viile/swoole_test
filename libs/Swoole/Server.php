@@ -6,6 +6,10 @@ abstract class Server implements Server\Driver
     /**
      * @var Server\Protocol
      */
+    public $protocols = array();
+    /**
+     * @var Server\Protocol
+     */
     public $protocol;
 	public $host = '0.0.0.0';
 	public $port;
@@ -35,19 +39,27 @@ abstract class Server implements Server\Driver
 		$this->port = $port;
 		$this->timeout = $timeout;
 	}
+
+    function addListener($protocol, $port)
+    {
+        if(!($protocol instanceof \Swoole\Server\Protocol))
+        {
+            throw new \Exception("addListener must use swoole extension.");
+        }
+    }
+
 	/**
 	 * 应用协议
 	 * @return unknown_type
 	 */
 	function setProtocol($protocol)
 	{
-        //初始化事件系统
         if(!($protocol instanceof \Swoole\Server\Protocol))
         {
              throw new \Exception("The protocol is not instanceof \\Swoole\\Server\\Protocol");
         }
 		$this->protocol = $protocol;
-		$this->protocol->server = $this;
+        $protocol->server = $this;
 	}
 
     function connection_info($fd)

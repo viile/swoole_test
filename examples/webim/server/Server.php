@@ -8,6 +8,9 @@ class Server extends \Swoole\Network\Protocol\WebSocket
      */
     protected $store;
 
+    const MESSAGE_MAX_LEN     = 1024; //单条消息不得超过1K
+    const WORKER_HISTORY_ID   = 0;
+
     function __construct($config = array())
     {
         parent::__construct($config);
@@ -39,6 +42,31 @@ class Server extends \Swoole\Network\Protocol\WebSocket
         parent::onClose($serv, $client_id, $from_id);
     }
 
+    function onTask($serv, $task_id, $from_id, $data)
+    {
+        $req = unserialize($data);
+        if ($req)
+        {
+            switch($req['cmd'])
+            {
+                case 'getHistory':
+                    $history = $this->store->getHistory();
+                    $this->sendJson($req['fd'], array('cmd'=> 'getHistory', 'history' => $history));
+                    break;
+                case 'addHistory':
+                    $this->store->addHistory($req['fd'], $req['msg']);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    function onFinish($serv, $task_id, $data)
+    {
+
+    }
+
     /**
      * 获取在线列表
      */
@@ -52,6 +80,18 @@ class Server extends \Swoole\Network\Protocol\WebSocket
         $resMsg['users'] = $users;
         $resMsg['list'] = $info;
         $this->sendJson($client_id, $resMsg);
+    }
+
+    /**
+     * 获取历史聊天记录
+     */
+    function cmd_getHistory($client_id, $msg)
+    {
+        $task['fd'] = $client_id;
+        $task['cmd'] = 'getHistory';
+        $task['offset'] = '0,100';
+        //在task worker中会直接发送给客户端
+        $this->getSwooleServer()->task(serialize($task), self::WORKER_HISTORY_ID);
     }
 
     /**
@@ -96,19 +136,28 @@ class Server extends \Swoole\Network\Protocol\WebSocket
         $resMsg = $msg;
         $resMsg['cmd'] = 'fromMsg';
 
+        if (strlen($msg['data']) > self::MESSAGE_MAX_LEN)
+        {
+            $this->sendErrorMessage($client_id, 102, 'message max length is '.self::MESSAGE_MAX_LEN);
+            return;
+        }
+
         //表示群发
         if ($msg['channal'] == 0)
         {
-            foreach ($this->connections as $clid => $info)
-            {
-                $this->sendJson($clid, $resMsg);
-            }
+            $this->broadcastJson($client_id, $resMsg);
+            $this->getSwooleServer()->task(serialize(array(
+                'cmd' => 'addHistory',
+                'msg' => $msg,
+                'fd'  => $client_id,
+            )), self::WORKER_HISTORY_ID);
         }
         //表示私聊
         elseif ($msg['channal'] == 1)
         {
             $this->sendJson($msg['to'], $resMsg);
-            $this->sendJson($msg['from'], $resMsg);
+            //$this->store->addHistory($client_id, $msg['data']);
+            //$this->sendJson($msg['from'], $resMsg);
         }
     }
 

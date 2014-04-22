@@ -57,7 +57,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         $this->parser = new Swoole\Http\Parser;
     }
 
-    function onStart($serv)
+    function onStart($serv, $worker_id = 0)
     {
         if (!defined('WEBROOT'))
         {
@@ -73,9 +73,12 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
             }
         }
         $this->swoole_server = $serv;
-        $this->log(self::SOFTWARE . ". running. on {$this->server->host}:{$this->server->port}");
+        $this->log(self::SOFTWARE . "[#{$worker_id}]. running. on {$this->server->host}:{$this->server->port}");
     }
 
+    /**
+     * @return \swoole_server
+     */
     function getSwooleServer()
     {
         return $this->swoole_server;

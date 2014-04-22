@@ -31,7 +31,6 @@ function listenEvent() {
         }
 
         //发送登录信息
-
         msg = new Object();
         msg.cmd = 'login';
         msg.name = GET['name'];
@@ -41,29 +40,38 @@ function listenEvent() {
 
     //有消息到来时触发
     ws.onmessage = function (e) {
-        var cmd = $.evalJSON(e.data).cmd;
-        if (cmd == 'login') {
+        var message = $.evalJSON(e.data);
+        var cmd = message.cmd;
+        if (cmd == 'login')
+        {
             client_id = $.evalJSON(e.data).fd;
             //获取在线列表
-            msg = new Object();
-            msg.cmd = 'getOnline';
-            ws.send($.toJSON(msg));
-
+            ws.send($.toJSON({cmd : 'getOnline'}));
+            //获取历史记录
+            ws.send($.toJSON({cmd : 'getHistory'}));
             //alert( "收到消息了:"+e.data );
         }
-        else if (cmd == 'getOnline') {
-            showOnlineList(e.data);
+        else if (cmd == 'getOnline')
+        {
+            showOnlineList(message);
         }
-        else if (cmd == 'newUser') {
-            showNewUser(e.data);
+        else if (cmd == 'getHistory')
+        {
+            showHistory(message);
         }
-        else if (cmd == 'fromMsg') {
-            showNewMsg(e.data);
+        else if (cmd == 'newUser')
+        {
+            showNewUser(message);
         }
-        else if (cmd == 'offline') {
-            var cid = $.evalJSON(e.data).fd;
+        else if (cmd == 'fromMsg')
+        {
+            showNewMsg(message);
+        }
+        else if (cmd == 'offline')
+        {
+            var cid = message.fd;
             delUser(cid);
-            showNewMsg(e.data);
+            showNewMsg(message);
         }
     };
 
@@ -99,10 +107,9 @@ function selectUser(userid) {
 
 /**
  * 显示所有在线列表
- * @param data
+ * @param dataObj
  */
-function showOnlineList(data) {
-    var dataObj = $.evalJSON(data);
+function showOnlineList(dataObj) {
     var li = '';
     var option = "<option value='0' id='user_all' >所有人</option>";
 
@@ -124,11 +131,26 @@ function showOnlineList(data) {
 }
 
 /**
- * 当有一个新用户连接上来时
- * @param userid
+ * 显示所有在线列表
+ * @param dataObj
  */
-function showNewUser(data) {
-    var dataObj = $.evalJSON(data);
+function showHistory(dataObj) {
+    var msg;
+    console.dir(dataObj);
+    for (var i = 0; i < dataObj.history.length; i++) {
+        msg = dataObj.history[i]['msg'];
+        msg['time'] = dataObj.history[i]['time'];
+        msg['user'] = dataObj.history[i]['user'];
+        msg['channal'] = 3;
+        showNewMsg(msg);
+    }
+}
+
+/**
+ * 当有一个新用户连接上来时
+ * @param dataObj
+ */
+function showNewUser(dataObj) {
     if (!userlist[dataObj.fd]) {
         userlist[dataObj.fd] = dataObj.name;
         if (dataObj.fd != client_id) {
@@ -147,46 +169,60 @@ function showNewUser(data) {
 /**
  * 显示新消息
  */
-function showNewMsg(data) {
-    var dataObj = $.evalJSON(data);
+function showNewMsg(dataObj) {
     var content = xssFilter(dataObj.data)
     var fromId = dataObj.from;
     var channal = dataObj.channal;
     content = parseXss(content);
     var said = '';
+    var time_str;
 
-    $("#msg-template .msg-time").html(GetDateT());
+    if (dataObj.time) {
+        time_str = GetDateT(dataObj.time)
+    } else {
+        time_str = GetDateT()
+    }
+
+    $("#msg-template .msg-time").html(time_str);
     if (fromId == 0) {
         $("#msg-template .userpic").html("");
         $("#msg-template .content").html(
-            "<span style='color: green'>【系统】</span>" + content);
+            "<span style='color: green'>【系统消息】</span>" + content);
     }
     else {
         var html = '';
         var to = dataObj.to;
-        //如果说话的是我自己
-        if (client_id == fromId) {
-            if (channal == 0) {
-                said = '我对大家说:';
-            }
-            else if (channal == 1) {
-                said = "我悄悄的对" + userlist[to] + "说:";
-            }
 
-            html += '<span style="color: orange">' + said + ' </span> ';
-
+        //历史记录
+        if (channal == 3)
+        {
+            said = '对大家说:';
+            html += '<span style="color: green">【历史记录】</span><span style="color: orange">' + dataObj.user.name + said;
+            html += '</span>';
         }
+        //如果说话的是我自己
         else {
-            if (channal == 0) {
-                said = '对大家说:';
+            if (client_id == fromId) {
+                if (channal == 0) {
+                    said = '我对大家说:';
+                }
+                else if (channal == 1) {
+                    said = "我悄悄的对" + userlist[to] + "说:";
+                }
+                html += '<span style="color: orange">' + said + ' </span> ';
             }
-            else if (channal == 1) {
-                said = "悄悄的对我说:";
-            }
+            else {
+                if (channal == 0) {
+                    said = '对大家说:';
+                }
+                else if (channal == 1) {
+                    said = "悄悄的对我说:";
+                }
 
-            html += '<span style="color: orange"><a href="javascript:selectUser('
-                + fromId + ')">' + userlist[fromId] + said;
-            html += '</a></span> '
+                html += '<span style="color: orange"><a href="javascript:selectUser('
+                    + fromId + ')">' + userlist[fromId] + said;
+                html += '</a></span> '
+            }
         }
         html += content + '</span>';
         $("#msg-template .content").html(html);
@@ -208,11 +244,14 @@ function parseXss(val) {
 }
 
 
-function GetDateT() {
+function GetDateT(time_stamp) {
     var d;
     d = new Date();
-    var h, i, s;
 
+    if (time_stamp) {
+        d.setTime(time_stamp * 1000);
+    }
+    var h, i, s;
     h = d.getHours();
     i = d.getMinutes();
     s = d.getSeconds();
@@ -253,13 +292,13 @@ function delUser(userid) {
 
 function sendMsg() {
     var content = $('#msg_content').val();
+    var msg = {};
     content = content.replace(" ", "&nbsp;");
     if (!content) {
         return false;
     }
 
     if ($('#userlist').val() == 0) {
-        var msg = new Object();
         msg.cmd = 'message';
         msg.from = client_id;
         msg.channal = 0;
@@ -267,7 +306,6 @@ function sendMsg() {
         ws.send($.toJSON(msg));
     }
     else {
-        var msg = new Object();
         msg.cmd = 'message';
         msg.from = client_id;
         msg.to = $('#userlist').val();
@@ -275,8 +313,9 @@ function sendMsg() {
         msg.data = content;
         ws.send($.toJSON(msg));
     }
+    showNewMsg(msg);
     $('#msg_content').val("");
-    return false;
+    return true;
 }
 
 

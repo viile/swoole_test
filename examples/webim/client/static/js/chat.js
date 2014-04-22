@@ -135,7 +135,6 @@ function showNewUser(data) {
             $('#userlist').append("<option value='" + dataObj.fd + "' id='user_" + dataObj.fd + "'>" + dataObj.name + "</option>");
 
         }
-
         $('#left-userlist').append(
             "<li id='inroom_" + dataObj.fd + "'>" +
                 "<a href='javascript:selectUser("

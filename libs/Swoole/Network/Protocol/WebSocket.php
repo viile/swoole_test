@@ -132,7 +132,7 @@ abstract class WebSocket extends HttpServer
 //        file_put_contents("$i.data", $data);
 //        $i++;
 
-        echo posix_getpid()."   ".$data.PHP_EOL;
+        //echo posix_getpid()."   ".$data.PHP_EOL;
 
         //未连接
         if(!isset($this->connections[$client_id]))

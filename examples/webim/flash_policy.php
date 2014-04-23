@@ -1,19 +1,22 @@
 <?php
-define('DEBUG', 'on');
-define("WEBPATH", realpath(__DIR__ . '/../'));
+$serv = new swoole_server("0.0.0.0", 843);
+$serv->set(array(
+	'worker_num' => 1,
+	//'daemonize' => true,
+	//'log_file' => '/tmp/swoole.log'
+));
 
-require __DIR__ . '/../../libs/lib_config.php';
-/**
- * 如果想要支持IE浏览器，需要开启flash-websocket
- */
-$AppSvr = new Swoole\Network\Protocol\FlashPolicy();
-/**
- * 如果你没有安装swoole扩展，这里还可选择
- * Swoole\Network\BlockTCP 阻塞的TCP，支持windows平台 (c1)
- * Swoole\Network\SelectTCP 使用select做事件循环，支持windows平台 (c1000)
- * Swoole\Network\EventTCP 使用libevent，需要安装libevent扩展 (c10000)
- */
-$server = new \Swoole\Network\Server('0.0.0.0', 843);
-$server->setProtocol($AppSvr);
-//$server->daemonize(); //作为守护进程
-$server->run(array('worker_num' => 1, 'max_request' => 5000));
+$serv->on('connect', function ($serv, $fd, $from_id){
+    echo "[#".posix_getpid()."]\tClient@[$fd:$from_id]: Connect.\n";
+});
+
+$serv->on('receive', function ($serv, $fd, $from_id, $data) {
+	global $xml;
+    echo "[#".posix_getpid()."]\tClient[$fd]: $data\n";
+    $serv->send($fd, $xml);
+    //$serv->close($fd);
+});
+$serv->on('close', function ($serv, $fd, $from_id) {
+    echo "[#".posix_getpid()."]\tClient@[$fd:$from_id]: Close.\n";
+});
+$serv->start();

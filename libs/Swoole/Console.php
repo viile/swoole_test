@@ -6,6 +6,7 @@ class Console
     {
         $cmd = trim($cmd);
         $args = explode(' ',$cmd);
+        $return = array();
         foreach($args as &$arg)
         {
             $arg = trim($arg);
@@ -15,5 +16,20 @@ class Console
         }
         return $return;
     }
+
+    static function setProcessName($name)
+    {
+        if (function_exists('cli_set_process_title'))
+        {
+            cli_set_process_title($name);
+        }
+        else if(function_exists('swoole_set_process_name'))
+        {
+            swoole_set_process_name($name);
+        }
+        else
+        {
+            trigger_error("setProcessName failed. require cli_set_process_title or swoole_set_process_name.", E_WARNING);
+        }
+    }
 }
-?>

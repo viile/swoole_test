@@ -63,6 +63,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         {
             define('WEBROOT', $this->config['server']['webroot']);
         }
+
         if (isset($this->config['server']['user']))
         {
             $user = posix_getpwnam($this->config['server']['user']);
@@ -72,6 +73,20 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
                 posix_setgid($user['gid']);
             }
         }
+
+        if (isset($this->config['server']['process_rename']))
+        {
+            global $argv;
+            if ($worker_id >= $serv->setting['worker_num'])
+            {
+                Swoole\Console::setProcessName('php '.$argv[0].': task');
+            }
+            else
+            {
+                Swoole\Console::setProcessName('php '.$argv[0].': worker');
+            }
+        }
+
         $this->swoole_server = $serv;
         $this->log(self::SOFTWARE . "[#{$worker_id}]. running. on {$this->server->host}:{$this->server->port}");
     }

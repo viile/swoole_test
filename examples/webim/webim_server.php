@@ -22,5 +22,5 @@ $server->setProtocol($webim);
 $server->run(array(
     'worker_num' => 4,
     'max_request' => 100000,
-    'task_worker_num' => 2,
+    'task_worker_num' => 1,
 ));

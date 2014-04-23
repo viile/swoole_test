@@ -1,5 +1,6 @@
 <?php
 namespace Swoole\Network;
+use Swoole;
 /**
  * Class Server
  * @package Swoole\Network
@@ -39,6 +40,19 @@ class Server extends \Swoole\Server implements \Swoole\Server\Driver
     {
         $set = array_merge($this->swooleSetting, $setting);
         $this->sw->set($set);
+        $version = explode('.', SWOOLE_VERSION);
+        //1.7.0
+        if ($version[1] >= 7)
+        {
+            $this->sw->on('ManagerStart', function($serv){
+                global $argv;
+                Swoole\Console::setProcessName('php '.$argv[0].': manager');
+            });
+        }
+        $this->sw->on('Start', function($serv){
+            global $argv;
+            Swoole\Console::setProcessName('php '.$argv[0].': master');
+        });
         $this->sw->on('WorkerStart', array($this->protocol, 'onStart'));
         $this->sw->on('Connect', array($this->protocol, 'onConnect'));
         $this->sw->on('Receive', array($this->protocol, 'onReceive'));

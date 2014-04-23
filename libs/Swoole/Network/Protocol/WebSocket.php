@@ -103,6 +103,11 @@ abstract class WebSocket extends HttpServer
             return false;
         }
         $request = $this->requests[$client_id];
+        if (empty($request))
+        {
+            $this->server->close($client_id);
+            return false;
+        }
         $response = new Swoole\Response;
         $this->doHandshake($request, $response);
         $this->response($client_id, $request, $response);

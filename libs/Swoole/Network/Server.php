@@ -49,9 +49,9 @@ class Server extends \Swoole\Server implements \Swoole\Server\Driver
                 Swoole\Console::setProcessName('php '.$argv[0].': manager');
             });
         }
-        $this->sw->on('Start', function($serv){
+        $this->sw->on('Start', function ($serv) {
             global $argv;
-            Swoole\Console::setProcessName('php '.$argv[0].': master');
+            Swoole\Console::setProcessName('php ' . $argv[0] . ': master -host=' . $this->host . ' -port=' . $this->port);
         });
         $this->sw->on('WorkerStart', array($this->protocol, 'onStart'));
         $this->sw->on('Connect', array($this->protocol, 'onConnect'));

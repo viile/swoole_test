@@ -26,6 +26,14 @@ class Loader
 				'lib'=>new \ArrayObject,
 				'object'=>new \ArrayObject);
 	}
+
+    /**
+     * for composer
+     */
+    function vendor_init()
+    {
+        require __DIR__.'/../lib_config.php';
+    }
 	/**
 	 * 加载一个模型对象
 	 * @param $model_name 模型名称

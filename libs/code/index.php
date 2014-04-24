@@ -7,7 +7,7 @@ $php->runMVC('mvc_get');
 //$php->runMVC('mvc_rewrite');
 
 /**
- * ²ÉÓÃURL GET²ÎÊýµÄÓ³Éä·½Ê½
+ * ï¿½ï¿½ï¿½ï¿½URL GETï¿½ï¿½ï¿½ï¿½ï¿½Ó³ï¿½ä·½Ê½
 */
 function url_process_mvc_get()
 {  
@@ -25,7 +25,7 @@ function url_process_mvc_get()
     return $array;
 }
 /**
- * ²ÉÓÃURL rewriteºóµÄURLÓ³Éä·½Ê½
+ * ï¿½ï¿½ï¿½ï¿½URL rewriteï¿½ï¿½ï¿½URLÓ³ï¿½ä·½Ê½
 */
 function url_process_mvc_rewrite()
 {

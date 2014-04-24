@@ -84,6 +84,7 @@ abstract class WebSocket extends HttpServer
         {
             if($conn['time'] < $now - $this->heart_time)
             {
+                $this->log("connection[$client_id] timeout.", 'CLOSE');
                 $this->close($client_id);
             }
         }
@@ -99,12 +100,14 @@ abstract class WebSocket extends HttpServer
         $st = $this->checkData($client_id, $data);
         if ($st === self::ST_ERROR)
         {
+            $this->log("http header[$data] error.", 'CLOSE');
             $this->server->close($client_id);
             return false;
         }
         $request = $this->requests[$client_id];
         if (empty($request))
         {
+            $this->log("request object not found.", 'CLOSE');
             $this->server->close($client_id);
             return false;
         }
@@ -151,7 +154,7 @@ abstract class WebSocket extends HttpServer
                 //解析失败了
                 if($ws === false)
                 {
-                    $this->log("parse frame failed.", 'ERROR');
+                    $this->log("parse frame failed.", 'CLOSE');
                     $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
                 }
                 //数据包就绪
@@ -458,7 +461,6 @@ abstract class WebSocket extends HttpServer
     }
     /**
      * Close a connection.
-     *
      * @access  public
      * @param   int     $code
      * @param   string  $reason    Reason.
@@ -467,6 +469,7 @@ abstract class WebSocket extends HttpServer
     public function close($client_id, $code = self::CLOSE_NORMAL, $reason = '')
     {
         $this->send($client_id, pack('n', $code).$reason, self::OPCODE_CONNECTION_CLOSE);
+        $this->log("server close connection[$client_id]. reason: $reason, OPCODE = $code");
         $this->server->close($client_id);
     }
 }

@@ -39,7 +39,7 @@ Composer
 ```js
 {
     "require": {
-        "matyhtf/swoole_framework": "dev-master",
+        "matyhtf/swoole_framework": "dev-master"
     }
 }
 ```

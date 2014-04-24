@@ -238,7 +238,6 @@ abstract class WebSocket extends HttpServer
 
         if(0x0 !== $ws['rsv1'] || 0x0 !== $ws['rsv2'] || 0x0 !== $ws['rsv3'])
         {
-            $this->close(self::CLOSE_PROTOCOL_ERROR);
             return false;
         }
         if(0 === $length)
@@ -469,7 +468,7 @@ abstract class WebSocket extends HttpServer
     public function close($client_id, $code = self::CLOSE_NORMAL, $reason = '')
     {
         $this->send($client_id, pack('n', $code).$reason, self::OPCODE_CONNECTION_CLOSE);
-        $this->log("server close connection[$client_id]. reason: $reason, OPCODE = $code");
+        $this->log("server close connection[$client_id]. reason: $reason, OPCODE = $code", 'CLOSE');
         $this->server->close($client_id);
     }
 }

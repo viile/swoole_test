@@ -20,6 +20,7 @@ spl_autoload_register('\\Swoole\\Loader::autoload');
 /**
  * 产生类库的全局变量
  */
+global $php;
 $php = Swoole::getInstance();
 
 /**
@@ -31,28 +32,38 @@ function import_func($space_name)
     else $func_file = LIBPATH.'/function/'.$space_name.'.php';
     require_once($func_file);
 }
+
+function createModel($model_name)
+{
+    return model($model_name);
+}
+
 /**
  * 生产一个model接口，模型在注册树上为单例
  * @param $model_name
  * @return Swoole\Model
  */
-function createModel($model_name)
+function model($model_name)
 {
     global $php;
     return $php->model->$model_name;
 }
+
 /**
  * 传入一个数据库表，返回一个封装此表的Model接口
  * @param $table_name
- * @return unknown_type
+ * @return Swoole\Model
  */
 function table($table_name)
 {
     global $php;
-    if(isset($php->model->_models[$table_name])) return $php->model->$table_name;
+    if (isset($php->model->_models[$table_name]))
+    {
+        return $php->model->$table_name;
+    }
     else
     {
-        $model = new Model($php);
+        $model = new Swoole\Model($php);
         $model->table = $table_name;
         $php->model->_models[$table_name] = $model;
         return $model;

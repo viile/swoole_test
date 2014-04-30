@@ -65,9 +65,10 @@ class Model
 	/**
 	 * 获取表的一段数据，查询的参数由$params指定
 	 * @param $params
+     * @param $pager Pager
 	 * @return Array
 	 */
-	public final function gets($params,&$pager=null)
+	public final function gets($params, &$pager=null)
 	{
 	    if(empty($params)) return false;
 		$selectdb = new SelectDB($this->db);
@@ -116,7 +117,7 @@ class Model
 	{
 		if(empty($params))
 		{
-			throw new Exception("Model sets params is empty!");
+			throw new \Exception("Model sets params is empty!");
 			return false;
 		}
 		$selectdb = new SelectDB($this->db);
@@ -145,7 +146,7 @@ class Model
     {
         if(empty($params))
         {
-            throw new Exception("Model dels params is empty!");
+            throw new \Exception("Model dels params is empty!");
             return false;
         }
     	$selectdb = new SelectDB($this->db);
@@ -489,26 +490,28 @@ class Record implements \ArrayAccess
  */
 class RecordSet implements \Iterator
 {
-	public $_list=array();
+    protected $_list = array();
+    protected $table = '';
+    protected $db;
+    /**
+     * @var SelectDb
+     */
+    protected $db_select;
 
-	public $table='';
-	public $db;
-	public $db_select;
+    public $primary = "";
 
-	public $primary="";
+    public $_current_id = 0;
 
-	public $_current_id=0;
-
-	function __construct($db,$table,$primary,$select)
+    function __construct($db,$table,$primary,$select)
 	{
-		$this->table=$table;
-		$this->primary=$primary;
-		$this->db = $db;
-		$this->db_select = new SelectDB($db);
-		$this->db_select->from($table);
-		$this->db_select->primary = $primary;
-		$this->db_select->select($select);
-		$this->db_select->order($this->primary." desc");
+        $this->table = $table;
+        $this->primary = $primary;
+        $this->db = $db;
+        $this->db_select = new SelectDB($db);
+        $this->db_select->from($table);
+        $this->db_select->primary = $primary;
+        $this->db_select->select($select);
+        $this->db_select->order($this->primary . " desc");
 	}
 	/**
 	 * 获取得到的数据
@@ -569,6 +572,11 @@ class RecordSet implements \Iterator
 	{
 		return $this->db_select->getall();
 	}
+
+    function __set($key, $v)
+    {
+        $this->db_select->$key = $v;
+    }
 
 	function __call($method,$argv)
 	{

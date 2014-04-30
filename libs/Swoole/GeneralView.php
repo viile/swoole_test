@@ -53,7 +53,7 @@ class GeneralView
 
     function setModel($model_name)
     {
-        $this->model = createModel($model_name);
+        $this->model = model($model_name);
     }
 
     function setTable($table_name)
@@ -190,7 +190,7 @@ class GeneralView
     function handle_entity_op($config)
     {
         if(!isset($config['model'])) die('参数错误！');
-        $_model = createModel($config['model']);
+        $_model = model($config['model']);
 
         if($_POST['job']=='push')
         {
@@ -211,7 +211,7 @@ class GeneralView
         if(empty($config['tpl.add'])) $config['tpl.add'] = LIBPATH.'/data/tpl/admin_entity_add.html';
         if(empty($config['tpl.modify'])) $config['tpl.modify'] = LIBPATH.'/data/tpl/admin_entity_modify.html';
 
-        $_model = createModel($config['model']);
+        $_model = model($config['model']);
 
         if($_POST)
         {
@@ -268,7 +268,7 @@ class GeneralView
     function handle_entity_center($config)
     {
         if(!isset($config['model']) or !isset($config['name'])) die('参数错误！');
-        $_model = createModel($config['model']);
+        $_model = model($config['model']);
         $this->swoole->tpl->assign('act_name',$config['name']);
         if(empty($config['tpl.add'])) $config['tpl.add'] = LIBPATH.'/data/tpl/admin_entity_center_add.html';
         if(empty($config['tpl.list'])) $config['tpl.list'] = LIBPATH.'/data/tpl/admin_entity_center_list.html';
@@ -332,7 +332,7 @@ class GeneralView
     function handle_catelog_center($config)
     {
         if(!isset($config['model']) or !isset($config['name'])) die('参数错误！');
-        $_model = createModel($config['model']);
+        $_model = model($config['model']);
         $this->swoole->tpl->assign('act_name',$config['name']);
         if(empty($config['tpl.add'])) $config['tpl.add'] = LIBPATH.'/data/tpl/admin_catelog_center_add.html';
         if(empty($config['tpl.list'])) $config['tpl.list'] = LIBPATH.'/data/tpl/admin_catelog_center_list.html';
@@ -393,8 +393,8 @@ class GeneralView
     function handle_attachment($config)
     {
         if(!isset($config['entity']) or !isset($config['attach']) or !isset($config['entity_id'])) die('参数错误！');
-        $_mm = createModel($config['entity']);
-        $_ma = createModel($config['attach']);
+        $_mm = model($config['entity']);
+        $_ma = model($config['attach']);
 
         $this->swoole->tpl->assign('config',$config);
         if($_POST)

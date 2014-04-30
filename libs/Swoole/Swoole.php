@@ -70,17 +70,25 @@ class Swoole
 
     private function __construct()
     {
-        if(!defined('DEBUG')) define('DEBUG', 'off');
+        if(!defined('DEBUG')) define('DEBUG', 'on');
         if(DEBUG=='off') \error_reporting(0);
 
-        if(empty(self::$app_path))
-        {
-            self::$app_path = WEBPATH.'/apps';
-        }
         $this->env['sapi_name'] = php_sapi_name();
         if ($this->env['sapi_name'] != 'cli')
         {
             Swoole\Error::$echo_html = true;
+        }
+
+        if (empty(self::$app_path))
+        {
+            if (defined('WEBPATH'))
+            {
+                self::$app_path = WEBPATH.'/apps';
+            }
+            else
+            {
+                Swoole\Error::info("core error", __CLASS__.": Swoole::\$app_path and WEBPATH empty.");
+            }
         }
 
         //将此目录作为App命名空间的根目录
@@ -97,7 +105,7 @@ class Swoole
 
     static function getInstance()
     {
-        if(!self::$php)
+        if (!self::$php)
         {
             self::$php = new Swoole;
         }
@@ -255,7 +263,7 @@ class Swoole
         $mvc = $this->urlRoute();
         if($mvc === false)
         {
-            \Swoole\Http::status(404);
+            $this->http->status(404);
             return Swoole\Error::info('MVC Error', "url route fail!");
         }
         //check
@@ -277,7 +285,7 @@ class Swoole
         {
             if(!is_file($controller_path))
             {
-                \Swoole\Http::status(404);
+                $this->http->status(404);
                 return Swoole\Error::info('MVC Error', "Controller <b>{$mvc['controller']}</b>[{$controller_path}] not exist!");
             }
             else

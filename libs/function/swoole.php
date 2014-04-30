@@ -18,7 +18,7 @@ function T($table_name)
  */
 function M($model_name)
 {
-    return createModel($model_name);
+    return model($model_name);
 }
 /**
  * 执行一条SQL语句并返回结果

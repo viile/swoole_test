@@ -17,12 +17,13 @@ class Controller
     protected $model;
     protected $config;
 
-    function __construct($swoole)
+    function __construct(\Swoole $swoole)
     {
         $this->swoole = $swoole;
         $this->model = $swoole->model;
         $this->config = $swoole->config;
         $this->template_dir = \Swoole::$app_path.'/templates/';
+        define('TPL_PATH', $this->template_dir);
         if($this->if_filter) Filter::request();
         $swoole->__init();
     }

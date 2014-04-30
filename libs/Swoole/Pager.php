@@ -36,7 +36,7 @@ class Pager
     public $pagesize = 10;
     public $total = 0;
     public $ajax_action_name = ''; //AJAX动作名
-    public $nowindex = 1; //当前页
+    public $page = 1; //当前页
     public $offset = 0;
     public $style;
 
@@ -67,7 +67,7 @@ class Pager
         $this->_set_nowindex($nowindex); //设置当前页
         $this->totalpage = ceil($total / $perpage);
         $this->total = $total;
-        $this->offset = ($this->nowindex - 1) * $perpage;
+        $this->offset = ($this->page - 1) * $perpage;
 	}
 	function set_class($span,$classname)
 	{
@@ -96,8 +96,8 @@ class Pager
     function next_page()
     {
         $style = @$this->span_class['next'];
-        if ($this->nowindex < $this->totalpage) {
-            return $this->_get_link($this->_get_url($this->nowindex + 1), $this->next_page, $style);
+        if ($this->page < $this->totalpage) {
+            return $this->_get_link($this->_get_url($this->page + 1), $this->next_page, $style);
         }
         return '<span class="' . $style . '">' . $this->next_page . '</span>';
     }
@@ -111,8 +111,8 @@ class Pager
 	function pre_page()
 	{
 		$style = @$this->span_class['previous'];
-		if($this->nowindex>1){
-			return $this->_get_link($this->_get_url($this->nowindex-1),$this->pre_page,$style);
+		if($this->page>1){
+			return $this->_get_link($this->_get_url($this->page-1),$this->pre_page,$style);
 		}
 		return '<span class="'.$style.'">'.$this->pre_page.'</span>';
 	}
@@ -125,7 +125,7 @@ class Pager
 	function first_page()
 	{
 		$style = @$this->span_class['first'];
-		if($this->nowindex==1){
+		if($this->page==1){
 			return '<span class="'.$style.'">'.$this->first_page.'</span>';
 		}
 		return $this->_get_link($this->_get_url(1),$this->first_page,$style);
@@ -139,7 +139,7 @@ class Pager
 	function last_page()
 	{
 		$style = @$this->span_class['last'];
-		if($this->nowindex==$this->totalpage){
+		if($this->page==$this->totalpage){
 			return '<span class="'.$style.'">'.$this->last_page.'</span>';
 		}
 		return $this->totalpage?$this->_get_link($this->_get_url($this->totalpage),$this->last_page,$style):'<span>'.$this->last_page.'</span>';
@@ -150,15 +150,15 @@ class Pager
 		$style = $this->style;
 
 		$plus=ceil($this->pagebarnum/2);
-		if($this->pagebarnum-$plus+$this->nowindex>$this->totalpage)
-			$plus=($this->pagebarnum-$this->totalpage+$this->nowindex);
-		$begin=$this->nowindex-$plus+1;
+		if($this->pagebarnum-$plus+$this->page>$this->totalpage)
+			$plus=($this->pagebarnum-$this->totalpage+$this->page);
+		$begin=$this->page-$plus+1;
 		$begin=($begin>=1)?$begin:1;
 		$return='';
 		for($i=$begin;$i<$begin+$this->pagebarnum;$i++)
 		{
 			if($i<=$this->totalpage){
-				if($i!=$this->nowindex)
+				if($i!=$this->page)
 					$return.=$this->_get_text($this->_get_link($this->_get_url($i),$i,$style));
 				else
 					$return.=$this->_get_text('<span class="current">'.$i.'</span>');
@@ -180,7 +180,7 @@ class Pager
 		$return='<select name="PB_Page_Select">';
 		for($i=1;$i<=$this->totalpage;$i++)
 		{
-			if($i==$this->nowindex){
+			if($i==$this->page){
 				$return.='<option value="'.$i.'" selected>'.$i.'</option>';
 			}else{
 				$return.='<option value="'.$i.'">'.$i.'</option>';
@@ -259,13 +259,13 @@ class Pager
 			//系统获取
 			if(isset($_GET[$this->page_name]))
 			{
-				$this->nowindex=intval($_GET[$this->page_name]);
+				$this->page=intval($_GET[$this->page_name]);
 			}
 		}
 		else
 		{
 			//手动设置
-			$this->nowindex=intval($nowindex);
+			$this->page=intval($nowindex);
 		}
 	}
 	/**

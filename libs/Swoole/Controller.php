@@ -63,11 +63,20 @@ class Controller
     {
         $this->tpl_var[$key] = $value;
     }
+
+    /**
+     * render template file, then display it.
+     * @param string $tpl_file
+     */
     function display($tpl_file ='')
     {
-        if(empty($tpl_file))
+        if (empty($tpl_file))
         {
             $tpl_file = $this->swoole->env['mvc']['controller'].'/'.$this->swoole->env['mvc']['view'].'.php';
+        }
+        if (!is_file($this->template_dir.$tpl_file))
+        {
+            Error::info('template error', "template file[".$this->template_dir.$tpl_file."] not found");
         }
         extract($this->tpl_var);
         include $this->template_dir.$tpl_file;

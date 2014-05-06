@@ -266,45 +266,75 @@ class Swoole
             $this->http->status(404);
             return Swoole\Error::info('MVC Error', "url route fail!");
         }
-        //check
-        if(!preg_match('/^[a-z0-9_]+$/i', $mvc['controller']))
+        //check name
+        if (!preg_match('/^[a-z0-9_]+$/i', $mvc['controller']))
         {
         	return Swoole\Error::info('MVC Error!',"controller[{$mvc['controller']}] name incorrect.Regx: /^[a-z0-9_]+$/i");
         }
-        if(!preg_match('/^[a-z0-9_]+$/i',$mvc['view']))
+        if (!preg_match('/^[a-z0-9_]+$/i',$mvc['view']))
         {
         	return Swoole\Error::info('MVC Error!',"view[{$mvc['view']}] name incorrect.Regx: /^[a-z0-9_]+$/i");
         }
-        if(isset($mvc['app']) and !preg_match('/^[a-z0-9_]+$/i',$mvc['app']))
+        if (isset($mvc['app']) and !preg_match('/^[a-z0-9_]+$/i',$mvc['app']))
         {
         	return Swoole\Error::info('MVC Error!',"app[{$mvc['app']}] name incorrect.Regx: /^[a-z0-9_]+$/i");
         }
 		$this->env['mvc'] = $mvc;
-        $controller_path = self::$app_path."/controllers/{$mvc['controller']}.php";
-        if(!class_exists($mvc['controller'], false))
+
+        //未使用命名空间
+        $controller_class_no_namespace = $mvc['controller'];
+
+        if (class_exists($controller_class_no_namespace, false))
         {
-            if(!is_file($controller_path))
+            $controller_class = $controller_class_no_namespace;
+            goto do_action;
+        }
+        else
+        {
+            $controller_path = self::$app_path."/controllers/{$mvc['controller']}.php";
+            if (is_file($controller_path))
             {
-                $this->http->status(404);
-                return Swoole\Error::info('MVC Error', "Controller <b>{$mvc['controller']}</b>[{$controller_path}] not exist!");
-            }
-            else
-            {
-                require_once($controller_path);
+                require_once $controller_path;
+                $controller_class = $controller_class_no_namespace;
+                goto do_action;
             }
         }
 
+        //使用命名空间，文件名必须大写
+        $controller_class_use_namespace = '\\App\\Controller\\'.ucwords($mvc['controller']);
+
+        if (class_exists($controller_class_use_namespace, false))
+        {
+            $controller_class = $controller_class_use_namespace;
+            goto do_action;
+        }
+        else
+        {
+            $controller_path = self::$app_path."/controllers/".ucwords($mvc['controller']).".php";
+            if (is_file($controller_path))
+            {
+                require_once $controller_path;
+                $controller_class = $controller_class_use_namespace;
+                goto do_action;
+            }
+        }
+
+        //file not found
+        $this->http->status(404);
+        return Swoole\Error::info('MVC Error', "Controller <b>{$mvc['controller']}</b>[{$controller_path}] not exist!");
+
+        do_action:
+
         //服务器模式下，尝试重载入代码
-        if(defined('SWOOLE_SERVER'))
+        if (defined('SWOOLE_SERVER'))
         {
             $this->reloadController($mvc, $controller_path);
         }
 
-        $class = $mvc['controller'];
-        $controller = new $class($this);
-        if(!is_callable(array($controller, $mvc['view'])))
+        $controller = new $controller_class($this);
+        if (!is_callable(array($controller, $mvc['view'])))
         {
-            Swoole\Http::status(404);
+            $this->http->status(404);
             return Swoole\Error::info('MVC Error!'.$mvc['view'],"View <b>{$mvc['controller']}->{$mvc['view']}</b> Not Found!");
         }
         if(empty($mvc['param'])) $param = null;
@@ -313,11 +343,11 @@ class Swoole
         $method = $mvc['view'];
 
         //设置头
-        if($controller->is_ajax)
+        if ($controller->is_ajax)
         {
-            Swoole\Http::header('Cache-Control', 'no-cache, must-revalidate');
-            Swoole\Http::header('Last-Modified', gmdate('D, d M Y H:i:s').' GMT');
-            Swoole\Http::header('Content-Type', 'application/json');
+            $this->http->header('Cache-Control', 'no-cache, must-revalidate');
+            $this->http->header('Last-Modified', gmdate('D, d M Y H:i:s').' GMT');
+            $this->http->header('Content-Type', 'application/json');
         }
 
         //doAction

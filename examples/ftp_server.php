@@ -5,11 +5,18 @@ require __DIR__ . '/../libs/lib_config.php';
 
 
 $ftpSvr = new Swoole\Network\Protocol\Ftp();
+
 $ftpSvr->users['test'] = array(
     'password' => 'test',
     'home' => '/tmp/',
     'chroot' => true,
 );
+
+//$ftpSvr->users['anonymous'] = array(
+//    'password' => 'anon@localhost',
+//    'home' => '/tmp/',
+//    'chroot' => true,
+//);
 
 /**
  * 如果你没有安装swoole扩展，这里还可选择

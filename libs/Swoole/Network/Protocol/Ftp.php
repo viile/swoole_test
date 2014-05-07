@@ -482,6 +482,7 @@ class Ftp extends Swoole\Network\Protocol implements Swoole\Server\Protocol
                 if ($ftpsock)
                 {
                     $this->users[$user]['sock'] = $ftpsock;
+                    $this->users[$user]['pasv'] = false;
                     $this->send($fd, "200 PORT command successful");
                 }
                 else
@@ -533,6 +534,22 @@ class Ftp extends Swoole\Network\Protocol implements Swoole\Server\Protocol
 
     function getUserSock($user)
     {
+        //被动模式
+        if ($this->users[$user]['pasv'] == true)
+        {
+            if (empty($this->users[$user]['sock']))
+            {
+                $sock = stream_socket_accept($this->users[$user]['serv_sock'], 1);
+                $peer = stream_socket_get_name($sock, true);
+                $this->debug("Accept: $peer");
+                if ($sock)
+                {
+                    $this->users[$user]['sock'] = $sock;
+                    //关闭server socket
+                    fclose($this->users[$user]['serv_sock']);
+                }
+            }
+        }
         return $this->users[$user]['sock'];
     }
 
@@ -553,6 +570,50 @@ class Ftp extends Swoole\Network\Protocol implements Swoole\Server\Protocol
         else
         {
             return false;
+        }
+    }
+
+    function cmd_CDUP($fd, $cmd)
+    {
+        $cmd[1] = '..';
+        $this->cmd_CWD($fd, $cmd);
+    }
+
+    function cmd_EPSV($fd, $cmd)
+    {
+        $user = $this->getUser($fd);
+        $sock = stream_socket_server('tcp://0.0.0.0:0',$errno , $errstr, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN);
+        if ($sock)
+        {
+            $addr = stream_socket_get_name($sock, false);
+            list($ip, $port) = explode(':', $addr);
+            $this->send($fd, "229 Entering Extended Passive Mode (|||$port|)");
+            $this->users[$user]['serv_sock'] = $sock;
+            $this->users[$user]['pasv'] = true;
+        }
+        else
+        {
+            $this->send($fd, "500 failed to create data socket.");
+        }
+    }
+
+    function cmd_PASV($fd, $cmd)
+    {
+        $user = $this->getUser($fd);
+        $sock = stream_socket_server('tcp://0.0.0.0:0', $errno, $errstr, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN);
+        if ($sock)
+        {
+            $addr = stream_socket_get_name($sock, false);
+            list($ip, $port) = explode(':', $addr);
+            $this->debug("ServerSock: $ip:$port");
+            $ip = str_replace('.', ',', $ip);
+            $this->send($fd, "227 Entering Passive Mode ({$ip},".(intval($port) >> 8 & 0xff).",".(intval($port) & 0xff).").");
+            $this->users[$user]['serv_sock'] = $sock;
+            $this->users[$user]['pasv'] = true;
+        }
+        else
+        {
+            $this->send($fd, "500 failed to create data socket.");
         }
     }
 

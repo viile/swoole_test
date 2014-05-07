@@ -117,7 +117,7 @@ class Ftp extends Swoole\Network\Protocol implements Swoole\Server\Protocol
                 if (!$cont) break;
                 if (!fwrite($fp, $cont)) break;
             }
-            if (fclose($fp) and fclose($ftpsock))
+            if (fclose($fp) and $this->closeUserSock($user))
             {
                 $this->send($fd, "226 File successfully transferred");
             }
@@ -371,7 +371,7 @@ class Ftp extends Swoole\Network\Protocol implements Swoole\Server\Protocol
                     $cont = fread($fp, 1024);
                     if (!fwrite($ftpsock, $cont)) break;
                 }
-                if (fclose($fp) and fclose($ftpsock))
+                if (fclose($fp) and $this->closeUserSock($user))
                 {
                     $this->send($fd, "226 File successfully transferred");
                 }
@@ -430,6 +430,11 @@ class Ftp extends Swoole\Network\Protocol implements Swoole\Server\Protocol
     {
         $user = $this->getUser($fd);
         $ftpsock = $this->getUserSock($user);
+        if (!$ftpsock)
+        {
+            $this->send($fd, "501 Connection Error");
+            return;
+        }
         $this->send($fd, "150 Opening ASCII mode data connection for file list");
         $path = $this->getAbsDir($user);
         if (isset($cmd[1]) and preg_match("/\-(.*)a/", $cmd[1]))
@@ -442,7 +447,7 @@ class Ftp extends Swoole\Network\Protocol implements Swoole\Server\Protocol
         }
         $filelist = $this->getFileList($path, $showHidden);
         fwrite($ftpsock, $filelist);
-        fclose($ftpsock);
+        $this->closeUserSock($user);
         $this->send($fd, "226 Transfer complete.");
     }
 
@@ -478,7 +483,7 @@ class Ftp extends Swoole\Network\Protocol implements Swoole\Server\Protocol
             }
             else
             {
-                $ftpsock = @fsockopen($ip, $port);
+                $ftpsock = fsockopen($ip, $port);
                 if ($ftpsock)
                 {
                     $this->users[$user]['sock'] = $ftpsock;
@@ -532,6 +537,22 @@ class Ftp extends Swoole\Network\Protocol implements Swoole\Server\Protocol
         return $this->connections[$fd]['user'];
     }
 
+    /**
+     * 关闭数据传输socket
+     * @param $user
+     * @return bool
+     */
+    function closeUserSock($user)
+    {
+        fclose($this->users[$user]['sock']);
+        $this->users[$user]['sock'] = 0;
+        return true;
+    }
+
+    /**
+     * @param $user
+     * @return resource
+     */
     function getUserSock($user)
     {
         //被动模式
@@ -540,13 +561,19 @@ class Ftp extends Swoole\Network\Protocol implements Swoole\Server\Protocol
             if (empty($this->users[$user]['sock']))
             {
                 $sock = stream_socket_accept($this->users[$user]['serv_sock'], 1);
-                $peer = stream_socket_get_name($sock, true);
-                $this->debug("Accept: $peer");
+
                 if ($sock)
                 {
+                    $peer = stream_socket_get_name($sock, true);
+                    $this->debug("Accept: success client is $peer.");
                     $this->users[$user]['sock'] = $sock;
                     //关闭server socket
                     fclose($this->users[$user]['serv_sock']);
+                }
+                else
+                {
+                    $this->debug("Accept: failed.");
+                    return false;
                 }
             }
         }
@@ -555,17 +582,12 @@ class Ftp extends Swoole\Network\Protocol implements Swoole\Server\Protocol
 
     function getFile($user, $file)
     {
-        $dir = $this->getAbsDir($user);
-        $file = $dir.$file;
+        $file = $this->fillDirName($user, $file);
         $this->debug("GET: $file");
 
-        if (substr($file, 0, 1) == "/" and is_file($file))
+        if (is_file($file))
         {
             return realpath($file);
-        }
-        elseif (is_file($dir . "/" . $file))
-        {
-            return realpath($dir . "/" . $file);
         }
         else
         {

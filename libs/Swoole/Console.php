@@ -17,6 +17,20 @@ class Console
         return $return;
     }
 
+    /**
+     * 改变进程的用户ID
+     * @param $user
+     */
+    static function changeUser($user)
+    {
+        $user = posix_getpwnam($user);
+        if($user)
+        {
+            posix_setuid($user['uid']);
+            posix_setgid($user['gid']);
+        }
+    }
+
     static function setProcessName($name)
     {
         if (function_exists('cli_set_process_title'))

@@ -11,9 +11,9 @@ class AppServer extends HttpServer
     function onStart($serv)
     {
         parent::onStart($serv);
-        if(empty($this->apps_path))
+        if (empty($this->apps_path))
         {
-            if(!empty($this->config['apps']['apps_path']))
+            if (!empty($this->config['apps']['apps_path']))
             {
                 $this->apps_path = $this->config['apps']['apps_path'];
             }
@@ -68,12 +68,12 @@ class AppServer extends HttpServer
         {
             if ($request->finish != 1) $this->http_error(404, $response, $e->getMessage());
         }
-        if(!isset($response->head['Content-Type']))
+        if (!isset($response->head['Content-Type']))
         {
             $response->head['Content-Type'] = 'text/html; charset='.$this->config['apps']['charset'];
         }
         //重定向
-        if(isset($response->head['Location']))
+        if (isset($response->head['Location']))
         {
             $response->send_http_status(301);
         }

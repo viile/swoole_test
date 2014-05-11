@@ -9,7 +9,8 @@ class FastCGI extends Swoole\Network\Protocol implements Swoole\Server\Protocol
     protected $highMark = 0xFFFFFF; // initial value of the maximum amout of bytes in buffer
     public $timeout = 180;
 
-    protected $requests = [];
+    protected $requests = array();
+    protected $config = array();
 
     const HEADER_LENGTH = 8;
 
@@ -72,6 +73,17 @@ class FastCGI extends Swoole\Network\Protocol implements Swoole\Server\Protocol
         return array('records' => $records, 'remainder' => $data);
     }
 
+    function xSendFile($req)
+    {
+        if ($this->config['sendfile'] and (!$this->config['sendfileonlybycommand'] or isset($req->server['USE_SENDFILE']))
+            and !isset($req->server['DONT_USE_SENDFILE']))
+        {
+            $fn = tempnam($this->config['sendfiledir'], $this->config['sendfileprefix']);
+            $req->sendfp = fopen($fn, 'wb');
+            $req->header['X-Sendfile'] = $fn;
+        }
+    }
+
     function onReceive($serv, $fd, $from_id, $data)
     {
         $result = $this->parseRecord($data);
@@ -82,24 +94,17 @@ class FastCGI extends Swoole\Network\Protocol implements Swoole\Server\Protocol
             if ($type == self::FCGI_BEGIN_REQUEST)
             {
                 $u = unpack('nrole/Cflags', $record['contentData']);
-                $req                    = new \stdClass();
-                $req->fd                = $fd;
-                $req->attrs             = new \stdClass;
-                $req->attrs->request    = [];
-                $req->attrs->get        = [];
-                $req->attrs->post       = [];
-                $req->attrs->cookie     = [];
-                $req->attrs->server     = [];
-                $req->attrs->files      = [];
-                $req->attrs->role       = self::$roles[$u['role']];
-                $req->attrs->flags      = $u['flags'];
-                $req->attrs->id         = $rid;
+                $req = new Swoole\Request();
+                $req->fd = $fd;
+                $req->attrs = new \StdClass;
+                $req->attrs->role = self::$roles[$u['role']];
+                $req->attrs->flags = $u['flags'];
+                $req->id = $rid;
                 $req->attrs->paramsDone = false;
-                $req->attrs->inputDone  = false;
-                $req->attrs->chunked    = false;
-                $req->attrs->noHttpVer  = true;
-                $req->queueId           = $rid;
-                $this->requests[$rid]   = $req;
+                $req->attrs->inputDone = false;
+                $req->attrs->chunked = false;
+                $req->attrs->noHttpVer = true;
+                $this->requests[$rid] = $req;
             }
             elseif (isset($this->requests[$rid]))
             {
@@ -116,15 +121,15 @@ class FastCGI extends Swoole\Network\Protocol implements Swoole\Server\Protocol
             }
             elseif ($type === self::FCGI_PARAMS)
             {
-                if ($req->content === '')
+                if ($record['contentData'] === '')
                 {
-                    if (!isset($req->attrs->server['REQUEST_TIME']))
+                    if (!isset($req->server['REQUEST_TIME']))
                     {
-                        $req->attrs->server['REQUEST_TIME'] = time();
+                        $req->server['REQUEST_TIME'] = time();
                     }
-                    if (!isset($req->attrs->server['REQUEST_TIME_FLOAT']))
+                    if (!isset($req->server['REQUEST_TIME_FLOAT']))
                     {
-                        $req->attrs->server['REQUEST_TIME_FLOAT'] = microtime(true);
+                        $req->server['REQUEST_TIME_FLOAT'] = microtime(true);
                     }
                     $req->attrs->paramsDone = true;
 //                    if ($req instanceof \stdClass)
@@ -134,24 +139,7 @@ class FastCGI extends Swoole\Network\Protocol implements Swoole\Server\Protocol
 //                    }
 //                    else
 //                    {
-//                        if (
-//                            $this->pool->config->sendfile->value
-//                            && (
-//                                !$this->pool->config->sendfileonlybycommand->value
-//                                || isset($req->attrs->server['USE_SENDFILE'])
-//                            )
-//                            && !isset($req->attrs->server['DONT_USE_SENDFILE'])
-//                        )
-//                        {
-//                            $fn = tempnam(
-//                                $this->pool->config->sendfiledir->value,
-//                                $this->pool->config->sendfileprefix->value
-//                            );
-//
-//                            $req->sendfp = fopen($fn, 'wb');
-//                            $req->header('X-Sendfile: ' . $fn);
-//                        }
-//                        $this->requests[$rid] = $req;
+
 //                    }
                 }
                 else
@@ -176,7 +164,7 @@ class FastCGI extends Swoole\Network\Protocol implements Swoole\Server\Protocol
                             $p += 4;
                         }
 
-                        $req->attrs->server[substr($record['contentData'], $p, $namelen)] = substr($record['contentData'], $p + $namelen, $vlen);
+                        $req->server[substr($record['contentData'], $p, $namelen)] = substr($record['contentData'], $p + $namelen, $vlen);
                         $p += $namelen + $vlen;
                     }
                 }
@@ -185,21 +173,6 @@ class FastCGI extends Swoole\Network\Protocol implements Swoole\Server\Protocol
             {
                 var_dump($record['contentData']);
             }
-
-            $order = 'GPC';
-            for ($i = 0, $s = strlen($order); $i < $s; ++$i) {
-                $char = $order[$i];
-
-                if ($char == 'G' && is_array($req->attrs->get)) {
-                    $req->attrs->request += $req->attrs->get;
-                }
-                elseif ($char == 'P' && is_array($req->attrs->post)) {
-                    $req->attrs->request += $req->attrs->post;
-                }
-                elseif ($char == 'C' && is_array($req->attrs->cookie)) {
-                    $req->attrs->request += $req->attrs->cookie;
-                }
-            }
         }
         $this->onRequest($req);
     }
@@ -207,8 +180,9 @@ class FastCGI extends Swoole\Network\Protocol implements Swoole\Server\Protocol
     function onRequest($req)
     {
         $response = "Content-Type: text/plain\r\n\r\nHello World!\r\n\r\n";
+        var_dump($req);
         $this->response($req, $response);
-        $this->endRequest($req);
+        $this->endRequest($req, 0, -1);
     }
 
     /**
@@ -247,7 +221,7 @@ class FastCGI extends Swoole\Network\Protocol implements Swoole\Server\Protocol
         return $this->server->send($req->fd,
             "\x01" // protocol version
             . "\x06" // record type (STDOUT)
-            . pack('nn', $req->attrs->id, strlen($chunk)) // id, content length
+            . pack('nn', $req->id, strlen($chunk)) // id, content length
             . "\x00" // padding length
             . "\x00" // reserved
         ) && $this->server->send($req->fd, $chunk); // content
@@ -260,14 +234,15 @@ class FastCGI extends Swoole\Network\Protocol implements Swoole\Server\Protocol
      * @param $protoStatus
      * @return void
      */
-    public function endRequest($req, $appStatus = 0, $protoStatus = 0) {
+    public function endRequest($req, $appStatus = 0, $protoStatus = 0)
+    {
         $c = pack('NC', $appStatus, $protoStatus) // app status, protocol status
             . "\x00\x00\x00";
 
         $this->server->send($req->fd,
             "\x01" // protocol version
             . "\x03" // record type (END_REQUEST)
-            . pack('nn', $req->attrs->id, strlen($c)) // id, content length
+            . pack('nn', $req->id, strlen($c)) // id, content length
             . "\x00" // padding length
             . "\x00" // reserved
             . $c // content

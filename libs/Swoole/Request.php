@@ -3,11 +3,24 @@ namespace Swoole;
 
 class Request
 {
+    /**
+     * 文件描述符
+     * @var int
+     */
+    public $fd;
+    public $id;
+
     public $get = array();
     public $post = array();
     public $file = array();
     public $cookie = array();
     public $session = array();
+    public $server = array();
+
+    /**
+     * @var \StdClass
+     */
+    public $attrs;
 
     public $head = array();
     public $body;
@@ -16,9 +29,9 @@ class Request
     public $finish = false;
     public $ext_name;
     public $status;
+
     /**
      * 将原始请求信息转换到PHP超全局变量中
-     * @return unknown_type
      */
     function setGlobal()
     {
@@ -27,7 +40,10 @@ class Request
         if($this->file) $_FILES = $this->file;
         if($this->cookie) $_COOKIE = $this->cookie;
         $_REQUEST = array_merge($this->get, $this->post, $this->cookie);
-        $_SERVER["HTTP_HOST"] = $this->head['Host'];
+        if (isset($this->head['Host']))
+        {
+            $_SERVER["HTTP_HOST"] = $this->head['Host'];
+        }
         if (isset($this->head['User-Agent']))
         {
             $_SERVER["HTTP_USER_AGENT"] = $this->head['User-Agent'];

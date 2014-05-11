@@ -4,7 +4,7 @@
  * @package SwooleSystem
  * @author 韩天峰
  */
-define("LIBPATH", str_replace("\\","/", __DIR__));
+define("LIBPATH", __DIR__);
 if(PHP_OS=='WINNT') define("NL","\r\n");
 else define("NL","\n");
 define("BL","<br />".NL);

@@ -18,6 +18,11 @@ class Protocol
     public $server;
 
     /**
+     * @var array
+     */
+    protected $clients;
+
+    /**
      * 设置Logger
      * @param $log
      */

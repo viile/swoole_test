@@ -26,21 +26,24 @@ class ModelLoader
 
 	function load($model_name)
 	{
-		$m = explode('/', $model_name, 2);
-		if(count($m) > 1)
+        $model_file = \Swoole::$app_path."/models/$model_name.model.php";
+        if (is_file($model_file))
+        {
+            $model_class = $m[0];
+            goto found_model;
+        }
+
+        $model_file = \Swoole::$app_path.'/models/'.$model_name.'.php';
+        if (is_file($model_file))
 		{
-			$model_file = \Swoole::$app_path."/{$m[0]}/models/{$m[1]}.model.php";
-			$model_class = $m[1];
+			$model_class = '\\App\\Model\\'.$model_name;
+            goto found_model;
 		}
-		else
-		{
-			$model_file = \Swoole::$app_path.'/models/'.$m[0].'.model.php';
-			$model_class = $m[0];
-		}
-		if(!is_file($model_file)) throw new Error("不存在的模型, <b>$model_name</b>");
-		require_once($model_file);
-		$this->_models[$model_name] = new $model_class($this->swoole);
-		return $this->_models[$model_name];
+		throw new Error("不存在的模型, <b>$model_name</b>");
+
+        found_model:
+        require_once($model_file);
+        $this->_models[$model_name] = new $model_class($this->swoole);
+        return $this->_models[$model_name];
 	}
 }
-?>

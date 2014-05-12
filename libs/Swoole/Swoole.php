@@ -70,8 +70,8 @@ class Swoole
 
     private function __construct()
     {
-        if(!defined('DEBUG')) define('DEBUG', 'on');
-        if(DEBUG=='off') \error_reporting(0);
+        if (!defined('DEBUG')) define('DEBUG', 'on');
+        if (DEBUG == 'off') \error_reporting(0);
 
         $this->env['sapi_name'] = php_sapi_name();
         if ($this->env['sapi_name'] != 'cli')
@@ -92,7 +92,7 @@ class Swoole
         }
 
         //将此目录作为App命名空间的根目录
-        Swoole\Loader::setRootNS('App', self::$app_path.'/classes');
+        Swoole\Loader::setRootNS('App', self::$app_path . '/classes');
 
         $this->load = new Swoole\Loader($this);
         $this->model = new Swoole\ModelLoader($this);
@@ -146,7 +146,7 @@ class Swoole
     function __init()
     {
         #DEBUG
-        if(defined('DEBUG') and DEBUG=='on')
+        if (defined('DEBUG') and DEBUG == 'on')
         {
             #捕获错误信息
 //            set_error_handler('swoole_error_handler');
@@ -261,7 +261,7 @@ class Swoole
     function runMVC()
     {
         $mvc = $this->urlRoute();
-        if($mvc === false)
+        if ($mvc === false)
         {
             $this->http->status(404);
             return Swoole\Error::info('MVC Error', "url route fail!");

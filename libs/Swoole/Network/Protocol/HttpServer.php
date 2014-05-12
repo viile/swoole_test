@@ -34,6 +34,17 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
 
     public $requests = array(); //保存请求信息,里面全部是Request对象
 
+    /**
+     * @var \Swoole\Request;
+     */
+    public $currentRequest;
+    /**
+     * @var \Swoole\Response;
+     */
+    public $currentResponse;
+
+    public $onRequest;
+
     protected $buffer_header = array();
     protected $buffer_maxlen = 65535; //最大POST尺寸，超过将写文件
 
@@ -66,12 +77,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
 
         if (isset($this->config['server']['user']))
         {
-            $user = posix_getpwnam($this->config['server']['user']);
-            if($user)
-            {
-                posix_setuid($user['uid']);
-                posix_setgid($user['gid']);
-            }
+            Swoole\Console::changeUser($this->config['server']['user']);
         }
 
         if (isset($this->config['server']['process_rename']))
@@ -86,9 +92,10 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
                 Swoole\Console::setProcessName('php '.$argv[0].': worker');
             }
         }
-
+        Swoole\Error::$echo_html = true;
         $this->swoole_server = $serv;
         $this->log(self::SOFTWARE . "[#{$worker_id}]. running. on {$this->server->host}:{$this->server->port}");
+        register_shutdown_function(array($this, 'onError'));
     }
 
     /**
@@ -282,7 +289,9 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
 
     /**
      * 接收到数据
+     * @param $serv \swoole_server
      * @param $client_id
+     * @param $from_id
      * @param $data
      * @return unknown_type
      */
@@ -306,9 +315,13 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         //开始处理
         $request = $this->requests[$client_id];
 	    $info = $serv->connection_info($client_id);
+
 	    $_SERVER['REMOTE_ADDR'] = $info['remote_ip'];
 	    $_SERVER['SWOOLE_CONNECTION_INFO'] = $info;
+
         $this->parseRequest($request);
+        $request->fd = $client_id;
+        $this->currentRequest = $request;
         //处理请求，产生response对象
         $response = $this->onRequest($request);
         //发送response
@@ -407,13 +420,30 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
     }
 
     /**
-     * 错误请求
-     * @param $request
+     * 捕获错误
      */
-    function onError($request)
+    function onError()
     {
-
+        $error = error_get_last();
+        if (!isset($error['type'])) return;
+        switch ($error['type'])
+        {
+            case E_ERROR :
+            case E_PARSE :
+            case E_DEPRECATED:
+            case E_CORE_ERROR :
+            case E_COMPILE_ERROR :
+                break;
+            default:
+                return;
+        }
+        $errorMsg = "{$error['message']} ({$error['file']}:{$error['line']})";
+        $message = Swoole\Error::info(self::SOFTWARE." Application Error", $errorMsg);
+        $this->currentResponse->send_http_status(500);
+        $this->currentResponse->body = $message;
+        $this->response($this->currentRequest->fd, $this->currentRequest, $this->currentResponse);
     }
+
     /**
      * 处理请求
      * @param $request
@@ -422,6 +452,8 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
     function onRequest(Swoole\Request $request)
     {
         $response = new Swoole\Response;
+        $this->currentResponse = $response;
+
         //请求路径
         if ($request->meta['path'][strlen($request->meta['path']) - 1] == '/')
         {

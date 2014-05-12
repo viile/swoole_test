@@ -18,16 +18,24 @@ class Stream
         }
         fclose($socket);
     }
+
+    /**
+     * 非阻塞循环读取，不能用于阻塞socket
+     * @param $fp
+     * @param $length
+     * @return string
+     */
     static function read($fp,$length)
     {
-        $data = false;
-        while($buf = fread($fp,$length))
+        $data = '';
+        while($buf = fread($fp, $length))
         {
             $data .= $buf;
-            if(strlen($buf)<$length) break;
+            if(strlen($buf) < $length) break;
         }
         return $data;
     }
+
     static function write($fp, $string)
     {
         $length = strlen($string);

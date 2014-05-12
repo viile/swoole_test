@@ -7,6 +7,8 @@ abstract class Server implements Server\Driver
      * @var Server\Protocol
      */
     public $protocols = array();
+
+    public $setting = array();
     /**
      * @var Server\Protocol
      */
@@ -33,7 +35,7 @@ abstract class Server implements Server\Driver
      */
     public $fds = array();
 
-	function __construct($host,$port,$timeout=30)
+	function __construct($host, $port, $timeout=30)
 	{
 		$this->host = $host;
 		$this->port = $port;
@@ -73,7 +75,7 @@ abstract class Server implements Server\Driver
 	{
 		$client_socket = stream_socket_accept($this->server_sock, 0);
         //惊群
-        if($client_socket === false)
+        if ($client_socket === false)
         {
             return false;
         }
@@ -83,7 +85,7 @@ abstract class Server implements Server\Driver
 		$this->client_num++;
 		if($this->client_num > $this->max_connect)
 		{
-			sw_socket_close($client_socket);
+			Network\Stream::close($client_socket);
 			return false;
 		}
 		else
@@ -96,17 +98,17 @@ abstract class Server implements Server\Driver
 
     function spawn($setting)
     {
-        if(!extension_loaded('pcntl'))
+        if (!extension_loaded('pcntl'))
         {
             trigger_error(__METHOD__." require pcntl extension!");
             return;
         }
         $num = 0;
-        if(isset($setting['worker_num']))
+        if (isset($setting['worker_num']))
         {
             $num = (int) $setting['worker_num'] - 1;
         }
-        if($num < 2)
+        if ($num < 2)
         {
             return;
         }

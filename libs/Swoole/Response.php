@@ -46,13 +46,14 @@ class Response
         $this->head[0] = $this->http_protocol.' '.self::$HTTP_HEADERS[$code];
         $this->http_status = $code;
     }
+
     function send_head($key,$value)
     {
         $this->head[$key] = $value;
     }
 
     /**
-     * ÉèÖÃcookie
+     * ï¿½ï¿½ï¿½ï¿½cookie
      * @param $name
      * @param null $value
      * @param null $expire
@@ -71,7 +72,7 @@ class Response
     }
 
     /**
-     * Ôö¼ÓheadÐÅÏ¢
+     * ï¿½ï¿½ï¿½ï¿½headï¿½ï¿½Ï¢
      * @param $header
      */
     function addHeader(array $header)
@@ -79,19 +80,46 @@ class Response
         $this->head = array_merge($this->head, $header);
     }
 
-    function head()
+    function getHeader($fastcgi = false)
     {
-        //Protocol
-        if(isset($this->head[0])) $out = $this->head[0]."\r\n";
-        else $out = "HTTP/1.1 200 OK\r\n";
-        unset($this->head[0]);
+        $out = '';
+        if ($fastcgi)
+        {
+            $out .= 'Status: '.$this->http_status.' '.self::$HTTP_HEADERS[$this->http_status]."\r\n";
+        }
+        else
+        {
+            //Protocol
+            if (isset($this->head[0]))
+            {
+                $out .= $this->head[0]."\r\n";
+                unset($this->head[0]);
+            }
+            else
+            {
+                $out = "HTTP/1.1 200 OK\r\n";
+            }
+        }
+        //fill header
+        if (!isset($this->head['Server']))
+        {
+            $this->head['Server'] = \Swoole\Network\Protocol\WebServer::SOFTWARE;
+        }
+        if (!isset($this->head['Content-Type']))
+        {
+            $this->head['Content-Type'] = 'text/html; charset='.\Swoole::$charset;
+        }
+        if (!isset($this->head['Content-Length']))
+        {
+            $this->head['Content-Length'] = strlen($this->body);
+        }
         //Headers
         foreach($this->head as $k=>$v)
         {
             $out .= $k.': '.$v."\r\n";
         }
         //Cookies
-        if(!empty($this->cookie) and is_array($this->cookie))
+        if (!empty($this->cookie) and is_array($this->cookie))
         {
             foreach($this->cookie as $v)
             {
@@ -101,5 +129,11 @@ class Response
         //End
         $out .= "\r\n";
         return $out;
+    }
+
+    function noCache()
+    {
+        $this->head['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0';
+        $this->head['Pragma'] = 'no-cache';
     }
 }

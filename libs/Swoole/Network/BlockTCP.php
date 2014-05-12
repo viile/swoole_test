@@ -49,7 +49,6 @@ class BlockTCP extends \Swoole\Server
 		while($this->client_sock[0] = stream_socket_accept($this->server_sock, -1))
 		{
 			stream_set_blocking($this->client_sock[0], 1);
-			stream_set_timeout($this->client_sock[0], 0, $this->timeout_micro);
 			if(feof($this->client_sock[0])) $this->close(0);
 
 			//堵塞Server必须读完全部数据
@@ -58,7 +57,14 @@ class BlockTCP extends \Swoole\Server
 		}
 	}
 
-	function run($setting)
+    function connection_info($fd)
+    {
+        $peername = stream_socket_get_name($this->client_sock[$fd], true);
+        list($ip, $port) = explode(':', $peername);
+        return array('remote_port' => $port, 'remote_ip' => $ip);
+    }
+
+    function run($setting)
 	{
 		//建立服务器端Socket
 		$this->server_sock = $this->create("tcp://{$this->host}:{$this->port}");

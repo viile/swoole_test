@@ -23,7 +23,10 @@ class Controller
         $this->model = $swoole->model;
         $this->config = $swoole->config;
         $this->template_dir = \Swoole::$app_path.'/templates/';
-        define('TPL_PATH', $this->template_dir);
+        if (!defined('TPL_PATH'))
+        {
+            define('TPL_PATH', $this->template_dir);
+        }
         if($this->if_filter) Filter::request();
         $swoole->__init();
     }

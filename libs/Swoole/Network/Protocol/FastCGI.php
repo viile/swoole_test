@@ -3,14 +3,11 @@ namespace Swoole\Network\Protocol;
 
 use Swoole;
 
-class FastCGI extends Swoole\Network\Protocol implements Swoole\Server\Protocol
+class FastCGI extends Swoole\Network\Protocol\WebServer implements Swoole\Server\Protocol
 {
     protected $lowMark = 8; // initial value of the minimal amout of bytes in buffer
     protected $highMark = 0xFFFFFF; // initial value of the maximum amout of bytes in buffer
     public $timeout = 180;
-
-    protected $requests = array();
-    protected $config = array();
 
     const HEADER_LENGTH = 8;
 
@@ -87,6 +84,12 @@ class FastCGI extends Swoole\Network\Protocol implements Swoole\Server\Protocol
     function onReceive($serv, $fd, $from_id, $data)
     {
         $result = $this->parseRecord($data);
+        if (count($result['records']) == 0)
+        {
+            $this->log("Bad Request. data=".var_export($data, true)."\nresult: ".var_export($result, true));
+            $this->server->close($fd);
+            return;
+        }
         foreach($result['records'] as $record)
         {
             $rid = $record['requestId'];
@@ -132,15 +135,6 @@ class FastCGI extends Swoole\Network\Protocol implements Swoole\Server\Protocol
                         $req->server['REQUEST_TIME_FLOAT'] = microtime(true);
                     }
                     $req->attrs->paramsDone = true;
-//                    if ($req instanceof \stdClass)
-//                    {
-//                        $this->endRequest($req, 0, 0);
-//                        unset($this->requests[$rid]);
-//                    }
-//                    else
-//                    {
-
-//                    }
                 }
                 else
                 {
@@ -171,18 +165,18 @@ class FastCGI extends Swoole\Network\Protocol implements Swoole\Server\Protocol
             }
             elseif ($type === self::FCGI_STDIN)
             {
-                var_dump($record['contentData']);
+                $this->log("FCGI_STDIN:".var_export($record, true));
             }
         }
-        $this->onRequest($req);
-    }
-
-    function onRequest($req)
-    {
-        $response = "Content-Type: text/plain\r\n\r\nHello World!\r\n\r\n";
-        var_dump($req);
-        $this->response($req, $response);
-        $this->endRequest($req, 0, -1);
+        if ($req)
+        {
+            $response = $this->onRequest($req);
+            $out = $response->getHeader(true);
+            $out .= $response->body;
+//            $this->log("response: ".$out);
+            $this->response($req, $out);
+            $this->endRequest($req, 0, -1);
+        }
     }
 
     /**
@@ -193,19 +187,23 @@ class FastCGI extends Swoole\Network\Protocol implements Swoole\Server\Protocol
      */
     public function response($req, $out)
     {
-        $cs = $chunksize = 1024;
-        if (strlen($out) > $cs) {
-            while (($ol = strlen($out)) > 0) {
+        $cs = $chunksize = 8192;
+        if (strlen($out) > $cs)
+        {
+            while (($ol = strlen($out)) > 0)
+            {
                 $l = min($cs, $ol);
-                if ($this->sendChunk($req, substr($out, 0, $l)) === false) {
-                    $req->abort();
+                if ($this->sendChunk($req, substr($out, 0, $l)) === false)
+                {
+                    $this->log("send response failed.");
                     return false;
                 }
                 $out = substr($out, $l);
             }
         }
-        elseif ($this->sendChunk($req, $out) === false) {
-            $req->abort();
+        elseif ($this->sendChunk($req, $out) === false)
+        {
+            $this->log("send response failed.");
             return false;
         }
         return true;
@@ -217,7 +215,8 @@ class FastCGI extends Swoole\Network\Protocol implements Swoole\Server\Protocol
      * @param $chunk
      * @return bool
      */
-    public function sendChunk($req, $chunk) {
+    public function sendChunk($req, $chunk)
+    {
         return $this->server->send($req->fd,
             "\x01" // protocol version
             . "\x06" // record type (STDOUT)

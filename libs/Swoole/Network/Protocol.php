@@ -7,6 +7,8 @@ namespace Swoole\Network;
  */
 class Protocol
 {
+    public $default_port;
+    public $default_host;
     /**
      * @var \Swoole\IFace\Log
      */

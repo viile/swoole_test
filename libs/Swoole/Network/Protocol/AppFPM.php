@@ -3,7 +3,7 @@ namespace Swoole\Network\Protocol;
 use Swoole;
 
 require_once LIBPATH.'/function/cli.php';
-class AppServer extends HttpServer
+class AppFPM extends FastCGI
 {
     protected $router_function;
     protected $apps_path;
@@ -19,7 +19,7 @@ class AppServer extends HttpServer
             }
             else
             {
-                throw new \Exception("AppServer require apps_path");
+                throw new \Exception(__CLASS__.": require apps_path");
             }
         }
         $php = Swoole::getInstance();

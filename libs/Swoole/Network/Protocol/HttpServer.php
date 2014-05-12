@@ -10,45 +10,15 @@ use Swoole;
  * @package Swoole
  * @subpackage net.protocol
  */
-class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protocol
+class HttpServer extends Swoole\Network\Protocol\WebServer implements Swoole\Server\Protocol
 {
-    public $config = array();
-
-    public $keepalive = false;
-    public $gzip = false;
-    public $expire = false;
-
     private $swoole_server;
-
-    /**
-     * @var \Swoole\Http\Parser
-     */
-    protected $parser;
-
-    protected $mime_types;
-    protected $static_dir;
-    protected $static_ext;
-    protected $dynamic_ext;
-    protected $document_root;
-    protected $deny_dir;
-
-    public $requests = array(); //保存请求信息,里面全部是Request对象
-
-    /**
-     * @var \Swoole\Request;
-     */
-    public $currentRequest;
-    /**
-     * @var \Swoole\Response;
-     */
-    public $currentResponse;
 
     public $onRequest;
 
     protected $buffer_header = array();
     protected $buffer_maxlen = 65535; //最大POST尺寸，超过将写文件
 
-    const SOFTWARE = "Swoole";
     const DATE_FORMAT_HTTP = 'D, d-M-Y H:i:s T';
 
     const HTTP_EOF = "\r\n\r\n";
@@ -60,11 +30,10 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
 
     function __construct($config = array())
     {
-        define('SWOOLE_SERVER', true);
+        parent::__construct($config);
         $mimes = require(LIBPATH . '/data/mimes.php');
         $this->mime_types = array_flip($mimes);
         $this->config = $config;
-        Swoole\Error::$echo_html = true;
         $this->parser = new Swoole\Http\Parser;
     }
 
@@ -116,69 +85,11 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         $this->log("client[#$client_id@$from_id] connect");
     }
 
-    function setDocumentRoot($path)
-    {
-        $this->document_root = $path;
-    }
 
     function onClose($serv, $client_id, $from_id)
     {
         $this->log("client[#$client_id@$from_id] close");
         unset($this->requests[$client_id]);
-    }
-
-    function loadSetting($ini_file)
-    {
-        if (!is_file($ini_file)) exit("Swoole AppServer配置文件错误($ini_file)\n");
-        $config = parse_ini_file($ini_file, true);
-        /*--------------Server------------------*/
-        if (empty($config['server']['webroot']))
-        {
-            $config['server']['webroot'] = 'http://' . $this->server->host . ':' . $this->server->port;
-        }
-        //开启http keepalive
-        if (!empty($config['server']['keepalive']))
-        {
-            $this->keepalive = true;
-        }
-        //是否压缩
-        if (!empty($config['server']['gzip_open']) and function_exists('gzdeflate'))
-        {
-            $this->gzip = true;
-        }
-        //过期控制
-        if (!empty($config['server']['expire_open']))
-        {
-            $this->expire = true;
-            if (empty($config['server']['expire_time']))
-            {
-                $config['server']['expire_time'] = 1800;
-            }
-        }
-        /*--------------Session------------------*/
-        if (empty($config['session']['cookie_life'])) $config['session']['cookie_life'] = 86400; //保存SESSION_ID的cookie存活时间
-        if (empty($config['session']['session_life'])) $config['session']['session_life'] = 1800; //Session在Cache中的存活时间
-        if (empty($config['session']['cache_url'])) $config['session']['cache_url'] = 'file://localhost#sess'; //Session在Cache中的存活时间
-        /*--------------Apps------------------*/
-        if (empty($config['apps']['url_route'])) $config['apps']['url_route'] = 'url_route_default';
-        if (empty($config['apps']['auto_reload'])) $config['apps']['auto_reload'] = 0;
-        if (empty($config['apps']['charset'])) $config['apps']['charset'] = 'utf-8';
-        /*--------------Access------------------*/
-        $this->deny_dir = array_flip(explode(',', $config['access']['deny_dir']));
-        $this->static_dir = array_flip(explode(',', $config['access']['static_dir']));
-        $this->static_ext = array_flip(explode(',', $config['access']['static_ext']));
-        $this->dynamic_ext = array_flip(explode(',', $config['access']['dynamic_ext']));
-        /*--------------document_root------------*/
-        if (empty($this->document_root) and !empty($config['server']['document_root']))
-        {
-            $this->document_root = $config['server']['document_root'];
-        }
-        /*-----merge----*/
-        if (!is_array($this->config))
-        {
-            $this->config = array();
-        }
-        $this->config = array_merge($this->config, $config);
     }
 
     function checkHeader($client_id, $http_data)
@@ -367,18 +278,14 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
     /**
      * 发送响应
      * @param $client_id
-     * @param $response
-     * @return unknown_type
+     * @param $request Swoole\Request
+     * @param $response Swoole\Response
      */
     function response($client_id, Swoole\Request $request, Swoole\Response $response)
     {
         if (!isset($response->head['Date']))
         {
             $response->head['Date'] = gmdate("D, d M Y H:i:s T");
-        }
-        if (!isset($response->head['Server']))
-        {
-            $response->head['Server'] = self::SOFTWARE;
         }
         if (!isset($response->head['Connection']))
         {
@@ -397,7 +304,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         //过期命中
         if ($this->expire and $response->http_status == 304)
         {
-            $out = $response->head();
+            $out = $response->getHeader();
             $this->server->send($client_id, $out);
             return;
         }
@@ -407,8 +314,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
             $response->head['Content-Encoding'] = 'deflate';
             $response->body = gzdeflate($response->body, $this->config['server']['gzip_level']);
         }
-        $response->head['Content-Length'] = strlen($response->body);
-        $out = $response->head().$response->body;
+        $out = $response->getHeader().$response->body;
         $this->server->send($client_id, $out);
     }
 
@@ -459,7 +365,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         {
             $request->meta['path'] .= $this->config['request']['default_page'];
         }
-        if($this->doStaticRequest($request, $response))
+        if ($this->doStaticRequest($request, $response))
         {
              //pass
         }

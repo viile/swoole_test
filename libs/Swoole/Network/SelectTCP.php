@@ -64,19 +64,28 @@ class SelectTCP extends \Swoole\Server
         while (true) {
             $read_fds = $this->fds;
             $write = $exp = null;
-            if (stream_select($read_fds, $write, $exp, null)) {
-                foreach ($read_fds as $socket) {
+            if (stream_select($read_fds, $write, $exp, null))
+            {
+                foreach ($read_fds as $socket)
+                {
                     $socket_id = (int)$socket;
-                    if ($socket_id == $this->server_socket_id) {
-                        if ($client_socket_id = parent::accept()) {
+                    if ($socket_id == $this->server_socket_id)
+                    {
+                        if ($client_socket_id = parent::accept())
+                        {
                             $this->fds[$client_socket_id] = $this->client_sock[$client_socket_id];
                             $this->protocol->onConnect($this, $client_socket_id, 0);
                         }
-                    } else {
+                    }
+                    else
+                    {
                         $data = Stream::read($socket, $this->buffer_size);
-                        if ($data !== false) {
+                        if (!empty($data))
+                        {
                             $this->protocol->onReceive($this, $socket_id, 0, $data);
-                        } else {
+                        }
+                        else
+                        {
                             $this->close($socket_id);
                         }
                     }
@@ -85,7 +94,7 @@ class SelectTCP extends \Swoole\Server
         }
     }
 
-    function run($setting)
+    function run($setting = array())
     {
         //建立服务器端Socket
         $this->server_sock = $this->create("tcp://{$this->host}:{$this->port}");

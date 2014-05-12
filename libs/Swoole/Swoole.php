@@ -42,6 +42,8 @@ class Swoole
     );
 
     static $charset = 'utf-8';
+    static $debug = false;
+
     static $setting = array();
     public $error_call = array();
     /**
@@ -253,6 +255,40 @@ class Swoole
         return $mvc;
     }
 
+    function handlerServer(Swoole\Request $request)
+    {
+        $response = new Swoole\Response();
+        $php = Swoole::getInstance();
+        $request->setGlobal();
+
+//        if($this->doStaticRequest($request, $response))
+//        {
+//            return $response;
+//        }
+        //将对象赋值到控制器
+        $php->request = $request;
+        $php->response = $response;
+
+        try
+        {
+            ob_start();
+            /*---------------------处理MVC----------------------*/
+            $response->body = $php->runMVC();
+            $response->body .= ob_get_contents();
+            ob_end_clean();
+        }
+        catch(\Exception $e)
+        {
+            if ($request->finish != 1) $this->http_error(404, $response, $e->getMessage());
+        }
+        //重定向
+        if (isset($response->head['Location']))
+        {
+            $response->send_http_status(301);
+        }
+        return $response;
+    }
+
     /**
      * 运行MVC处理模型
      * @param $url_processor
@@ -283,7 +319,7 @@ class Swoole
 
         //未使用命名空间
         $controller_class_no_namespace = $mvc['controller'];
-
+        $controller_path = self::$app_path."/controllers/{$mvc['controller']}.php";
         if (class_exists($controller_class_no_namespace, false))
         {
             $controller_class = $controller_class_no_namespace;
@@ -291,7 +327,6 @@ class Swoole
         }
         else
         {
-            $controller_path = self::$app_path."/controllers/{$mvc['controller']}.php";
             if (is_file($controller_path))
             {
                 require_once $controller_path;
@@ -302,7 +337,7 @@ class Swoole
 
         //使用命名空间，文件名必须大写
         $controller_class_use_namespace = '\\App\\Controller\\'.ucwords($mvc['controller']);
-
+        $controller_path = self::$app_path."/controllers/".ucwords($mvc['controller']).".php";
         if (class_exists($controller_class_use_namespace, false))
         {
             $controller_class = $controller_class_use_namespace;
@@ -310,7 +345,6 @@ class Swoole
         }
         else
         {
-            $controller_path = self::$app_path."/controllers/".ucwords($mvc['controller']).".php";
             if (is_file($controller_path))
             {
                 require_once $controller_path;
@@ -370,7 +404,7 @@ class Swoole
 
     function reloadController($mvc, $controller_file)
     {
-        if(extension_loaded('runkit') and $this->config['apps']['auto_reload'])
+        if (extension_loaded('runkit') and $this->config['apps']['auto_reload'])
         {
             clearstatcache();
             $fstat = stat($controller_file);

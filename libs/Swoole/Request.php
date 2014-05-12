@@ -35,10 +35,11 @@ class Request
      */
     function setGlobal()
     {
-        if($this->get) $_GET = $this->get;
-        if($this->post) $_POST = $this->post;
-        if($this->file) $_FILES = $this->file;
-        if($this->cookie) $_COOKIE = $this->cookie;
+        if ($this->get) $_GET = $this->get;
+        if ($this->post) $_POST = $this->post;
+        if ($this->file) $_FILES = $this->file;
+        if ($this->cookie) $_COOKIE = $this->cookie;
+        if ($this->server) $_SERVER = $this->server;
         $_REQUEST = array_merge($this->get, $this->post, $this->cookie);
         if (isset($this->head['Host']))
         {
@@ -48,7 +49,10 @@ class Request
         {
             $_SERVER["HTTP_USER_AGENT"] = $this->head['User-Agent'];
         }
-        $_SERVER['REQUEST_URI'] = $this->meta['uri'];
+        if (!isset($_SERVER['REQUEST_URI']))
+        {
+            $_SERVER['REQUEST_URI'] = $this->meta['uri'];
+        }
     }
 
     function unsetGlobal()

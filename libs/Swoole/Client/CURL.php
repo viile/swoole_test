@@ -1,5 +1,5 @@
 <?php
-namespace Swoole\Network;
+namespace Swoole\Client;
 /**
  * CURL http客户端程序
  *

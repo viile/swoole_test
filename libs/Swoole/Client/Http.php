@@ -25,7 +25,7 @@ class Http
     // Note: This currently ignores the cookie path (and time) completely. Time is not important,
     //       but path could possibly lead to security problems.
     public $persist_referers = true; // For each request, sends path of last request as referer
-    public $debug = false;
+    public $debug = true;
     public $handle_redirects = true; // Auaomtically redirect if Location or URI header is found
     public $max_redirects = 5;
     public $headers_only = false; // If true, stops receiving once headers have been read.
@@ -41,7 +41,7 @@ class Http
     public $redirect_count = 0;
     public $cookie_host = '';
 
-    function HttpClient($host, $port = 80)
+    function __construct($host, $port = 80)
     {
         $this->host = $host;
         $this->port = $port;
@@ -51,7 +51,8 @@ class Http
     {
         $this->path = $path;
         $this->method = 'GET';
-        if ($data) {
+        if ($data)
+        {
             $this->path .= '?' . $this->buildQueryString($data);
         }
         return $this->doRequest();
@@ -165,7 +166,8 @@ class Http
         }
         fclose($fp);
         // If data is compressed, uncompress it
-        if (isset($this->headers['content-encoding']) && $this->headers['content-encoding'] == 'gzip') {
+        if (isset($this->headers['content-encoding']) && $this->headers['content-encoding'] == 'gzip')
+        {
             $this->debug('Content is gzip encoded, unzipping it');
             $this->content = substr($this->content, 10); // See http://www.php.net/manual/en/function.gzencode.php
             $this->content = gzinflate($this->content);
@@ -348,13 +350,17 @@ class Http
         $host = $bits['host'];
         $port = isset($bits['port']) ? $bits['port'] : 80;
         $path = isset($bits['path']) ? $bits['path'] : '/';
-        if (isset($bits['query'])) {
+        if (isset($bits['query']))
+        {
             $path .= '?' . $bits['query'];
         }
-        $client = new HttpClient($host, $port);
-        if (!$client->get($path)) {
+        $client = new Http($host, $port);
+        if (!$client->get($path))
+        {
             return false;
-        } else {
+        }
+        else
+        {
             return $client->getContent();
         }
     }

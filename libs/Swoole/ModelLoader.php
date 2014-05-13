@@ -29,7 +29,14 @@ class ModelLoader
         $model_file = \Swoole::$app_path."/models/$model_name.model.php";
         if (is_file($model_file))
         {
-            $model_class = $m[0];
+            $model_class = $model_name;
+            goto found_model;
+        }
+
+        $model_file = \Swoole::$app_path."/models/$model_name.php";
+        if (is_file($model_file))
+        {
+            $model_class = $model_name;
             goto found_model;
         }
 

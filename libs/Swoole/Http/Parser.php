@@ -6,27 +6,31 @@ namespace Swoole\Http;
  * 使用pecl_http扩展
  * @package Swoole\Http
  */
-class Parser implements \Swoole\IFace\HttpParser
+class Parser
 {
+    const HTTP_EOF = "\r\n\r\n";
+
+    protected $buffer;
+
     /**
      * 头部解析
      * @param $data
      * @return array
      */
-    function parseHeader($data)
+    static function parseHeader($data)
     {
         $header = array();
         $header[0] = array();
         $meta = &$header[0];
         $parts = explode("\r\n\r\n", $data, 2);
+
         // parts[0] = HTTP头;
         // parts[1] = HTTP主体，GET请求没有body
         $headerLines = explode("\r\n", $parts[0]);
-//        file_put_contents('/tmp/head.log', var_export($headerLines, 1).PHP_EOL, FILE_APPEND);
+
         // HTTP协议头,方法，路径，协议[RFC-2616 5.1]
         list($meta['method'], $meta['uri'], $meta['protocol']) = explode(' ', $headerLines[0], 3);
-//        file_put_contents('/tmp/head.log', $data.PHP_EOL, FILE_APPEND);
-        //$this->log($headerLines[0]);
+
         //错误的HTTP请求
         if (empty($meta['method']) or empty($meta['uri']) or empty($meta['protocol']))
         {
@@ -45,7 +49,7 @@ class Parser implements \Swoole\IFace\HttpParser
      */
     static function parseHeaderLine($headerLines)
     {
-        if(is_string($headerLines))
+        if (is_string($headerLines))
         {
             $headerLines = explode("\r\n", $headerLines);
         }
@@ -110,7 +114,7 @@ class Parser implements \Swoole\IFace\HttpParser
      * @param $cd
      * @return unknown_type
      */
-    function parseFormData($request, $cd)
+    static function parseFormData($request, $cd)
     {
         $cd = '--' . str_replace('boundary=', '', $cd);
         $form = explode($cd, rtrim($request->body, "-")); //去掉末尾的--
@@ -120,7 +124,7 @@ class Parser implements \Swoole\IFace\HttpParser
             $parts = explode("\r\n\r\n", trim($f));
             $head = self::parseHeaderLine($parts[0]);
             if (!isset($head['Content-Disposition'])) continue;
-            $meta = $this->parseParams($head['Content-Disposition']);
+            $meta = self::parseParams($head['Content-Disposition']);
             //filename字段表示它是一个文件
             if (!isset($meta['filename']))
             {
@@ -143,4 +147,26 @@ class Parser implements \Swoole\IFace\HttpParser
             }
         }
     }
+
+    /**
+     * 头部http协议
+     * @param $data
+     * @return array
+     */
+    function parse($data)
+    {
+        $_header = strstr($data, self::HTTP_EOF, true);
+        if ($_header === false)
+        {
+            $this->buffer = $data;
+        }
+        $header = self::parseHeader($_header);
+        if ($header === false)
+        {
+            $this->isError = true;
+        }
+        $this->header = $header;
+        return $header;
+    }
+
 }

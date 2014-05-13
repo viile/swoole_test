@@ -57,6 +57,6 @@ class Request
 
     function unsetGlobal()
     {
-        $_REQUEST = $_SESSION = $_COOKIE = $_FILES = $_POST = $_GET = array();
+        $_REQUEST = $_SESSION = $_COOKIE = $_FILES = $_POST = $_SERVER = $_GET = array();
     }
 }

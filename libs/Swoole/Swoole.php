@@ -364,7 +364,6 @@ class Swoole
         {
             $this->reloadController($mvc, $controller_path);
         }
-
         $controller = new $controller_class($this);
         if (!is_callable(array($controller, $mvc['view'])))
         {

@@ -8,19 +8,20 @@ class HttpClient
 
     protected $timeout = 30;
 
-    protected $url;
+    public $url;
+    public $uri;
+    public $reqHeader;
+
     protected $cli;
     protected $buffer = '';
-    protected $uri;
-
     protected $nparse = 0;
     protected $isError = false;
     protected $isFinish = false;
     protected $status = array();
-    protected $header = array();
+    protected $respHeader = array();
     protected $body = '';
     protected $trunk_length = 0;
-
+    protected $userAgent = 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.116 Safari/537.36';
     protected $onReadyCallback;
 
     function parseHeader($data)
@@ -41,7 +42,7 @@ class HttpClient
         }
         unset($headerLines[0]);
         //解析Header
-        $this->header =  \Swoole\Http\Parser::parseHeaderLine($headerLines);
+        $this->respHeader =  \Swoole\Http\Parser::parseHeaderLine($headerLines);
         $this->status = $status;
         if (isset($parts[1]))
         {
@@ -58,7 +59,7 @@ class HttpClient
     function parseBody()
     {
         //解析trunk
-        if (isset($this->header['Transfer-Encoding']) and $this->header['Transfer-Encoding'] == 'chunked')
+        if (isset($this->respHeader['Transfer-Encoding']) and $this->respHeader['Transfer-Encoding'] == 'chunked')
         {
             while(1)
             {
@@ -99,7 +100,7 @@ class HttpClient
         //普通的Content-Length约定
         else
         {
-            if (strlen($this->buffer) < $this->header['Content-Length'])
+            if (strlen($this->buffer) < $this->respHeader['Content-Length'])
             {
                 return false;
             }
@@ -132,19 +133,41 @@ class HttpClient
         }
     }
 
+    function setCookie()
+    {
+
+    }
+
+    function setUserAgent($userAgent)
+    {
+        $this->userAgent = $userAgent;
+    }
+
+    function setHeader($k, $v)
+    {
+        $this->reqHeader[$k] = $v;
+    }
+
     function onConnect(\swoole_client $cli)
     {
         echo "Connected\n";
-        $header = 'GET /1405/263577784453.html HTTP/1.1'. self::EOF;
-        $header .= 'Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' . self::EOF;
-        $header .= 'Accept-Encoding:gzip,deflate,sdch' . self::EOF;
-        $header .= 'Accept-Language:zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4,ja;q=0.2' . self::EOF;
-        $header .= 'Cache-Control:max-age=0' . self::EOF;
-        $header .= 'Host:newgame.duowan.com' . self::EOF;
-        $header .= 'RA-Sid:2A784AF7-20140212-113827-085a9c-c4de6e' . self::EOF;
-        $header .= 'RA-Ver:2.2.1' . self::EOF;
-        $header .= 'Referer:http://www.duowan.com/' . self::EOF;
-        $header .= 'User-Agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.116 Safari/537.36' . self::EOF;
+        $header = 'GET '.$this->uri['path'].' HTTP/1.1'. self::EOF;
+        $header .= 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' . self::EOF;
+        $header .= 'Accept-Encoding: gzip,deflate,sdch' . self::EOF;
+        $header .= 'Accept-Language: zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4,ja;q=0.2' . self::EOF;
+        $header .= 'Host: '.$this->uri['host']. self::EOF;
+        $header .= 'RA-Sid: 2A784AF7-20140212-113827-085a9c-c4de6e' . self::EOF;
+        $header .= 'RA-Ver: 2.2.1' . self::EOF;
+        $header .= 'Referer: http://'.$this->uri['host'].'/' . self::EOF;
+        $header .= $this->userAgent . self::EOF;
+        if (!empty($this->reqHeader))
+        {
+            foreach ($this->reqHeader as $k => $v)
+            {
+                $header .= $k . ': ' . $v . self::EOF;
+            }
+        }
+        $this->errorLog(__LINE__, $header);
         $cli->send($header . self::EOF);
     }
 
@@ -170,7 +193,7 @@ class HttpClient
         {
             return;
         }
-        if (empty($this->header))
+        if (empty($this->respHeader))
         {
             $ret = $this->parseHeader($this->buffer) ;
             if ($ret === false)
@@ -191,9 +214,9 @@ class HttpClient
             parse_body:
             if ($this->parseBody() === true and $this->isFinish)
             {
-                $compress_type = empty($this->header['Content-Encoding'])?'':$this->header['Content-Encoding'];
+                $compress_type = empty($this->respHeader['Content-Encoding'])?'':$this->respHeader['Content-Encoding'];
                 $this->body = self::gz_decode($this->body, $compress_type);
-                call_user_func($this->onReadyCallback, $this->body, $this->header);
+                call_user_func($this->onReadyCallback, $this, $this->body, $this->respHeader);
             }
         }
     }

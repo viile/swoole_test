@@ -11,23 +11,24 @@ class CURL
      * @access private
      * @var resource
      */
-    var $ch ;
+    protected $ch;
+    protected $reqHeader = array();
 
-    var $header = array();
+    public $url;
 
     /**
      * set debug to true in order to get usefull output
      * @access private
-     * @var string
+     * @public string
      */
-    var $debug = false;
+    public $debug = false;
 
     /**
      * Contain last error message if error occured
      * @access private
      * @var string
      */
-    var $error_msg;
+    public $error_msg;
 
 
     /**
@@ -221,17 +222,24 @@ class CURL
     {
         // set url to post to
         curl_setopt($this->ch, CURLOPT_URL,$url);
-
         //set method to get
         curl_setopt($this->ch, CURLOPT_HTTPGET,true);
-
         // return into a variable rather than displaying it
-        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER,true);
+        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
+
+        $this->url = $url;
+        if ($this->reqHeader)
+        {
+            foreach($this->reqHeader as $k => $v)
+            {
+                curl_setopt($this->ch, CURLOPT_HTTPHEADER, $k.': '.$v);
+            }
+        }
 
         //bind to specific ip address if it is sent trough arguments
-        if($ip)
+        if ($ip)
         {
-            if($this->debug)
+            if ($this->debug)
             {
                 echo "Binding to ip $ip\n";
             }
@@ -434,9 +442,9 @@ class CURL
         curl_setopt ($this->ch, CURLOPT_COOKIEFILE, $cookie_file);
     }
 
-    function set_header($headers)
+    function setHeader($k, $v)
     {
-    	curl_setopt($this->ch, CURLOPT_HTTPHEADER, $headers);
+        $this->reqHeader[$k] = $v;
     }
 
     /**

@@ -12,8 +12,8 @@ class CURL
      * @var resource
      */
     protected $ch;
+    protected $defaultUserAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:28.0) Gecko/20100101 Firefox/28.0";
     protected $reqHeader = array();
-
     public $url;
 
     /**
@@ -94,7 +94,7 @@ class CURL
      * @param string user agent
      * @access public
      */
-    function set_user_agent($useragent)
+    function setDefaultUserAgent($useragent = null)
     {
         curl_setopt($this->ch, CURLOPT_USERAGENT, $useragent);
     }
@@ -108,7 +108,6 @@ class CURL
     {
         curl_setopt($this->ch, CURLOPT_HEADER, $value);
     }
-
 
     /**
      * Set proxy to use for each curl request
@@ -221,11 +220,16 @@ class CURL
     function get($url, $ip=null, $timeout=5)
     {
         // set url to post to
-        curl_setopt($this->ch, CURLOPT_URL,$url);
+        curl_setopt($this->ch, CURLOPT_URL, $url);
         //set method to get
-        curl_setopt($this->ch, CURLOPT_HTTPGET,true);
+        curl_setopt($this->ch, CURLOPT_HTTPGET, true);
         // return into a variable rather than displaying it
         curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
+
+        if (empty($this->reqHeader['User-Agent']))
+        {
+            curl_setopt($this->ch, CURLOPT_USERAGENT, $this->defaultUserAgent);
+        }
 
         $this->url = $url;
         if ($this->reqHeader)
@@ -252,7 +256,7 @@ class CURL
         //and finally send curl request
         $result = curl_exec($this->ch);
 
-        if(curl_errno($this->ch))
+        if (curl_errno($this->ch))
         {
             if($this->debug)
             {

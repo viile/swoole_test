@@ -1,4 +1,5 @@
 <?php
+namespace Swoole;
 /**
  * 文件上传类
  * 限制尺寸，压缩，生成缩略图，限制格式
@@ -13,8 +14,16 @@ class Upload
     public $allow = array('jpg', 'gif', 'png'); //允许上传的类型
     public $name_type = ''; //md5,
 
-    //上传文件的根目录
+    /**
+     * 上传文件的根目录
+     */
     public $base_dir;
+
+    /**
+     * 替换后的域名
+     */
+    public $base_url = '/';
+
     //指定子目录
     public $sub_dir;
     //子目录生成方法，可以使用randomkey，或者date
@@ -61,6 +70,7 @@ class Upload
         $mimes = require LIBPATH.'/data/mimes.php';
         $this->mimes = $mimes;
     }
+
     function error_msg()
     {
         return $this->error_msg;
@@ -211,5 +221,63 @@ class Upload
     static public function file_ext($file)
     {
     	return strtolower(trim(substr(strrchr($file, '.'), 1)));
+    }
+
+    static function downloadFile($url, $file)
+    {
+        echo "download file, url=$url, file=$file\n";
+        $curl = new  Client\CURL;
+        $remote_file = $curl->get($url);
+        if ($remote_file === false)
+        {
+            echo $curl->error_msg;
+            return false;
+        }
+        return file_put_contents($file, $remote_file);
+    }
+
+    /**
+     * 自动将给定的内容$data中远程图片的url改为本地图片，并自动将远程图片保存到本地
+     * @param $data
+     * @return unknown_type
+     */
+    function imageLocal(&$content, $dir='', $no_fetch_domain = array())
+    {
+        $path = '/' . $dir . '/' . date('Ym') . "/" . date("d");
+        $dir = $this->base_dir . $path;
+        if (!is_dir($dir))
+        {
+            mkdir($dir, 0777, true);
+        }
+        preg_match_all('~<img[^>]*(?<!_mce_)src\s?=\s?([\'"])((?:(?!\1).)*)[^>]*>~i', $content, $match);
+        if (empty($match[2]))
+        {
+            return;
+        }
+        foreach ($match[2] as $uri)
+        {
+            $_u = parse_url($uri);
+            /**
+             * 跳过某些HOST
+             */
+            if (in_array($_u['host'], $no_fetch_domain))
+            {
+                continue;
+            }
+            /**
+             * 与本站静态路径相同
+             */
+            if (strstr($this->base_url, $uri) !== false or $uri{0} === '/')
+            {
+                continue;
+            }
+            $filename = uniqid() . '.' . self::file_ext($uri);
+            $file = $dir . '/' . $filename;
+            if (self::downloadFile($uri, $file))
+            {
+                $new_uri = '/'.ltrim($this->base_url . $path . '/' . $filename, '/');
+                $content = str_replace($uri, $new_uri, $content);
+            }
+        }
     }
 }

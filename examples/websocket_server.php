@@ -5,6 +5,11 @@ require __DIR__ . '/../libs/lib_config.php';
 
 class WebSocket extends Swoole\Network\Protocol\WebSocket
 {
+    function onStart($serv, $worker_id = 0)
+    {
+        $serv->addTimer(1000);
+        parent::onStart($serv, $worker_id);
+    }
     /**
      * 下线时，通知所有人
      */
@@ -36,6 +41,11 @@ class WebSocket extends Swoole\Network\Protocol\WebSocket
                 $this->send($clid, $msg);
             }
         }
+    }
+
+    function onTimer($serv, $interval)
+    {
+        echo "timer $interval\n";
     }
 }
 

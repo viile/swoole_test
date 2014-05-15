@@ -75,16 +75,7 @@ function table($table_name)
  */
 function session($readonly = false)
 {
-    $php = Swoole::getInstance();
-    if(!defined('SWOOLE_SERVER'))
-    {
-        session_start();
-        return true;
-    }
-    else
-    {
-        $php->session->start($readonly);
-    }
+    Swoole::getInstance()->session->start($readonly);
 }
 
 /**

@@ -18,6 +18,12 @@ class Session
     public $open;
     protected $cache;
 
+    /**
+     * 使用PHP内建的SESSION
+     * @var bool
+     */
+    protected $use_php_session =  true;
+
     static $sess_size = 32;
     static $sess_name = 'SESSID';
     static $cookie_key = 'PHPSESSID';
@@ -25,25 +31,32 @@ class Session
 
     /**
      * 构造函数
-     * @param $cache Cache对象
+     * @param $cache \Swoole\Cache
      * @return NULL
      */
-    public function __construct($cache)
+    public function __construct($cache = null)
     {
         $this->cache = $cache;
     }
 
     public function start($readonly = false)
     {
-        $this->readonly = $readonly;
-        $this->open = true;
-        $sessid = Cookie::get(self::$cookie_key);
-        if(empty($sessid))
+        if ($this->use_php_session)
         {
-            $sessid = \RandomKey::randmd5(40);
-            Cookie::set(self::$cookie_key, $sessid, self::$cache_life);
+            session_start();
         }
-        $_SESSION = $this->load($sessid);
+        else
+        {
+            $this->readonly = $readonly;
+            $this->open = true;
+            $sessid = Cookie::get(self::$cookie_key);
+            if(empty($sessid))
+            {
+                $sessid = \RandomKey::randmd5(40);
+                Cookie::set(self::$cookie_key, $sessid, self::$cache_life);
+            }
+            $_SESSION = $this->load($sessid);
+        }
     }
 
     public function load($sessId)

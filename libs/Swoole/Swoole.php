@@ -94,6 +94,8 @@ class Swoole
             }
         }
 
+        define('APPSPATH', self::$app_path);
+
         //将此目录作为App命名空间的根目录
         Swoole\Loader::setRootNS('App', self::$app_path . '/classes');
 

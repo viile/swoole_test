@@ -1,4 +1,6 @@
 <?php
+namespace Swoole;
+
 class RandomKey
 {
     function getChineseCharacter()

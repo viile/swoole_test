@@ -1,4 +1,5 @@
 <?php
+namespace Swoole;
 /**
  * 图像处理类
  * @author Tianfeng.Han

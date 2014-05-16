@@ -151,7 +151,7 @@ class Upload
     	//生成文件名
     	if($filename===null)
     	{
-    	    $filename=RandomKey::randtime();
+    	    $filename= RandomKey::randtime();
 	        //如果已存在此文件，不断随机直到产生一个不存在的文件名
 	        while($this->exist_check and is_file($path.'/'.$filename.'.'.$filetype))
 	        {
@@ -223,12 +223,17 @@ class Upload
     	return strtolower(trim(substr(strrchr($file, '.'), 1)));
     }
 
-    static function downloadFile($url, $file)
+    static function downloadFile($url, $file, $min_file_size = 0)
     {
-        echo "download file, url=$url, file=$file\n";
+        //echo "download file, url=$url, file=$file\n";
         $curl = new  Client\CURL;
         $remote_file = $curl->get($url);
-        if ($remote_file === false)
+
+        if (strlen($remote_file) < $min_file_size)
+        {
+            return false;
+        }
+        if ($remote_file === false or strlen($remote_file) < $min_file_size)
         {
             echo $curl->error_msg;
             return false;
@@ -238,10 +243,14 @@ class Upload
 
     /**
      * 自动将给定的内容$data中远程图片的url改为本地图片，并自动将远程图片保存到本地
+     * 指定最小尺寸，过滤小图片
      * @param $data
+     * @param $dir
+     * @param $no_fetch_domain
+     * @min_file_size
      * @return unknown_type
      */
-    function imageLocal(&$content, $dir='', $no_fetch_domain = array())
+    function imageLocal(&$content, $dir='', $no_fetch_domain = array(), $min_file_size = 0)
     {
         $path = '/' . $dir . '/' . date('Ym') . "/" . date("d");
         $dir = $this->base_dir . $path;
@@ -273,7 +282,7 @@ class Upload
             }
             $filename = uniqid() . '.' . self::file_ext($uri);
             $file = $dir . '/' . $filename;
-            if (self::downloadFile($uri, $file))
+            if (self::downloadFile($uri, $file, $min_file_size))
             {
                 $new_uri = '/'.ltrim($this->base_url . $path . '/' . $filename, '/');
                 $content = str_replace($uri, $new_uri, $content);

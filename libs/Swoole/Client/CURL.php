@@ -273,6 +273,11 @@ class CURL
         }
     }
 
+    function getErrCode()
+    {
+        return curl_errno($this->ch);
+    }
+
     /**
      * Fetch data from target URL
      * and store it directly to file

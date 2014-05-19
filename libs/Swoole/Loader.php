@@ -76,7 +76,7 @@ class Loader
 	static function autoload($class)
 	{
 		$root = explode('\\', trim($class, '\\'), 2);
-		if(count($root) > 1 and isset(self::$nsPath[$root[0]]))
+		if (count($root) > 1 and isset(self::$nsPath[$root[0]]))
 		{
             include self::$nsPath[$root[0]].'/'.str_replace('\\', '/', $root[1]).'.php';
 		}

@@ -388,7 +388,7 @@ class HttpServer extends Swoole\Network\Protocol\WebServer implements Swoole\Ser
     {
         $path = explode('/', trim($request->meta['path'], '/'));
         //扩展名
-        $request->ext_name = $ext_name = \Upload::file_ext($request->meta['path']);
+        $request->ext_name = $ext_name = Swoole\Upload::file_ext($request->meta['path']);
         /* 检测是否拒绝访问 */
         if (isset($this->deny_dir[$path[0]]))
         {
@@ -438,7 +438,7 @@ class HttpServer extends Swoole\Network\Protocol\WebServer implements Swoole\Ser
                     $response->head['Expires'] = "max-age={$expire}";
                 }
             }
-            $ext_name = \Upload::file_ext($request->meta['path']);
+            $ext_name = Swoole\Upload::file_ext($request->meta['path']);
             if($read_file)
             {
                 $response->head['Content-Type'] = $this->mime_types[$ext_name];

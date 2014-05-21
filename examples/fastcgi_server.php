@@ -3,12 +3,24 @@ define('DEBUG', 'on');
 define("WEBPATH", realpath(__DIR__.'/../'));
 
 require __DIR__ . '/../libs/lib_config.php';
-//require __DIR__'/phar://swoole.phar';
+
 Swoole\Config::$debug = false;
-$AppSvr = new Swoole\Network\Protocol\FastCGI();
-$AppSvr->setLogger(new \Swoole\Log\EchoLog(true));
+
 
 Swoole\Error::$echo_html = true;
+
+class MyFastCGI extends Swoole\Network\Protocol\FastCGI
+{
+	function onRequest(Swoole\Request $request)
+	{
+		$response = new Swoole\Response;
+		$response->body = "hello world";
+		return $response;
+	}
+}
+	
+$AppSvr = new MyFastCGI();
+$AppSvr->setLogger(new \Swoole\Log\EchoLog(true));
 
 /**
  * 如果你没有安装swoole扩展，这里还可选择

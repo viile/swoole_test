@@ -26,7 +26,7 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
 	 * @param $msg  信息
 	 * @return bool
 	 */
-    function put($type,$msg)
+    function put($msg, $type = 'INFO')
     {
     	$msg = date(self::$date_format).' '.$type.' '.$msg.NL;
     	return fputs($this->fp, $msg);

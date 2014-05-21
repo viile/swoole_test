@@ -18,7 +18,7 @@ class PHPLog extends \Swoole\Log implements \Swoole\IFace\Log
         if(isset($params['type'])) $this->type = $this->put_type[$params['type']];
     }
 
-    function put($type,$msg)
+    function put($msg, $type  = 'INFO')
     {
         $msg = date(self::$date_format).' '.$type.' '.$msg.NL;
         error_log($msg,$this->type,$this->logput);

@@ -265,6 +265,10 @@ class Upload
         }
         foreach ($match[2] as $uri)
         {
+            if (empty($uri))
+            {
+                continue;
+            }
             $_u = parse_url($uri);
             /**
              * 跳过某些HOST

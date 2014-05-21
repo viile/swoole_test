@@ -14,7 +14,7 @@ class DBLog extends \Swoole\Log implements \Swoole\IFace\Log
         $this->table = $params['table'];
         $this->db = $params['db'];
     }
-    function put($type, $msg)
+    function put($msg, $type = 'INFO')
     {
         $put['logtype'] = $type;
         $put['msg'] = $msg;

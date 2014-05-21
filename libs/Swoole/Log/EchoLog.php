@@ -16,7 +16,7 @@ class EchoLog extends \Swoole\Log implements \Swoole\IFace\Log
     {
         $this->display = $display;
     }
-    function put($type, $msg)
+    function put($msg, $type = 'INFO')
     {
         if($this->display)
             echo date(self::$formart)."\t$type\t$msg\n";

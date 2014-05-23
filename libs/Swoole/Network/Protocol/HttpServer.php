@@ -345,6 +345,10 @@ class HttpServer extends Swoole\Network\Protocol\WebServer implements Swoole\Ser
         }
         $errorMsg = "{$error['message']} ({$error['file']}:{$error['line']})";
         $message = Swoole\Error::info(self::SOFTWARE." Application Error", $errorMsg);
+        if (empty($this->currentResponse))
+        {
+            $this->currentResponse = new Swoole\Response();
+        }
         $this->currentResponse->send_http_status(500);
         $this->currentResponse->body = $message;
         $this->response($this->currentRequest->fd, $this->currentRequest, $this->currentResponse);

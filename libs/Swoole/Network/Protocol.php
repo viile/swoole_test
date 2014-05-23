@@ -40,7 +40,7 @@ class Protocol
      */
     function log($msg, $type = 'INFO')
     {
-        $this->log->put($type, $msg);
+        $this->log->put($msg, $type);
     }
 
     function onStart($server)

@@ -30,6 +30,8 @@ class CURL
      */
     public $error_msg;
 
+    public $errCode;
+    public $httpCode;
 
     /**
      * Curl_HTTP_Client constructor
@@ -234,10 +236,7 @@ class CURL
         $this->url = $url;
         if ($this->reqHeader)
         {
-            foreach($this->reqHeader as $k => $v)
-            {
-                curl_setopt($this->ch, CURLOPT_HTTPHEADER, $k.': '.$v);
-            }
+            curl_setopt($this->ch, CURLOPT_HTTPHEADER, $this->reqHeader);
         }
 
         //bind to specific ip address if it is sent trough arguments
@@ -255,16 +254,17 @@ class CURL
 
         //and finally send curl request
         $result = curl_exec($this->ch);
-
+        if ($ret = curl_getinfo($this->ch))
+        {
+            $this->httpCode = $ret['http_code'];
+        }
         if (curl_errno($this->ch))
         {
-            if($this->debug)
+            $this->errCode = curl_errno($this->ch);
+            if ($this->debug)
             {
-                echo "Error Occured in Curl\n";
-                echo "Error number: " .curl_errno($this->ch) ."\n";
-                echo "Error message: " .curl_error($this->ch)."\n";
+                echo "Get Failed. Errno=".$this->errCode . "Error message: " .curl_error($this->ch)."\n";
             }
-
             return false;
         }
         else

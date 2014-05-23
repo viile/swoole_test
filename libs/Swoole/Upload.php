@@ -250,7 +250,7 @@ class Upload
      * @min_file_size
      * @return unknown_type
      */
-    function imageLocal(&$content, $dir='', $no_fetch_domain = array(), $min_file_size = 0)
+    function imageLocal(&$content, $base_url, $dir='', $min_file_size = 0)
     {
         $path = '/' . $dir . '/' . date('Ym') . "/" . date("d");
         $dir = $this->base_dir . $path;
@@ -265,25 +265,7 @@ class Upload
         }
         foreach ($match[2] as $uri)
         {
-            if (empty($uri))
-            {
-                continue;
-            }
-            $_u = parse_url($uri);
-            /**
-             * 跳过某些HOST
-             */
-            if (in_array($_u['host'], $no_fetch_domain))
-            {
-                continue;
-            }
-            /**
-             * 与本站静态路径相同
-             */
-            if (strstr($this->base_url, $uri) !== false or $uri{0} === '/')
-            {
-                continue;
-            }
+            $uri = HTML::parseRelativePath($base_url, $uri);
             $filename = uniqid() . '.' . self::file_ext($uri);
             $file = $dir . '/' . $filename;
             if (self::downloadFile($uri, $file, $min_file_size))

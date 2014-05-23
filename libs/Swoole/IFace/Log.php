@@ -5,9 +5,8 @@ interface Log
 {
     /**
      * 写入日志
-     * @param $type 类型
-     * @param $msg  内容
-     * @return unknown_type
+     * @param $type string 类型
+     * @param $msg  string 内容
      */
-    function put($type, $msg);
+    function put($msg, $type = "INFO");
 }

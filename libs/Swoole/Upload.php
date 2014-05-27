@@ -22,7 +22,7 @@ class Upload
     /**
      * 替换后的域名
      */
-    public $base_url = '/';
+    public $base_url = '';
 
     //指定子目录
     public $sub_dir;
@@ -257,15 +257,22 @@ class Upload
         {
             return;
         }
+
+        $replaced = array();
+
         foreach ($match[2] as $uri)
         {
+            //已经替换过的
+            if (isset($replaced[$uri]))
+            {
+                continue;
+            }
             $_abs_uri = HTML::parseRelativePath($from_url, $uri);
             $info = parse_url($_abs_uri);
-            $path = $info['host'].'/'.$info['path'];
-
+            $path = $info['host'].'/'.ltrim($info['path'], '/');
             $file =  $this->base_dir.'/'.$path;
-            $update = false;
 
+            $update = true;
             if (!is_file($file))
             {
                 $dir = dirname($file);
@@ -277,10 +284,9 @@ class Upload
             }
             if ($update)
             {
-                $new_uri = $this->base_url .'/'. $path;
-
-
+                $new_uri = $this->base_url .'/'. ltrim($path, '/');
                 $content = str_replace($uri, $new_uri, $content);
+                $replaced[$uri] = true;
             }
         }
     }

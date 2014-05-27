@@ -189,7 +189,7 @@ class SelectDB
     {
         if(!empty($limit))
         {
-            $_limit = explode(',',$limit,2);
+            $_limit = explode(',', $limit, 2);
             if(count($_limit)==2) $this->limit='limit '.(int)$_limit[0].','.(int)$_limit[1];
             else $this->limit="limit ".(int)$limit;
         }

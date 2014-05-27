@@ -286,7 +286,9 @@ class Node
         if ($this->dom && $this->dom->nodes[$this->_[Tree::HDOM_INFO_BEGIN]])
         {
             $ret = $this->dom->nodes[$this->_[Tree::HDOM_INFO_BEGIN]]->makeup();
-        } else {
+        }
+        else
+        {
             $ret = "";
         }
 

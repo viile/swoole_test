@@ -149,7 +149,7 @@ class Upload
     	}
 
     	//生成文件名
-    	if($filename===null)
+    	if ($filename===null)
     	{
     	    $filename= RandomKey::randtime();
 	        //如果已存在此文件，不断随机直到产生一个不存在的文件名
@@ -225,7 +225,7 @@ class Upload
 
     static function downloadFile($url, $file, $min_file_size = 0)
     {
-        //echo "download file, url=$url, file=$file\n";
+//        \Swoole::$php->log->put("download file, url=$url, file=$file");
         $curl = new  Client\CURL;
         $remote_file = $curl->get($url);
 
@@ -235,7 +235,7 @@ class Upload
         }
         if ($remote_file === false or strlen($remote_file) < $min_file_size)
         {
-            echo $curl->error_msg;
+            \Swoole::$php->log->put($curl->error_msg);
             return false;
         }
         return file_put_contents($file, $remote_file);
@@ -250,14 +250,8 @@ class Upload
      * @min_file_size
      * @return unknown_type
      */
-    function imageLocal(&$content, $base_url, $dir='', $min_file_size = 0)
+    function imageLocal(&$content, $from_url, $min_file_size = 0)
     {
-        $path = '/' . $dir . '/' . date('Ym') . "/" . date("d");
-        $dir = $this->base_dir . $path;
-        if (!is_dir($dir))
-        {
-            mkdir($dir, 0777, true);
-        }
         preg_match_all('~<img[^>]*(?<!_mce_)src\s?=\s?([\'"])((?:(?!\1).)*)[^>]*>~i', $content, $match);
         if (empty($match[2]))
         {
@@ -265,12 +259,27 @@ class Upload
         }
         foreach ($match[2] as $uri)
         {
-            $uri = HTML::parseRelativePath($base_url, $uri);
-            $filename = uniqid() . '.' . self::file_ext($uri);
-            $file = $dir . '/' . $filename;
-            if (self::downloadFile($uri, $file, $min_file_size))
+            $_abs_uri = HTML::parseRelativePath($from_url, $uri);
+            $info = parse_url($_abs_uri);
+            $path = $info['host'].'/'.$info['path'];
+
+            $file =  $this->base_dir.'/'.$path;
+            $update = false;
+
+            if (!is_file($file))
             {
-                $new_uri = '/'.ltrim($this->base_url . $path . '/' . $filename, '/');
+                $dir = dirname($file);
+                if (!is_dir($dir))
+                {
+                    mkdir($dir, 0777, true);
+                }
+                $update = self::downloadFile($_abs_uri, $file, $min_file_size);
+            }
+            if ($update)
+            {
+                $new_uri = $this->base_url .'/'. $path;
+
+
                 $content = str_replace($uri, $new_uri, $content);
             }
         }

@@ -60,7 +60,7 @@ class HTML
     {
         foreach($rules as $r)
         {
-            $regx =  "'<{$r}[^>]*?>.*?</{$r}>'si";
+            $regx =  "~<{$r}[^>]*>.*</{$r}>~si";
             $html = preg_replace($regx, '', $html);
         }
         return $html;

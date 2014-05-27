@@ -7,7 +7,7 @@ class WebSocket extends Swoole\Network\Protocol\WebSocket
 {
     function onStart($serv, $worker_id = 0)
     {
-        $serv->addTimer(1000);
+        //$serv->addTimer(1000);
         parent::onStart($serv, $worker_id);
     }
     /**

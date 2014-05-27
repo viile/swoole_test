@@ -12,7 +12,7 @@ class CURL
      * @var resource
      */
     protected $ch;
-    protected $defaultUserAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:28.0) Gecko/20100101 Firefox/28.0";
+    protected $userAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:28.0) Gecko/20100101 Firefox/28.0";
     protected $reqHeader = array();
     public $url;
 
@@ -96,8 +96,9 @@ class CURL
      * @param string user agent
      * @access public
      */
-    function setDefaultUserAgent($useragent = null)
+    function setUserAgent($useragent = null)
     {
+        $this->userAgent = $useragent;
         curl_setopt($this->ch, CURLOPT_USERAGENT, $useragent);
     }
 
@@ -230,7 +231,7 @@ class CURL
 
         if (empty($this->reqHeader['User-Agent']))
         {
-            curl_setopt($this->ch, CURLOPT_USERAGENT, $this->defaultUserAgent);
+            curl_setopt($this->ch, CURLOPT_USERAGENT, $this->userAgent);
         }
 
         $this->url = $url;

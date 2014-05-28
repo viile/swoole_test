@@ -7,10 +7,9 @@ namespace Swoole\Log;
  */
 class PHPLog extends \Swoole\Log implements \Swoole\IFace\Log
 {
-    private $logput;
-    private $type;
-    private $put_type = array('file'=>3,'sys'=>0,'email'=>1);
-    static $date_format = 'Y-m-d H:i:s';
+    protected $logput;
+    protected $type;
+    protected $put_type = array('file'=>3, 'sys'=>0, 'email'=>1);
 
     function __construct($params)
     {
@@ -18,10 +17,9 @@ class PHPLog extends \Swoole\Log implements \Swoole\IFace\Log
         if(isset($params['type'])) $this->type = $this->put_type[$params['type']];
     }
 
-    function put($msg, $type  = 'INFO')
+    function put($msg, $level = self::INFO)
     {
-        $msg = date(self::$date_format).' '.$type.' '.$msg.NL;
-        error_log($msg,$this->type,$this->logput);
+        $msg = self::format($msg, $level);
+        error_log($msg, $this->type, $this->logput);
     }
-
 }

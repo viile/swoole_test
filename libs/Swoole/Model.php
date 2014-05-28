@@ -358,20 +358,21 @@ class Record implements \ArrayAccess
 	public $table="";
 
 	public $change=0;
-	public $_current_id=0;
+	public $_current_id = 0;
 	public $_currend_key;
 
-	function __construct($id,$db,$table,$primary,$where='',$select='*')
+	function __construct($id, $db, $table, $primary, $where='', $select='*')
 	{
 		$this->db=$db;
 		$this->_current_id=$id;
 		$this->table=$table;
 		$this->primary=$primary;
-		if(empty($where)) $where=$primary;
+        if (empty($where)) $where = $primary;
 		if(!empty($this->_current_id))
 		{
 			$res=$this->db->query("select $select from ".$this->table.' where '.$where."='$id' limit 1");
-			$this->_data=$res->fetch();
+			$this->_data = $res->fetch();
+            $this->_current_id = $this->_data[$this->primary];
 			if(!empty($this->_data)) $this->change=1;
 		}
 	}
@@ -432,7 +433,7 @@ class Record implements \ArrayAccess
 	{
 		if($this->change==0 or $this->change==1)
 		{
-			$ret = $this->db->insert($this->_data,$this->table);
+			$ret = $this->db->insert($this->_data, $this->table);
             if($ret === false) return false;
             //改变状态
             $this->change = 1;

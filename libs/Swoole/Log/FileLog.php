@@ -7,28 +7,36 @@ namespace Swoole\Log;
  */
 class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
 {
-    private $log_file;
+    protected $log_file;
     protected $fp;
-    static $date_format = 'Y-m-d H:i:s';
 
-	function __construct($log_file)
+	function __construct($conf)
     {
-    	$this->log_file = $log_file;
-        $this->fp = fopen($log_file, 'a+');
+        if (isset($conf['file']))
+        {
+            $this->log_file = $conf['file'];
+        }
+        else
+        {
+            throw new \Exception(__CLASS__.": require \$conf[file]");
+        }
+
+        $this->fp = fopen($this->log_file, 'a+');
         if (!$this->fp)
         {
-            throw new \Exception(__CLASS__.": can not open log_file[$log_file]");
+            throw new \Exception(__CLASS__.": can not open log_file[$this->log_file]");
         }
     }
+
 	/**
 	 * 写入日志
 	 * @param $type 事件类型
 	 * @param $msg  信息
 	 * @return bool
 	 */
-    function put($msg, $type = 'INFO')
+    function put($msg, $level = self::INFO)
     {
-    	$msg = date(self::$date_format).' '.$type.' '.$msg.NL;
+    	$msg = self::format($msg, $level);
     	return fputs($this->fp, $msg);
     }
 }

@@ -28,7 +28,7 @@ class CURL
      * @access private
      * @var string
      */
-    public $error_msg;
+    public $errMsg;
 
     public $errCode;
     public $httpCode;
@@ -190,19 +190,25 @@ class CURL
         // set post string
         curl_setopt($this->ch, CURLOPT_POSTFIELDS, $post_string);
 
+        return $this->execute();
+    }
 
+    protected function execute()
+    {
         //and finally send curl request
         $result = curl_exec($this->ch);
-
-        if(curl_errno($this->ch))
+        if ($ret = curl_getinfo($this->ch))
         {
-            if($this->debug)
+            $this->httpCode = $ret['http_code'];
+        }
+        if (curl_errno($this->ch))
+        {
+            $this->errCode = curl_errno($this->ch);
+            $this->errMsg = curl_error($this->ch).'['.$this->errCode.']';
+            if ($this->debug)
             {
-                echo "Error Occured in Curl\n";
-                echo "Error number: " .curl_errno($this->ch) ."\n";
-                echo "Error message: " .curl_error($this->ch)."\n";
+                echo "Get Failed. Errno=".$this->errCode . "Error message: " .curl_error($this->ch)."\n";
             }
-
             return false;
         }
         else
@@ -252,31 +258,7 @@ class CURL
 
         //set curl function timeout to $timeout
         curl_setopt($this->ch, CURLOPT_TIMEOUT, $timeout);
-
-        //and finally send curl request
-        $result = curl_exec($this->ch);
-        if ($ret = curl_getinfo($this->ch))
-        {
-            $this->httpCode = $ret['http_code'];
-        }
-        if (curl_errno($this->ch))
-        {
-            $this->errCode = curl_errno($this->ch);
-            if ($this->debug)
-            {
-                echo "Get Failed. Errno=".$this->errCode . "Error message: " .curl_error($this->ch)."\n";
-            }
-            return false;
-        }
-        else
-        {
-            return $result;
-        }
-    }
-
-    function getErrCode()
-    {
-        return curl_errno($this->ch);
+        return $this->execute();
     }
 
     /**
@@ -489,19 +471,6 @@ class CURL
     }
 
     /**
-     * Return last error message and error number
-     * @return string error msg
-     * @access public
-     */
-    function get_error_msg()
-    {
-        $err = "Error number: " .curl_errno($this->ch) ."\n";
-        $err .="Error message: " .curl_error($this->ch)."\n";
-
-        return $err;
-    }
-
-    /**
      * Close curl session and free resource
      * Usually no need to call this function directly
      * in case you do you have to call init() to recreate curl
@@ -513,4 +482,3 @@ class CURL
         curl_close($this->ch);
     }
 }
-?>

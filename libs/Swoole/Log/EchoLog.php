@@ -10,15 +10,21 @@ namespace Swoole\Log;
 
 class EchoLog extends \Swoole\Log implements \Swoole\IFace\Log
 {
-    static $formart = "[Y-m-d H:i:s]";
+    protected $display = true;
 
-    function __construct($display = true)
+    function __construct($conf)
     {
-        $this->display = $display;
+        if (isset($conf['display']) and $conf['display'] == false)
+        {
+            $this->display = false;
+        }
     }
-    function put($msg, $type = 'INFO')
+
+    function put($msg, $level = self::INFO)
     {
-        if($this->display)
-            echo date(self::$formart)."\t$type\t$msg\n";
+        if ($this->display)
+        {
+            echo $msg = self::format($msg, $level);;
+        }
     }
 }

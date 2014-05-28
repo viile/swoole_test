@@ -22,11 +22,11 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
         return $this->insert_id;
     }
 
-    function connect()
+    function connect($host = NULL, $user = NULL, $password = NULL, $database = NULL, $port = NULL, $socket = NULL)
     {
         $db_config = &$this->config;
         parent::connect($db_config['host'], $db_config['user'], $db_config['passwd'], $db_config['name']);
-        if(mysqli_connect_errno())
+        if (mysqli_connect_errno())
         {
             trigger_error("Mysqli connect failed: %s\n".mysqli_connect_error());
             return false;

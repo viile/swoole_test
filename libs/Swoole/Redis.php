@@ -12,11 +12,12 @@ class Redis
         }
         $main_key = self::$prefix . $appKey;
         //已存在 就加1
-        if( \Swoole::$php->redis->exists($main_key))
+        if (\Swoole::$php->redis->exists($main_key))
         {
             $inc = \Swoole::$php->redis->incr($main_key);
-            if($inc === false)
+            if (empty($inc))
             {
+                \Swoole::$php->log->put("redis::incr() failed. Error: ".\Swoole::$php->redis->getLastError());
                 return false;
             }
             return $inc;
@@ -30,8 +31,9 @@ class Redis
         else
         {
             $init = \Swoole::$php->redis->set($main_key, $init_id);
-            if($init == false)
+            if ($init == false)
             {
+                \Swoole::$php->log->put("redis::set() failed. Error: ".\Swoole::$php->redis->getLastError());
                 return false;
             }
             else

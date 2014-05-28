@@ -26,6 +26,29 @@ class Tool
         return str_replace(range(0,9),self::$number,$num_str);
     }
 
+    static function scandir($dir)
+    {
+        if (function_exists('scandir'))
+        {
+
+        }
+        else
+        {
+            $dh  = opendir($dir);
+            while (false !== ($filename = readdir($dh)))
+            {
+                if ($filename == '.' or $filename == '..')
+                {
+                    continue;
+                }
+                $files[] = $filename;
+            }
+
+            sort($files);
+        }
+        $dirs = scandir($dir);
+    }
+
     /**
      * 解析URI
      * @param $url

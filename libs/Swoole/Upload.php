@@ -225,7 +225,7 @@ class Upload
 
     static function downloadFile($url, $file, $min_file_size = 0)
     {
-//        \Swoole::$php->log->put("download file, url=$url, file=$file");
+        //\Swoole::$php->log->put("download file, url=$url, file=$file");
         $curl = new  Client\CURL;
         $remote_file = $curl->get($url);
 
@@ -233,9 +233,9 @@ class Upload
         {
             return false;
         }
-        if ($remote_file === false or strlen($remote_file) < $min_file_size)
+        if ($remote_file === false)
         {
-            \Swoole::$php->log->put($curl->error_msg);
+            \Swoole::$php->log->put("DownloadFile failed. Error:".$curl->errMsg);
             return false;
         }
         return file_put_contents($file, $remote_file);
@@ -267,6 +267,7 @@ class Upload
             {
                 continue;
             }
+
             $_abs_uri = HTML::parseRelativePath($from_url, $uri);
             $info = parse_url($_abs_uri);
             $path = $info['host'].'/'.ltrim($info['path'], '/');

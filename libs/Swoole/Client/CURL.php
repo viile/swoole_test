@@ -207,7 +207,7 @@ class CURL
             $this->errMsg = curl_error($this->ch).'['.$this->errCode.']';
             if ($this->debug)
             {
-                echo "Get Failed. Errno=".$this->errCode . "Error message: " .curl_error($this->ch)."\n";
+                \Swoole::$php->log->warn($this->errMsg);
             }
             return false;
         }

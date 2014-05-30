@@ -30,13 +30,13 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
 
 	/**
 	 * 写入日志
-	 * @param $type 事件类型
-	 * @param $msg  信息
+     * @param $msg  string 信息
+	 * @param $level int 事件类型
 	 * @return bool
 	 */
     function put($msg, $level = self::INFO)
     {
-    	$msg = self::format($msg, $level);
-    	return fputs($this->fp, $msg);
+    	$msg = $this->format($msg, $level);
+        if ($msg) fputs($this->fp, $msg);
     }
 }

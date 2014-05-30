@@ -19,7 +19,7 @@ class PHPLog extends \Swoole\Log implements \Swoole\IFace\Log
 
     function put($msg, $level = self::INFO)
     {
-        $msg = self::format($msg, $level);
-        error_log($msg, $this->type, $this->logput);
+        $msg = $this->format($msg, $level);
+        if ($msg) error_log($msg, $this->type, $this->logput);
     }
 }

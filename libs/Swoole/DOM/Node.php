@@ -699,7 +699,7 @@ class Node
             }
             else
             {
-                $converted_text = iconv($sourceCharset."//IGNORE", $targetCharset."//IGNORE", $text);
+                $converted_text = @iconv($sourceCharset."//IGNORE", $targetCharset."//IGNORE", $text);
             }
         }
 

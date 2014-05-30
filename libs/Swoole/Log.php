@@ -3,6 +3,7 @@ namespace Swoole;
 
 abstract class Log
 {
+    protected $level_line;
     const TRACE   = 0;
     const INFO    = 1;
     const NOTICE  = 2;
@@ -31,18 +32,28 @@ abstract class Log
     {
         if (!is_numeric($level))
         {
-            $level = self::$level_code[$level];
+            $level = self::$level_code[strtoupper($level)];
         }
         return $level;
     }
 
     function __call($func, $param)
     {
-        $this->put($param[0], $param[1]);
+        $this->put($param[0], $func);
     }
 
-    static function format($msg, $level)
+    function setLevel($level = self::TRACE)
     {
+        $this->level_line = $level;
+    }
+
+    function format($msg, $level)
+    {
+        $level = self::convert($level);
+        if ($level < $this->level_line)
+        {
+            return false;
+        }
         $level_str = self::$level_str[$level];
         return date(self::$date_format)."\t{$level_str}\t{$msg}\n";
     }

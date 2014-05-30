@@ -11,45 +11,66 @@ class Memcache implements \Swoole\IFace\Cache
     /**
      * memcached扩展采用libmemcache，支持更多特性，更标准通用
      */
-    public $memcached = false;
-    public $multi = false;
+    protected $memcached = false;
+    protected $cache;
     //启用压缩
-    static $compress = MEMCACHE_COMPRESSED;
-    public $cache;
+    protected $set_flags = MEMCACHE_COMPRESSED;
 
-    function __construct($configs)
+    function __construct($config)
     {
-        $this->cache = $this->memcached?new \Memcached:new \Memcache;
-        //多服务器
-        if($this->multi)
+        if (empty($config['use_memcached']))
         {
-            foreach($configs as $cf) $this->addServer($cf);
+            $this->cache = new \Memcache;
         }
-        else $this->addServer($configs);
+        else
+        {
+            $this->cache = new \Memcached;
+            $this->memcached = true;
+        }
+
+        if (isset($config['compress']) and $config['compress']===false)
+        {
+            $this->set_flags = 0;
+        }
+
+        if (empty($config['servers']))
+        {
+            $this->addServer($config);
+        }
+        else
+        {
+            foreach($config['servers'] as $cf)
+            {
+                $this->addServer($cf);
+            }
+        }
     }
+
     /**
      * 格式化配置
      * @param $cf
-     * @return unknown_type
+     * @return null
      */
-    function format_config(&$cf)
+    protected function formatConfig(&$cf)
     {
-        if(empty($cf['host'])) $cf['host'] = 'localhost';
-        if(empty($cf['port'])) $cf['port'] = 11211;
-        if(empty($cf['weight'])) $cf['weight'] = 1;
-        if(empty($cf['persistent'])) $cf['persistent'] = false;
+        if (empty($cf['host'])) $cf['host'] = 'localhost';
+        if (empty($cf['port'])) $cf['port'] = 11211;
+        if (empty($cf['weight'])) $cf['weight'] = 1;
+        if (empty($cf['persistent'])) $cf['persistent'] = false;
     }
+
     /**
      * 增加节点服务器
      * @param $cf
-     * @return unknown_type
+     * @return null
      */
-    private function addServer($cf)
+    protected function addServer($cf)
     {
-        $this->format_config($cf);
-        if($this->memcached) $this->cache->addServer($cf['host'],$cf['port'],$cf['weight']);
-        else $this->cache->addServer($cf['host'],$cf['port'],$cf['persistent'],$cf['weight']);
+        $this->formatConfig($cf);
+        if ($this->memcached) $this->cache->addServer($cf['host'], $cf['port'], $cf['weight']);
+        else $this->cache->addServer($cf['host'], $cf['port'], $cf['persistent'], $cf['weight']);
     }
+
     /**
      * 获取数据
      * @see libs/system/ICache#get($key)
@@ -58,18 +79,24 @@ class Memcache implements \Swoole\IFace\Cache
     {
         return $this->memcached?$this->cache->getMulti($key):$this->cache->get($key);
     }
-    function set($key,$value,$expire=0)
+
+    function set($key, $value, $expire = 0)
     {
-        return $this->memcached?$this->cache->set($key,$value,$expire):$this->cache->set($key,$value,self::$compress,$expire);;
+        if ($this->memcached)
+        {
+            return $this->cache->set($key, $value, $expire);
+        }
+        else
+        {
+            return $this->cache->set($key, $value, $this->set_flags, $expire);
+        }
     }
+
     function delete($key)
     {
         return $this->cache->delete($key);
     }
-    function flush()
-    {
-        return $this->cache->flush();
-    }
+
     function __call($method,$params)
     {
         return call_user_func_array(array($this->cache,$method),$params);

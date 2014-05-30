@@ -3,7 +3,7 @@ namespace Swoole;
 
 class Redis
 {
-    public static $prefix = "autoinc_key_";
+    public static $prefix = "autoinc_key:";
     static function getIncreaseId($appKey, $init_id = 1000)
     {
         if (empty($appKey))

@@ -21,8 +21,12 @@ class DBLog extends \Swoole\Log implements \Swoole\IFace\Log
     function put($msg, $level = self::INFO)
     {
         $put['logtype'] = self::convert($level);
-        $put['msg'] = self::format($msg, $level);
-        return \Swoole::$php->db->insert($put, $this->table);
+        $msg = $this->format($msg, $level);
+        if ($msg)
+        {
+            $put['msg'] = $msg;
+            \Swoole::$php->db->insert($put, $this->table);
+        }
     }
 
     function create()

@@ -235,7 +235,7 @@ class Upload
         }
         if ($remote_file === false)
         {
-            \Swoole::$php->log->put("DownloadFile failed. Error:".$curl->errMsg);
+            \Swoole::$php->log->warn("DownloadFile failed. Error:".$curl->errMsg);
             return false;
         }
         return file_put_contents($file, $remote_file);
@@ -244,20 +244,20 @@ class Upload
     /**
      * 自动将给定的内容$data中远程图片的url改为本地图片，并自动将远程图片保存到本地
      * 指定最小尺寸，过滤小图片
-     * @param $data
-     * @param $dir
-     * @param $no_fetch_domain
-     * @min_file_size
-     * @return unknown_type
+     * @param $content
+     * @param $from_url
+     * @param $min_file_size
+     * @return int
      */
     function imageLocal(&$content, $from_url, $min_file_size = 0)
     {
         preg_match_all('~<img[^>]*(?<!_mce_)src\s?=\s?([\'"])((?:(?!\1).)*)[^>]*>~i', $content, $match);
         if (empty($match[2]))
         {
-            return;
+            return 0;
         }
 
+        $image_n = 0;
         $replaced = array();
 
         foreach ($match[2] as $uri)
@@ -288,7 +288,9 @@ class Upload
                 $new_uri = $this->base_url .'/'. ltrim($path, '/');
                 $content = str_replace($uri, $new_uri, $content);
                 $replaced[$uri] = true;
+                $image_n ++;
             }
         }
+        return $image_n;
     }
 }

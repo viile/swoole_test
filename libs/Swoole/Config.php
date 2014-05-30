@@ -46,12 +46,12 @@ class Config extends \ArrayObject
 	
 	function offsetSet($index, $newval)
 	{
-		return false;
+        $this->config[$index] = $newval;
 	}
 	
 	function offsetUnset($index)
 	{
-		return false;
+        unset($this->config[$index]);
 	}
 	
 	function offsetExists($index)

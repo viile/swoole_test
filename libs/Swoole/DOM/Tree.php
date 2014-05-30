@@ -108,7 +108,8 @@ class Tree
         'hr'=>1,
         'base'=>1,
         'embed'=>1,
-        'spacer'=>1);
+        'spacer'=>1,
+    );
 
     protected $block_tags = array(
         'root' => 1,
@@ -119,6 +120,8 @@ class Tree
         'table' => 1,
         'video' => 1,
         'source' => 1,
+        'code' => 1,
+        'pre' => 1,
     );
 
 	// Known sourceforge issue #2977341

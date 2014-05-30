@@ -24,7 +24,8 @@ class EchoLog extends \Swoole\Log implements \Swoole\IFace\Log
     {
         if ($this->display)
         {
-            echo $msg = self::format($msg, $level);;
+            $log = $this->format($msg, $level);
+            if ($log) echo $log;
         }
     }
 }

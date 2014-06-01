@@ -1,5 +1,7 @@
-SwooleFramework: PHP的高级Web开发框架
+SwooleFramework: PHP的高级开发框架
 ----
+与其他Web框架不同，SwooleFramework是一个全功能的后端服务器框架。除了Web方面的应用之外，更广泛的后端程序中都可以使用。
+
 * 内置PHP应用服务器，可脱离nginx/fpm/apache独立运行
 * 配置化与资源自动工厂，可实现从配置中创建资源对象，完全无需new对象
 * 全面采用命名空间+autoload，代码中无需任何的include/require
@@ -21,12 +23,15 @@ SwooleFramework: PHP的高级Web开发框架
 * 支持文件上传
 * 支持POST大文本
 * 支持Session/Cookie
+* 支持Http/FastCGI两种协议
 
 ###Swoole框架额外提供的网络协议###
 * WebSocket协议支持，并附带一个基于websocket协议的webim系统
 * 普通Web服务器，可支持静态文件和普通include php方式的程序
 * SOA逻辑层服务器/客户端，支持并行请求
 * 一个简单的SMTP服务器
+* FtpServer
+* 异步HttpClient
 
 在线体验地址：<http://www.swoole.com/page/index/>
 

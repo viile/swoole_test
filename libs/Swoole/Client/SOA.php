@@ -22,7 +22,7 @@ class SOA
      */
     protected function request($type, $send, $retObj)
     {
-        $socket = new \Swoole\Network\ClientTCP;
+        $socket = new \Swoole\Client\TCP;
         $retObj->socket = $socket;
         $retObj->type = $type;
         $retObj->send = $send;
@@ -97,6 +97,7 @@ class SOA
         list($svr['host'], $svr['port']) = explode(':', $_svr, 2);
         return $svr;
     }
+
     /**
      * 打包数据
      * @param $data
@@ -106,6 +107,7 @@ class SOA
     {
         return pack('n', Protocol\SOAServer::STX).serialize($data).pack('n', Protocol\SOAServer::ETX);
     }
+
     /**
      * 解包
      * @param $recv
@@ -259,6 +261,10 @@ class SOAClient_Result
     public $data = null;
     public $send;  //要发送的数据
     public $type;
+
+    /**
+     * @var \Swoole\Client\TCP
+     */
     public $socket = null;
 
     const ERR_NO_READY   = 8001; //未就绪

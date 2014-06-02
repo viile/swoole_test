@@ -65,6 +65,7 @@ class Upload
     public $error_code;
 
     public $referrer_url;
+    public $http_timeout = 10;
 
     function __construct($base_dir)
     {
@@ -228,12 +229,12 @@ class Upload
     function downloadFile($url, $file, $min_file_size = 0)
     {
         $url = trim(html_entity_decode($url));
-        $curl = new  Client\CURL;
+        $curl = new Client\CURL;
         if (!empty($this->referrer_url))
         {
             $curl->setReferrer($this->referrer_url);
         }
-        $remote_file = $curl->get($url);
+        $remote_file = $curl->get($url, null, $this->http_timeout);
 
         if (strlen($remote_file) < $min_file_size)
         {

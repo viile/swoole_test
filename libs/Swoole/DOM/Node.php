@@ -398,6 +398,12 @@ class Node
 
     // find elements by css selector
     //PaperG - added ability for find to lowercase the value of the selector.
+    /**
+     * @param $selector
+     * @param null $idx
+     * @param bool $lowercase
+     * @return array|null|Node
+     */
     function find($selector, $idx=null, $lowercase=false)
     {
         $selectors = $this->parse_selector($selector);

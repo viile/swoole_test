@@ -62,7 +62,7 @@ class CURL
         curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, true);
 
         // use gzip if possible
-        curl_setopt($this->ch,CURLOPT_ENCODING , 'gzip, deflate');
+        curl_setopt($this->ch, CURLOPT_ENCODING , 'gzip, deflate');
 
         // do not veryfy ssl
         // this is important for windows

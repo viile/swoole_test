@@ -60,9 +60,11 @@ class Upload
      * 错误代码
      * 0,不存在的上传 1,未知的mime格式 2,不允许上传的格式
      * 3,文件已存在  4,文件尺寸超过最大
-     * @var unknown_type
+     * @var int
      */
     public $error_code;
+
+    public $referrer_url;
 
     function __construct($base_dir)
     {
@@ -223,10 +225,14 @@ class Upload
     	return strtolower(trim(substr(strrchr($file, '.'), 1)));
     }
 
-    static function downloadFile($url, $file, $min_file_size = 0)
+    function downloadFile($url, $file, $min_file_size = 0)
     {
         //\Swoole::$php->log->put("download file, url=$url, file=$file");
         $curl = new  Client\CURL;
+        if (!empty($this->referrer_url))
+        {
+            $curl->setReferrer($this->referrer_url);
+        }
         $remote_file = $curl->get($url);
 
         if (strlen($remote_file) < $min_file_size)
@@ -259,6 +265,7 @@ class Upload
 
         $image_n = 0;
         $replaced = array();
+        $this->referrer_url = $from_url;
 
         foreach ($match[2] as $uri)
         {
@@ -281,7 +288,7 @@ class Upload
                 {
                     mkdir($dir, 0777, true);
                 }
-                $update = self::downloadFile($_abs_uri, $file, $min_file_size);
+                $update = $this->downloadFile($_abs_uri, $file, $min_file_size);
             }
             if ($update)
             {

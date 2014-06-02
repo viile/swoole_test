@@ -86,7 +86,7 @@ class CURL
      * @param string referrer url
      * @access public
      */
-    function set_referrer($referrer_url)
+    function setReferrer($referrer_url)
     {
         curl_setopt($this->ch, CURLOPT_REFERER, $referrer_url);
     }

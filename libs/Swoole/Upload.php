@@ -69,7 +69,7 @@ class Upload
     function __construct($base_dir)
     {
         $this->base_dir = $base_dir;
-        $mimes = require LIBPATH.'/data/mimes.php';
+        $mimes = require LIBPATH . '/data/mimes.php';
         $this->mimes = $mimes;
     }
 
@@ -227,7 +227,7 @@ class Upload
 
     function downloadFile($url, $file, $min_file_size = 0)
     {
-        //\Swoole::$php->log->put("download file, url=$url, file=$file");
+        $url = trim(html_entity_decode($url));
         $curl = new  Client\CURL;
         if (!empty($this->referrer_url))
         {

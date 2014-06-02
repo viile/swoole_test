@@ -1,9 +1,9 @@
 <?php
-require __DIR__.'/lib_config.php';
-require __DIR__.'/function/cli.php';
-require __DIR__.'/Swoole/Form.php';
-require __DIR__.'/Swoole/Swoole_js.php';
-require __DIR__.'/Swoole/Tool.php';
+require __DIR__ . '/lib_config.php';
+require __DIR__ . '/function/cli.php';
+require __DIR__ . '/Swoole/Form.php';
+require __DIR__ . '/Swoole/Swoole_js.php';
+require __DIR__ . '/Swoole/Tool.php';
 
 if(is_file('../config.php')) require '../config.php';
 else define('WEBPATH',realpath(LIBPATH.'/../'));
@@ -90,7 +90,7 @@ function main($param)
             echo "create a new model {$param['name']}!\n";
             break;
         case 'debug':
-            require LIBPATH.'/code/console.php';
+            require LIBPATH . '/code/console.php';
             break;
         default:
             break;

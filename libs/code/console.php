@@ -1,5 +1,5 @@
 <?php
-require_once LIBPATH.'/function/cli.php';
+require_once LIBPATH . '/function/cli.php';
 require_once LIBPATH.'/system/Stdio.php';
 require_once LIBPATH.'/class/swoole/cli/Console.class.php';
 if(!function_exists('url_process_mvc'))

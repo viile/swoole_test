@@ -32,7 +32,7 @@ class Loader
      */
     static function vendor_init()
     {
-        require __DIR__.'/../lib_config.php';
+        require __DIR__ . '/../lib_config.php';
     }
 	/**
 	 * 加载一个模型对象

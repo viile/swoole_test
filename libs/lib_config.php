@@ -9,8 +9,8 @@ if(PHP_OS=='WINNT') define("NL","\r\n");
 else define("NL","\n");
 define("BL","<br />".NL);
 
-require_once __DIR__.'/Swoole/Swoole.php';
-require_once __DIR__.'/Swoole/Loader.php';
+require_once __DIR__ . '/Swoole/Swoole.php';
+require_once __DIR__ . '/Swoole/Loader.php';
 /**
  * 注册顶层命名空间到自动载入器
  */

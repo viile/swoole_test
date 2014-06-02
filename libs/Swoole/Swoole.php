@@ -1,8 +1,8 @@
 <?php
 //加载核心的文件
-require_once __DIR__.'/Loader.php';
-require_once __DIR__.'/ModelLoader.php';
-require_once __DIR__.'/PluginLoader.php';
+require_once __DIR__ . '/Loader.php';
+require_once __DIR__ . '/ModelLoader.php';
+require_once __DIR__ . '/PluginLoader.php';
 /**
  * Swoole系统核心类，外部使用全局变量$php引用
  * Swoole框架系统的核心类，提供一个swoole对象引用树和基础的调用功能

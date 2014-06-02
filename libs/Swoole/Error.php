@@ -35,7 +35,7 @@ class Error extends \Exception
 	    {
     	    if(empty($this->error_id))
     		{
-    			include LIBPATH.'/data/text/error_code.php';
+    			include LIBPATH . '/data/text/error_code.php';
     			//错误ID
     			$this->error_id = (int)$error;
     			//错误信息

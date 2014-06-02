@@ -2,7 +2,7 @@
 namespace Swoole\Network\Protocol;
 use Swoole;
 
-require_once LIBPATH.'/function/cli.php';
+require_once LIBPATH . '/function/cli.php';
 class AppFPM extends FastCGI
 {
     protected $router_function;

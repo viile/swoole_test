@@ -43,7 +43,7 @@ function file_upload($name,$up_dir=null,$access='',$filename=null)
 }
 function file_gettype($mime)
 {
-    require LIBPATH.'/data/mimes.php';
+    require LIBPATH . '/data/mimes.php';
 	if(isset($mimes[$mime])) return $mimes[$mime];
 	else return false;
 }

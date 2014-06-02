@@ -134,7 +134,20 @@ abstract class Server implements Server\Driver
     }
 
     abstract function run($setting);
+
+    /**
+     * 发送数据到客户端
+     * @param $client_id
+     * @param $data
+     * @return bool
+     */
     abstract function send($client_id, $data);
+
+    /**
+     * 关闭连接
+     * @param $client_id
+     * @return mixed
+     */
     abstract function close($client_id);
     abstract function shutdown();
 

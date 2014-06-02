@@ -37,6 +37,7 @@ abstract class WebSocket extends HttpServer
     public $max_connect = 10000;
     public $max_frame_size = 2097152; //数据包最大长度，超过此长度会被认为是非法请求
     public $heart_time = 600; //600s life time
+
     /**
      * Do the handshake.
      *
@@ -138,7 +139,7 @@ abstract class WebSocket extends HttpServer
         //echo posix_getpid()."   ".$data.PHP_EOL;
 
         //未连接
-        if(!isset($this->connections[$client_id]))
+        if (!isset($this->connections[$client_id]))
         {
             $this->createConnection($client_id, $data);
             return;
@@ -147,22 +148,23 @@ abstract class WebSocket extends HttpServer
         do
         {
             //新的数据帧
-            if(empty($this->ws_list[$client_id]))
+            if (empty($this->ws_list[$client_id]))
             {
                 $ws = $this->parseFrame($data);
                 //var_dump($ws);
                 //解析失败了
-                if($ws === false)
+                if ($ws === false)
                 {
                     $this->log("parse frame failed.", 'CLOSE');
                     $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
+                    break;
                 }
                 //数据包就绪
-                if($ws['finish'])
+                if ($ws['finish'])
                 {
                     $this->opcodeSwitch($client_id, $ws);
                     //还有数据
-                    if(strlen($data) > 0)
+                    if (strlen($data) > 0)
                     {
                         continue;
                     }
@@ -204,7 +206,7 @@ abstract class WebSocket extends HttpServer
                 //等待数据
             }
             break;
-        } while(true);
+        } while(isset($this->connections[$client_id]));
     }
 
     /**
@@ -369,7 +371,7 @@ abstract class WebSocket extends HttpServer
      */
     public function send($client_id, $message, $opcode = self::OPCODE_TEXT_FRAME, $end = true)
     {
-        if((self::OPCODE_TEXT_FRAME  === $opcode or self::OPCODE_CONTINUATION_FRAME === $opcode) and false === (bool) preg_match('//u', $message))
+        if ((self::OPCODE_TEXT_FRAME  === $opcode or self::OPCODE_CONTINUATION_FRAME === $opcode) and false === (bool) preg_match('//u', $message))
         {
             $this->log('Message [%s] is not in UTF-8, cannot send it.', 2, 32 > strlen($message) ? substr($message, 0, 32) . ' ' : $message);
         }
@@ -436,9 +438,9 @@ abstract class WebSocket extends HttpServer
                     if(2 < $length)
                     {
                         $reason = substr($message, 2);
-                        if(false === (bool) preg_match('//u', $reason)) {
+                        if (false === (bool) preg_match('//u', $reason))
+                        {
                             $this->close($client_id, self::CLOSE_MESSAGE_ERROR);
-
                             break;
                         }
                     }
@@ -449,15 +451,18 @@ abstract class WebSocket extends HttpServer
                 $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
         }
     }
+
     function onConnect($serv, $client_id, $from_id)
     {
         $this->log("connected client_id = $client_id");
     }
+
     function onClose($serv, $client_id, $from_id)
     {
         $this->log("close client_id = $client_id");
         unset($this->ws_list[$client_id], $this->connections[$client_id], $this->requests[$client_id]);
     }
+
     /**
      * Close a connection.
      * @access  public
@@ -469,6 +474,11 @@ abstract class WebSocket extends HttpServer
     {
         $this->send($client_id, pack('n', $code).$reason, self::OPCODE_CONNECTION_CLOSE);
         $this->log("server close connection[$client_id]. reason: $reason, OPCODE = $code", 'CLOSE');
+
+        /**
+         * 这里也unset一次
+         */
+        unset($this->ws_list[$client_id], $this->connections[$client_id], $this->requests[$client_id]);
         $this->server->close($client_id);
     }
 }

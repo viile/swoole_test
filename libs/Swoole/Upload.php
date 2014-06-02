@@ -235,7 +235,7 @@ class Upload
         }
         if ($remote_file === false)
         {
-            \Swoole::$php->log->warn("DownloadFile failed. Error:".$curl->errMsg);
+            \Swoole::$php->log->warn("Download file[{$url}] failed. Error:".$curl->errMsg);
             return false;
         }
         return file_put_contents($file, $remote_file);

@@ -58,10 +58,31 @@ class HTML
      */
     static function  removeTag($html, $rules = array('script', 'style'))
     {
+        //file_put_contents('tmp2.html', $html);
         foreach($rules as $r)
         {
-            $regx =  "~<{$r}[^>]*>.*</{$r}>~si";
-            $html = preg_replace($regx, '', $html);
+            while(1)
+            {
+                $search1 = '<'.$r;
+                $pos1 = stripos($html, $search1);
+                if ($pos1 === false)
+                {
+                    break;
+                }
+                $search2 = '</'.$r.'>';
+                $pos2 = stripos($html, $search2);
+                $offset = $pos2 + strlen($search2);
+
+                //TODO 这里可能会是JS中又包含JS
+                //if ($html[$offset] == '"' or $html[$offset] == "'")
+
+                if ($pos2 === false)
+                {
+                    \Swoole::$php->log->warn("未闭合的标签$r");
+                    break;
+                }
+                $html = substr($html, 0, $pos1).substr($html, $offset);
+            }
         }
         return $html;
     }

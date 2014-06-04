@@ -182,7 +182,7 @@ abstract class WebSocket extends HttpServer
                 $ws['buffer'] .= $data;
                 $message_len =  strlen($ws['buffer']);
                 //$this->log("wait data.buffer_len=$message_len|require_len={$ws['length']}", 'INFO');
-                if($ws['length'] == $message_len)
+                if ($ws['length'] == $message_len)
                 {
                     //需要使用MaskN来解析
                     $ws['message'] = $this->parseMessage($ws);

@@ -38,9 +38,9 @@ class Protocol
      * @param $msg
      * @param string $type
      */
-    function log($msg, $type = 'INFO')
+    function log($msg)
     {
-        $this->log->put($msg, $type);
+        $this->log->info($msg);
     }
 
     function onStart($server)

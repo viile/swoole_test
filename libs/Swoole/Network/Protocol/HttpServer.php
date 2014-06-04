@@ -63,6 +63,7 @@ class HttpServer extends Swoole\Network\Protocol\WebServer implements Swoole\Ser
         }
         Swoole\Error::$echo_html = true;
         $this->swoole_server = $serv;
+        Swoole::$php->server = $this;
         $this->log(self::SOFTWARE . "[#{$worker_id}]. running. on {$this->server->host}:{$this->server->port}");
         register_shutdown_function(array($this, 'onError'));
     }

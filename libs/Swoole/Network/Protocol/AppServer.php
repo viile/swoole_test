@@ -26,13 +26,16 @@ class AppServer extends HttpServer
         $php->addHook(Swoole::HOOK_CLEAN, function(){
             $php = Swoole::getInstance();
             //模板初始化
-            if(!empty($php->tpl))
+            if (!empty($php->tpl))
             {
                 $php->tpl->clear_all_assign();
             }
             //还原session
-            $php->session->open = false;
-            $php->session->readonly = false;
+            if (!empty($php->session))
+            {
+                $php->session->open = false;
+                $php->session->readonly = false;
+            }
         });
     }
 

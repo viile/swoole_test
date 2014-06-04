@@ -14,7 +14,8 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
     {
         if (is_string($conf))
         {
-            $conf['file'] = $conf;
+            $file = $conf;
+            $conf = array('file' => $file);
         }
         if (isset($conf['file']))
         {

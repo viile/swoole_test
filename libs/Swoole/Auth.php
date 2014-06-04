@@ -192,7 +192,7 @@ class Auth
         if(isset($_SESSION[self::$session_prefix.'isLogin']) and $_SESSION[self::$session_prefix.'isLogin']=='1') $check=true;
         if(!$check)
         {
-            Swoole\Http::redirect(self::$login_url.'refer='.urlencode($_SERVER["REQUEST_URI"]));
+            Swoole::$php->http->redirect(self::$login_url.'refer='.urlencode($_SERVER["REQUEST_URI"]));
             return false;
         }
         return true;

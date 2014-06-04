@@ -22,7 +22,7 @@ class Session
      * 使用PHP内建的SESSION
      * @var bool
      */
-    protected $use_php_session =  true;
+    public $use_php_session =  true;
 
     static $sess_size = 32;
     static $sess_name = 'SESSID';
@@ -52,7 +52,7 @@ class Session
             $sessid = Cookie::get(self::$cookie_key);
             if(empty($sessid))
             {
-                $sessid = \RandomKey::randmd5(40);
+                $sessid = RandomKey::randmd5(40);
                 Cookie::set(self::$cookie_key, $sessid, self::$cache_life);
             }
             $_SESSION = $this->load($sessid);

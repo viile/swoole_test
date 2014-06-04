@@ -14,7 +14,9 @@ class Swoole
 {
     //所有全局对象都改为动态延迟加载
     //如果希望启动加载,请使用Swoole::load()函数
-
+    /**
+     * @var Swoole\Network\Protocol\HttpServer
+     */
     public $server;
     public $protocol;
     public $request;
@@ -261,13 +263,15 @@ class Swoole
     function handlerServer(Swoole\Request $request)
     {
         $response = new Swoole\Response();
-        $php = Swoole::getInstance();
         $request->setGlobal();
 
-//        if($this->doStaticRequest($request, $response))
-//        {
-//            return $response;
-//        }
+        if ($this->server->doStaticRequest($request, $response))
+        {
+            return $response;
+        }
+
+        $php = Swoole::getInstance();
+
         //将对象赋值到控制器
         $php->request = $request;
         $php->response = $response;

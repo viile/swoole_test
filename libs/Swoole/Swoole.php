@@ -265,7 +265,8 @@ class Swoole
         $response = new Swoole\Response();
         $request->setGlobal();
 
-        if ($this->server->doStaticRequest($request, $response))
+        //处理静态请求
+        if (!empty($this->server->config['apps']['do_static']) and $this->server->doStaticRequest($request, $response))
         {
             return $response;
         }

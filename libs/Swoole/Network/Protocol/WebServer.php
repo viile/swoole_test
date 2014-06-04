@@ -60,10 +60,6 @@ class WebServer extends Swoole\Network\Protocol
         if (!is_file($ini_file)) exit("Swoole AppServer配置文件错误($ini_file)\n");
         $config = parse_ini_file($ini_file, true);
         /*--------------Server------------------*/
-        if (empty($config['server']['webroot']))
-        {
-            $config['server']['webroot'] = 'http://' . $this->server->host . ':' . $this->server->port;
-        }
         //开启http keepalive
         if (!empty($config['server']['keepalive']))
         {

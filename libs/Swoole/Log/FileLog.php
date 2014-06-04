@@ -12,6 +12,10 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
 
 	function __construct($conf)
     {
+        if (is_string($conf))
+        {
+            $conf['file'] = $conf;
+        }
         if (isset($conf['file']))
         {
             $this->log_file = $conf['file'];

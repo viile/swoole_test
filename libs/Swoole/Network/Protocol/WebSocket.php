@@ -146,15 +146,16 @@ abstract class WebSocket extends HttpServer
             //新的请求
             if (!isset($this->ws_list[$fd]))
             {
-                //$this->log("parseFrame");
-                $ws = $this->parseFrame($fd, $data);
+                $ws = $this->parseFrame($data);
                 if ($ws === false)
                 {
+                    $this->log("Error Frame");
                     $this->close($fd);
                     break;
                 }
                 if ($ws['finish'])
                 {
+                    $this->log("NewFrame finish. Opcode=".$ws['opcode']);
                     $this->opcodeSwitch($fd, $ws);
                 }
                 else
@@ -192,7 +193,7 @@ abstract class WebSocket extends HttpServer
      * @param $buffer
      * @return array|bool
      */
-    function parseFrame($fd, &$buffer)
+    function parseFrame(&$buffer)
     {
         //websocket
         $ws  = array();
@@ -214,11 +215,11 @@ abstract class WebSocket extends HttpServer
         $ws['mask']    = ($handle >> 7) & 0x1;
         //0-125
         $ws['length']  =  $handle       & 0x7f;
-        $length        = &$ws['length'];
+        $length        =  &$ws['length'];
         $data_offset ++;
 
         //错误的请求
-        if (0x0 !== $ws['rsv1'] || 0x0 !== $ws['rsv2'] || 0x0 !== $ws['rsv3'])
+        if (0x0 !== $ws['rsv1'] or 0x0 !== $ws['rsv2'] or 0x0 !== $ws['rsv3'])
         {
             return false;
         }
@@ -230,7 +231,6 @@ abstract class WebSocket extends HttpServer
             $buffer = substr($buffer, 0, $data_offset);
             return $ws;
         }
-
         //126 short
         elseif(0x7e === $length)
         {
@@ -246,18 +246,13 @@ abstract class WebSocket extends HttpServer
             $handle = unpack('N*l', substr($buffer, $data_offset, 8));
             $data_offset += 8;
             $length = $handle['l2'];
-            if($length > 0x7fffffffffffffff)
+
+            //超过最大允许的长度了
+            if ($length > $this->max_frame_size)
             {
                 $this->log('Message is too long.');
                 return false;
             }
-        }
-
-        //超过最大允许的长度了
-        if ($length > $this->max_frame_size)
-        {
-            $this->log('Message is too long.');
-            return false;
         }
 
         if (0x0 !== $ws['mask'])
@@ -345,16 +340,18 @@ abstract class WebSocket extends HttpServer
      * Send a message.
      *
      * @access  public
+     * @param   int     $client_id
      * @param   string  $message    Message.
      * @param   int     $opcode     Opcode.
      * @param   bool    $end        Whether it is the last frame of the message.
-     * @return  void
+     * @return  bool
      */
     public function send($client_id, $message, $opcode = self::OPCODE_TEXT_FRAME, $end = true)
     {
         if ((self::OPCODE_TEXT_FRAME  === $opcode or self::OPCODE_CONTINUATION_FRAME === $opcode) and false === (bool) preg_match('//u', $message))
         {
             $this->log('Message [%s] is not in UTF-8, cannot send it.', 2, 32 > strlen($message) ? substr($message, 0, 32) . ' ' : $message);
+            return false;
         }
         else
         {
@@ -362,6 +359,12 @@ abstract class WebSocket extends HttpServer
             return $this->server->send($client_id, $out);
         }
     }
+
+    /**
+     * opcode switch
+     * @param $client_id
+     * @param $ws
+     */
     function opcodeSwitch($client_id, &$ws)
     {
         switch($ws['opcode'])
@@ -377,6 +380,7 @@ abstract class WebSocket extends HttpServer
 //                    $this->ws_list[$client_id] = &$ws;
 //                }
                 break;
+
             case self::OPCODE_PING:
                 $message = &$ws['message'];
                 if (0x0  === $ws['fin'] or 0x7d  <  $ws['length'])
@@ -387,28 +391,30 @@ abstract class WebSocket extends HttpServer
                 $this->connections[$client_id]['time'] = time();
                 $this->send($client_id, $message, self::OPCODE_PONG, true);
                 break;
+
             case self::OPCODE_PONG:
                 if(0 === $ws['fin'])
                 {
                     $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
                 }
                 break;
+
             case self::OPCODE_CONNECTION_CLOSE:
-                $length = &$frame['length'];
-                if(1    === $length || 0x7d < $length)
+                $length = &$ws['length'];
+                if(1  === $length || 0x7d < $length)
                 {
                     $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
                     break;
                 }
                 $code   = self::CLOSE_NORMAL;
                 $reason = null;
-                if(0 < $length)
+                if (0 < $length)
                 {
                     $message = &$frame['message'];
                     $_code   = unpack('nc', substr($message, 0, 2));
                     $code    = &$_code['c'];
 
-                    if(1000 > $code || (1004 <= $code && $code <= 1006) || (1012 <= $code && $code <= 1016) || 5000  <= $code)
+                    if (1000 > $code || (1004 <= $code && $code <= 1006) || (1012 <= $code && $code <= 1016) || 5000  <= $code)
                     {
                         $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
                         break;
@@ -430,7 +436,7 @@ abstract class WebSocket extends HttpServer
                 $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
                 break;
         }
-        unset($fd);
+        unset($this->ws_list[$client_id]);
     }
 
     function onConnect($serv, $client_id, $from_id)
@@ -447,20 +453,15 @@ abstract class WebSocket extends HttpServer
     /**
      * Close a connection.
      * @access  public
+     * @param   int $client_id
      * @param   int     $code
      * @param   string  $reason    Reason.
-     * @return  void
+     * @return  bool
      */
     public function close($client_id, $code = self::CLOSE_NORMAL, $reason = '')
     {
         $this->send($client_id, pack('n', $code).$reason, self::OPCODE_CONNECTION_CLOSE);
-        $this->log("server close connection[$client_id]. reason: $reason, OPCODE = $code", 'CLOSE');
-
-        /**
-         * 这里也unset一次
-         */
-        unset($this->ws_list[$client_id], $this->connections[$client_id], $this->requests[$client_id]);
-        $this->server->close($client_id);
+        $this->log("server close connection[$client_id]. reason: $reason, OPCODE = $code");
+        return $this->server->close($client_id);
     }
 }
-

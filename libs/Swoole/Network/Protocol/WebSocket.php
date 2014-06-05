@@ -153,11 +153,13 @@ abstract class WebSocket extends HttpServer
                     $this->close($fd);
                     break;
                 }
+                //数据完整
                 if ($ws['finish'])
                 {
-                    $this->log("NewFrame finish. Opcode=".$ws['opcode']);
+                    $this->log("NewFrame finish. Opcode=".$ws['opcode']."|Length={$ws['length']}");
                     $this->opcodeSwitch($fd, $ws);
                 }
+                //数据不完整加入到缓存中
                 else
                 {
                     $this->ws_list[$fd] = $ws;
@@ -168,7 +170,7 @@ abstract class WebSocket extends HttpServer
                 $ws = &$this->ws_list[$fd];
                 $ws['data'] .= $data;
 
-                $this->log("wait length = ".$ws['length'].'. data_length='.strlen($ws['data']));
+                //$this->log("wait length = ".$ws['length'].'. data_length='.strlen($ws['data']));
 
                 //数据已完整，进行处理
                 if (strlen($ws['data']) >= $ws['length'])
@@ -195,6 +197,7 @@ abstract class WebSocket extends HttpServer
      */
     function parseFrame(&$buffer)
     {
+        //$this->log("PaserFrame. BufferLen=".strlen($buffer));
         //websocket
         $ws  = array();
         $ws['finish'] = false;
@@ -228,7 +231,8 @@ abstract class WebSocket extends HttpServer
         if (0 === $length)
         {
             $ws['finish'] = true;
-            $buffer = substr($buffer, 0, $data_offset);
+            $ws['message'] = '';
+            $buffer = substr($buffer, $data_offset + 4);
             return $ws;
         }
         //126 short

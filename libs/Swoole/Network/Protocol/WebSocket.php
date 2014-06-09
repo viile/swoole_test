@@ -105,6 +105,10 @@ abstract class WebSocket extends HttpServer
             $this->server->close($client_id);
             return false;
         }
+        elseif ($st === self::ST_WAIT)
+        {
+            return true;
+        }
         $request = $this->requests[$client_id];
         if (empty($request))
         {

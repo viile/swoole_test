@@ -968,4 +968,24 @@ class Tree
     {
         $node->dump($node);
     }
+
+    /**
+     * find and remove dom node by css selector
+     * @param string $selector
+     * @param string $idx
+     * @param array $excludes
+     * @return array
+     */
+    function findAndRemove($selector, $idx = 0 ,$excludes = array())
+    {
+        if (empty($excludes)) return $this->find($selector,$idx);
+
+        foreach ($excludes as $exclude) {
+            foreach ($this->find($exclude) as $node) {
+                $node->outertext = '';
+            }
+        }
+        $this->load($this->save());
+        return $this->find($selector,$idx);
+    }
 }

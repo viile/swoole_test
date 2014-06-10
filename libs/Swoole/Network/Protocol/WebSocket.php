@@ -101,17 +101,23 @@ abstract class WebSocket extends HttpServer
         $st = $this->checkData($client_id, $data);
         if ($st === self::ST_ERROR)
         {
-            $this->log("http header[$data] error.", 'CLOSE');
+            $this->log("CLOSE. http header[$data] error.");
             $this->server->close($client_id);
             return false;
         }
+        elseif ($st === self::ST_WAIT)
+        {
+            return true;
+        }
+
         $request = $this->requests[$client_id];
         if (empty($request))
         {
-            $this->log("request object not found.", 'CLOSE');
+            $this->log("CLOSE. request object not found.");
             $this->server->close($client_id);
             return false;
         }
+
         $response = new Swoole\Response;
         $this->doHandshake($request, $response);
         $this->response($client_id, $request, $response);
@@ -119,10 +125,11 @@ abstract class WebSocket extends HttpServer
         $conn = array('header' => $request->head, 'time' => time(), 'buffer' => '');
         $this->connections[$client_id] = $conn;
 
-        if(count($this->connections) > $this->max_connect)
+        if (count($this->connections) > $this->max_connect)
         {
             $this->cleanConnection();
         }
+        return true;
     }
 
     /**

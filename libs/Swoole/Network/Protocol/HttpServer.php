@@ -98,7 +98,7 @@ class HttpServer extends Swoole\Network\Protocol\WebServer implements Swoole\Ser
         //新的连接
         if (!isset($this->requests[$client_id]))
         {
-            if(!empty($this->buffer_header[$client_id]))
+            if (!empty($this->buffer_header[$client_id]))
             {
                 $http_data = $this->buffer_header[$client_id].$http_data;
             }
@@ -122,7 +122,7 @@ class HttpServer extends Swoole\Network\Protocol\WebServer implements Swoole\Ser
                 //保存请求
                 $this->requests[$client_id] = $request;
                 //解析失败
-                if($request->head == false)
+                if ($request->head == false)
                 {
                     $this->log("parseHeader fail. header=".$header);
                     return false;
@@ -172,8 +172,9 @@ class HttpServer extends Swoole\Network\Protocol\WebServer implements Swoole\Ser
         }
         //检测头
         $request = $this->checkHeader($client_id, $http_data);
+        $this->log("new http request. fd={$client_id}");
         //错误的http头
-        if($request === false)
+        if ($request === false)
         {
             $this->buffer_header[$client_id] = $http_data;
             //超过最大HTTP头限制了
@@ -184,11 +185,12 @@ class HttpServer extends Swoole\Network\Protocol\WebServer implements Swoole\Ser
             }
             else
             {
+                $this->log("wait request data. fd={$client_id}");
                 return self::ST_WAIT;
             }
         }
         //POST请求需要检测body是否完整
-        if($request->meta['method'] == 'POST')
+        if ($request->meta['method'] == 'POST')
         {
             return $this->checkPost($request);
         }

@@ -11,3 +11,8 @@ if (empty($config["port"]))
 }
 $redis = new Redis();
 $redis->connect($config["host"], $config["port"]);
+
+if (!empty($config['database']))
+{
+    $redis->select($config['database']);
+}

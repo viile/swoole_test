@@ -234,18 +234,12 @@ class Upload
         {
             $curl->setReferrer($this->referrer_url);
         }
-        $remote_file = $curl->get($url, null, $this->http_timeout);
-
-        if (strlen($remote_file) < $min_file_size)
+        $fp = fopen($file, 'w');
+        if (!$fp)
         {
             return false;
         }
-        if ($remote_file === false)
-        {
-            \Swoole::$php->log->warn("Download file[{$url}] failed. Error:".$curl->errMsg);
-            return false;
-        }
-        return file_put_contents($file, $remote_file);
+        return $curl->download($url, $fp, null, $this->http_timeout);
     }
 
     /**

@@ -271,19 +271,17 @@ class CURL
      * @return boolean true on success false othervise
      * @access public
      */
-    function download($url, $fp, $ip=null, $timeout=5)
+    function download($url, $fp, $ip=null, $timeout = 5)
     {
         // set url to post to
         curl_setopt($this->ch, CURLOPT_URL,$url);
-
         //set method to get
         curl_setopt($this->ch, CURLOPT_HTTPGET, true);
-
         // store data into file rather than displaying it
         curl_setopt($this->ch, CURLOPT_FILE, $fp);
 
         //bind to specific ip address if it is sent trough arguments
-        if($ip)
+        if ($ip)
         {
             if($this->debug)
             {
@@ -291,28 +289,10 @@ class CURL
             }
             curl_setopt($this->ch, CURLOPT_INTERFACE, $ip);
         }
-
         //set curl function timeout to $timeout
         curl_setopt($this->ch, CURLOPT_TIMEOUT, $timeout);
-
         //and finally send curl request
-        $result = curl_exec($this->ch);
-
-        if(curl_errno($this->ch))
-        {
-            if($this->debug)
-            {
-                echo "Error Occured in Curl\n";
-                echo "Error number: " .curl_errno($this->ch) ."\n";
-                echo "Error message: " .curl_error($this->ch)."\n";
-            }
-
-            return false;
-        }
-        else
-        {
-            return true;
-        }
+        return $this->execute();
     }
 
     /**

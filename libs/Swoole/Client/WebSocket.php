@@ -16,17 +16,21 @@ class WebSocket
     const TYPE_ID_PUBLISH = 7;
     const TYPE_ID_EVENT = 8;
 
-    private $key;
-    private $host;
-    private $port;
-    private $path;
-    private $socket;
-    private $buffer = '';
+    protected $key;
+    protected $host;
+    protected $port;
+    protected $path;
+
+    /**
+     * @var TCP
+     */
+    protected $socket;
+    protected $buffer = '';
 
     /**
      * @var bool
      */
-    private $connected = false;
+    protected $connected = false;
 
     /**
      * @param string $host
@@ -51,8 +55,6 @@ class WebSocket
 
     /**
      * Connect client to server
-     *
-     * @throws ConnectionException
      * @return $this
      */
     public function connect()
@@ -100,21 +102,38 @@ class WebSocket
     }
 
     /**
+     * send string data
      * @param $data
      * @param string $type
      * @param bool $masked
+     * @throws \Exception
      */
     public function send($data, $type = 'text', $masked = true)
     {
-        $this->socket->send($this->hybi10Encode(json_encode($data)));
+        if (empty($data))
+        {
+            throw new \Exception("data is empty");
+        }
+        $this->socket->send($this->hybi10Encode($data, $type, $masked));
+    }
+
+    /**
+     * send json object
+     * @param $data
+     * @param bool $masked
+     */
+    function sendJson($data, $masked = true)
+    {
+        $this->send(json_encode($data), 'text', $masked);
     }
 
     /**
      * Parse received data
-     *
      * @param $response
+     * @return string
+     * @throws \Exception
      */
-    private function parseData($response)
+    protected function parseData($response)
     {
         if (!$this->connected && isset($response['Sec-Websocket-Accept'])) {
             if (base64_encode(pack('H*', sha1($this->key . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'))) === $response['Sec-Websocket-Accept']) {
@@ -134,7 +153,8 @@ class WebSocket
     private function createHeader()
     {
         $host = $this->host;
-        if ($host === '127.0.0.1' || $host === '0.0.0.0') {
+        if ($host === '127.0.0.1' || $host === '0.0.0.0')
+        {
             $host = 'localhost';
         }
 
@@ -312,8 +332,9 @@ class WebSocket
      */
     private function hybi10Decode($data)
     {
-        if (empty($data)) {
-            return null;
+        if (empty($data))
+        {
+            throw new \Exception("data is empty");
         }
 
         $bytes = $data;

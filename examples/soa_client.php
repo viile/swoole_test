@@ -1,5 +1,8 @@
 <?php
-require __DIR__ . '/../vendor/autoload.php';
+define('DEBUG', 'on');
+define("WEBPATH", str_replace("\\","/", __DIR__));
+require __DIR__ . '/../libs/lib_config.php';
+//require __DIR__ . '/../vendor/autoload.php';
 
 $cloud = new Swoole\Client\SOA;
 //$cloud->setServer('task', array('10.232.41.141:9502'));

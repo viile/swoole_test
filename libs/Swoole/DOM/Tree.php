@@ -70,7 +70,7 @@ class Tree
     const DEFAULT_TARGET_CHARSET = 'UTF-8';
     const DEFAULT_BR_TEXT = "\r\n";
     const DEFAULT_SPAN_TEXT = " ";
-    const MAX_FILE_SIZE = 8000000;
+    const MAX_FILE_SIZE = 10000000;
 
     /**
      * @var Node
@@ -976,7 +976,7 @@ class Tree
      * @param array $excludes
      * @return array
      */
-    function findAndRemove($selector, $idx = 0 ,$excludes = array())
+    function findAndRemove($selector, $idx = null ,$excludes = array())
     {
         if (empty($excludes)) return $this->find($selector,$idx);
 

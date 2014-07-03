@@ -546,12 +546,12 @@ class SelectDB
             {
                 $cc+=$_c['c'];
             }
-            return $cc;
+            return intval($cc);
         }
         else
         {
             $c = $this->db->query($sql)->fetch();
-            return $c['c'];
+            return intval($c['c']);
         }
     }
     /**

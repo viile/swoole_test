@@ -42,6 +42,18 @@ class page extends Swoole\Controller
         $this->tpl->display('tpl_test.html');
     }
 
+    function session_test()
+    {
+        $this->session->start();
+        $_SESSION['hello'] = 'swoole';
+    }
+
+    function session_read()
+    {
+        $this->session->start();
+        var_dump($_SESSION);
+    }
+
     //使用php直接作为模板
     function view_test()
     {

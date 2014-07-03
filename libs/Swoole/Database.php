@@ -121,7 +121,6 @@ class Database
 	/**
 	 * 执行一条SQL语句
 	 * @param $sql
-	 * @return unknown_type
 	 */
 	public function query($sql)
 	{

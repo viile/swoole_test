@@ -1,4 +1,6 @@
 <?php
+namespace Swoole;
+
 /**
  * 自动表单类
  * @author Tianfeng.Han

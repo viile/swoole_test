@@ -1,4 +1,6 @@
 <?php
+namespace Swoole;
+
 /**
  * 用户验证类
  * @author Han Tianfeng
@@ -110,7 +112,7 @@ class Auth
      */
     function login($username,$password,$auto,$save=false)
     {
-        Swoole\Cookie::set(self::$session_prefix.'username',$username,time() + self::$cookie_life,'/');
+        Cookie::set(self::$session_prefix.'username',$username,time() + self::$cookie_life,'/');
         $this->user = $this->db->query('select '.$this->select.' from '.$this->table." where ".self::$username."='$username'")->fetch();
         if(empty($this->user)) return false;
         elseif($this->user[self::$password]==$password)
@@ -141,9 +143,9 @@ class Auth
      */
     function autoLogin()
     {
-        Swoole\Cookie::set(self::$session_prefix.'autologin',1,time() + self::$cookie_life,'/');
-        Swoole\Cookie::set(self::$session_prefix.'username',$this->user['username'],time() + self::$cookie_life,'/');
-        Swoole\Cookie::set(self::$session_prefix.'password',$this->user['password'],time() + self::$cookie_life,'/');
+        Cookie::set(self::$session_prefix.'autologin',1,time() + self::$cookie_life,'/');
+        Cookie::set(self::$session_prefix.'username',$this->user['username'],time() + self::$cookie_life,'/');
+        Cookie::set(self::$session_prefix.'password',$this->user['password'],time() + self::$cookie_life,'/');
     }
     /**
      * 注销登录
@@ -154,9 +156,9 @@ class Auth
         /**
          * 如果设置为true，退出登录时，销毁所有Session
          */
-        if(self::$session_destroy)
+        if (self::$session_destroy)
         {
-            session_destroy();
+            $_SESSION = array();
             return true;
         }
         unset($_SESSION[self::$session_prefix.'isLogin']);
@@ -164,7 +166,7 @@ class Auth
 
         if(!empty($_SESSION[self::$session_prefix.'save_key'])) foreach($_SESSION[self::$session_prefix.'save_key'] as $sk) unset($_SESSION[$sk]);
         unset($_SESSION[self::$session_prefix.'save_key']);
-        if(isset($_COOKIE[self::$session_prefix.'password'])) Swoole\Cookie::set(self::$session_prefix.'password','',0,'/');
+        if(isset($_COOKIE[self::$session_prefix.'password'])) Cookie::set(self::$session_prefix.'password','',0,'/');
 
     }
     /**
@@ -192,9 +194,10 @@ class Auth
         if(isset($_SESSION[self::$session_prefix.'isLogin']) and $_SESSION[self::$session_prefix.'isLogin']=='1') $check=true;
         if(!$check)
         {
-            Swoole::$php->http->redirect(self::$login_url.'refer='.urlencode($_SERVER["REQUEST_URI"]));
+            \Swoole::$php->http->redirect(self::$login_url.'refer='.urlencode($_SERVER["REQUEST_URI"]));
             return false;
         }
         return true;
     }
 }
+

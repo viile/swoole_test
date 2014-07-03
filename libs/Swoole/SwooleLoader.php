@@ -1,4 +1,5 @@
 <?php
+namespace Swoole;
 /**
  * Swoole库加载器
  * @author Tianfeng.Han
@@ -53,4 +54,3 @@ class SwooleLoader
 		}
 	}
 }
-?>

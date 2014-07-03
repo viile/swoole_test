@@ -80,17 +80,6 @@ class Loader
 		{
             include self::$nsPath[$root[0]].'/'.str_replace('\\', '/', $root[1]).'.php';
 		}
-		elseif(count($root) < 2)
-		{
-			if(is_file(__DIR__.'/'.$class.'.php'))
-			{
-                include __DIR__.'/'.$class.'.php';
-			}
-			elseif(is_file(WEBPATH.'/class/'.$class.'.class.php'))
-			{
-                include WEBPATH.'/class/'.$class.'.class.php';
-			}
-		}
 	}
 	/**
 	 * 设置根命名空间

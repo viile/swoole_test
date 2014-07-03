@@ -1,4 +1,5 @@
 <?php
+namespace Swoole;
 /**
  * 视图类
  * 提供一个简单试图封装
@@ -6,7 +7,7 @@
  * @author Tianfeng.Han
  * @subpackage MVC
  */
-class View extends ArrayObject
+class View extends \ArrayObject
 {
 	protected $_var        =  array();
 	protected $trace       = array();

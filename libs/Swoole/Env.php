@@ -1,4 +1,6 @@
 <?php
+namespace Swoole;
+
 /**
  * 缓存数组映射模式
  * 可以像访问数组一样读取缓存
@@ -6,7 +8,7 @@
  * @package SwooleSystem
  * @subpackage base
  */
-class SwooleEnv implements ArrayAccess
+class Env implements \ArrayAccess
 {
 	static $default_cache_life = 600;
 	public $cache_prefix = 'swoole_env_';

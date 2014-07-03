@@ -1,4 +1,5 @@
 <?php
+namespace Swoole;
 class WebService
 {
 	public $access_ip = array();

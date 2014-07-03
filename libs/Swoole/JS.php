@@ -1,4 +1,5 @@
 <?php
+namespace Swoole;
 /**
  * JS生成工具，可以生成常用的Javascript代码
  *
@@ -7,7 +8,7 @@
  * @subpackage JS
  * @link http://www.swoole.com/
  */
-class Swoole_js
+class JS
 {
     static $head="<script language=\"javascript\">\n";
     static $foot="</script>\n";
@@ -20,6 +21,7 @@ class Swoole_js
         if(self::$return or $return) return $out;
         else echo $out;
     }
+
     /**
      * 输出JS
      * @param $js

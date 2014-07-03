@@ -1,4 +1,6 @@
 <?php
+namespace Swoole;
+
 /**
  * 通用视图类
  * 产生一个简单的请求控制，解析的结构，一般用于后台管理系统
@@ -178,12 +180,16 @@ class GeneralView
         $gets['page'] = empty($_REQUEST[self::$page_key])?1:$_REQUEST[self::$page_key];
         $gets['pagesize'] = empty($_REQUEST[self::$pagesize_key])?self::$pagesize_default:$_REQUEST[self::$pagesize_key];
 
-        $this->vars['list'] = $this->model->gets($gets,$pager);
+        /**
+         * @var Pager
+         */
+        $pager = null;
+        $this->vars['list'] = $this->model->gets($gets, $pager);
         $this->vars['pager'] = array('total'=>$pager->total,
         			   'render'=>$pager->render(),
                        'pagesize'=>$pager->pagesize,
                        'totalpage'=>$pager->totalpage,
-        			   'nowpage'=>$pager->nowindex);
+        			   'nowpage'=>$pager->page);
         $this->swoole->tpl->ref('pager',$this->vars['pager']);
         $this->swoole->tpl->ref('list',$this->vars['list']);
     }
@@ -198,7 +204,7 @@ class GeneralView
             $set['digest'] = $digg;
             $get['in'] = array('id',implode(',',$_POST['ids']));
             $_model->sets($set,$get);
-            Swoole_js::js_parent_reload('推荐成功');
+            JS::js_parent_reload('推荐成功');
         }
     }
     function __get($key)
@@ -222,12 +228,12 @@ class GeneralView
                 $id = $_POST['id'];
                 if($_model->set($_POST['id'],$_POST))
                 {
-                    Swoole_js::js_back('修改成功',-2);
+                    JS::js_back('修改成功',-2);
                     exit;
                 }
                 else
                 {
-                    Swoole_js::js_back('修改失败',-1);
+                    JS::js_back('修改失败',-1);
                     exit;
                 }
             }
@@ -236,11 +242,11 @@ class GeneralView
                 //如果没得到id，说明提交的是添加操作
                 if(empty($_POST['title']))
                 {
-                    Swoole_js::js_back('标题不能为空！');
+                    JS::js_back('标题不能为空！');
                     exit;
                 }
                 $id = $_model->put($_POST);
-                Swoole_js::js_back('添加成功');
+                JS::js_back('添加成功');
                 exit;
             }
         }
@@ -290,13 +296,13 @@ class GeneralView
                 {
                     unset($_POST['id']);
                     $_model->put($data);
-                    Swoole_js::js_back('增加成功！');
+                    JS::js_back('增加成功！');
                 }
                 #修改
                 else
                 {
                     $_model->set((int)$_POST['id'],$data);
-                    Swoole_js::js_back('增加成功！');
+                    JS::js_back('增加成功！');
                 }
             }
             else
@@ -315,7 +321,7 @@ class GeneralView
             {
                 $del_id = intval($_GET['del']);
                 $_model->del($del_id);
-                Swoole_js::js_back('删除成功！');
+                JS::js_back('删除成功！');
             }
             //Error::dbd();
             $get['fid']  = empty($_GET['fid'])?0:(int)$_GET['fid'];
@@ -352,13 +358,13 @@ class GeneralView
                 if(empty($_POST['id']))
                 {
                     $_model->put($data);
-                    Swoole_js::js_back('增加成功！');
+                    JS::js_back('增加成功！');
                 }
                 #修改
                 else
                 {
                     $_model->set((int)$_POST['id'],$data);
-                    Swoole_js::js_back('修改成功！');
+                    JS::js_back('修改成功！');
                 }
             }
             else
@@ -377,7 +383,7 @@ class GeneralView
             {
                 $del_id = intval($_GET['del']);
                 $_model->del($del_id);
-                Swoole_js::js_back('删除成功！');
+                JS::js_back('删除成功！');
             }
             //Error::dbd();
             $get['fid']  = empty($_GET['fid'])?0:(int)$_GET['fid'];

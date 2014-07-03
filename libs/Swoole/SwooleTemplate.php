@@ -1,4 +1,5 @@
 <?php
+namespace Swoole;
 /**
  * Swoole模板工具类
  * 提供一个简单的模板系统，支持标签、模板数据库映射查询，遍历，显示等功能
@@ -7,7 +8,7 @@
  * @subpackage template
  *
  */
-class SwooleTemplate extends ArrayObject
+class DTemplate extends \ArrayObject
 {
 	public $templates_dir;
 	

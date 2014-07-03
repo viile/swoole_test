@@ -1,5 +1,7 @@
 <?php
-class SwooleEvent
+namespace Swoole;
+
+class Event
 {
 	private $_queue;
 	private $_handles = array();
@@ -93,4 +95,3 @@ class SwooleEvent
 		$this->_handles = array_merge($this->_handles,$listens);
 	}
 }
-?>

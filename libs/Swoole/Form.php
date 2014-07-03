@@ -1,4 +1,6 @@
 <?php
+namespace Swoole;
+
 /**
  * 表单处理器
  * 用于生成HTML表单项
@@ -376,7 +378,7 @@ class Form
         $js = "window.onload = function(){\n validator(\"$form_name\");\n";
         if($each) $js.="validator_each(\"$form_name\");\n";
         $js .= "};\n";
-        return Swoole_js::echojs($js,true);
+        return JS::echojs($js,true);
     }
 	/* ---------------特殊方法-------------------- */
 	static function date_picker()

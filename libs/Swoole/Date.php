@@ -1,4 +1,6 @@
 <?php
+namespace Swoole;
+
 class Date
 {
     static $week_two = '周';
@@ -7,7 +9,7 @@ class Date
     static function num2week($num,$two=true)
     {
         if($num=='6') $num = '日';
-        else $num = Text::num2han($num+1);
+        else $num = Tool::num2han($num+1);
 
         if($two) return self::$week_two.$num;
         else return self::$week_three.$num;

@@ -311,32 +311,30 @@ abstract class WebSocket extends HttpServer
      * @access  public
      * @param   string  $message    Message.
      * @param   int     $opcode     Opcode.
-     * @param   bool    $end        Whether it is the last frame of the message.
+     * @param   bool    $end
      * @return  int
      */
-    public function newFrame ($message,  $opcode = self::OPCODE_TEXT_FRAME, $end = true )
+    public function newFrame($message, $opcode = self::OPCODE_TEXT_FRAME, $end = true)
     {
-        $fin    = true === $end ? 0x1 : 0x0;
-        $rsv1   = 0x0;
-        $rsv2   = 0x0;
-        $rsv3   = 0x0;
-        $mask   = 0x1;
+        $fin = true === $end ? 0x1 : 0x0;
+        $rsv1 = 0x0;
+        $rsv2 = 0x0;
+        $rsv3 = 0x0;
         $length = strlen($message);
-        $out    = chr(
-            ($fin  << 7)
-            | ($rsv1 << 6)
-            | ($rsv2 << 5)
-            | ($rsv3 << 4)
-            | $opcode
-        );
+        $out = chr(($fin << 7) | ($rsv1 << 6) | ($rsv2 << 5) | ($rsv3 << 4) | $opcode);
 
-        if(0xffff < $length)
+        if (0xffff < $length)
+        {
             $out .= chr(0x7f) . pack('NN', 0, $length);
-        elseif(0x7d < $length)
+        }
+        elseif (0x7d < $length)
+        {
             $out .= chr(0x7e) . pack('n', $length);
+        }
         else
+        {
             $out .= chr($length);
-
+        }
         $out .= $message;
         return $out;
     }

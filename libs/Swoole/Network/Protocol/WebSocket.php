@@ -374,14 +374,14 @@ abstract class WebSocket extends HttpServer
         {
             case self::OPCODE_BINARY_FRAME:
             case self::OPCODE_TEXT_FRAME:
-                //if(0x1 === $ws['fin'])
+                if(0x1 === $ws['fin'])
                 {
                     $this->onMessage($client_id, $ws);
                 }
-//                else
-//                {
-//                    $this->ws_list[$client_id] = &$ws;
-//                }
+                else
+                {
+                    $this->log("not finish frame");
+                }
                 break;
 
             case self::OPCODE_PING:
@@ -404,7 +404,7 @@ abstract class WebSocket extends HttpServer
 
             case self::OPCODE_CONNECTION_CLOSE:
                 $length = &$ws['length'];
-                if(1  === $length || 0x7d < $length)
+                if(1 === $length or 0x7d < $length)
                 {
                     $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
                     break;
@@ -413,7 +413,7 @@ abstract class WebSocket extends HttpServer
                 $reason = null;
                 if (0 < $length)
                 {
-                    $message = &$frame['message'];
+                    $message = &$ws['message'];
                     $_code   = unpack('nc', substr($message, 0, 2));
                     $code    = &$_code['c'];
 

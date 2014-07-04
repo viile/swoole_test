@@ -147,7 +147,7 @@ abstract class WebSocket extends HttpServer
             $this->createConnection($fd, $data);
             return;
         }
-
+        //file_put_contents('./websocket.log', $data, FILE_APPEND);
         do
         {
             //新的请求
@@ -228,12 +228,6 @@ abstract class WebSocket extends HttpServer
         $length        =  &$ws['length'];
         $data_offset ++;
 
-        //错误的请求
-        if (0x0 !== $ws['rsv1'] or 0x0 !== $ws['rsv2'] or 0x0 !== $ws['rsv3'])
-        {
-            return false;
-        }
-
         //数据长度为0的帧
         if (0 === $length)
         {
@@ -243,7 +237,7 @@ abstract class WebSocket extends HttpServer
             return $ws;
         }
         //126 short
-        elseif(0x7e === $length)
+        elseif($length == 0x7e)
         {
             //2
             $handle = unpack('nl', substr($buffer, $data_offset, 2));
@@ -251,12 +245,12 @@ abstract class WebSocket extends HttpServer
             $length = $handle['l'];
         }
         //127 int64
-        elseif(0x7f === $length)
+        elseif($length > 0x7e)
         {
             //8
             $handle = unpack('N*l', substr($buffer, $data_offset, 8));
             $data_offset += 8;
-            $length = $handle['l2'];
+            $length = $handle['l'];
 
             //超过最大允许的长度了
             if ($length > $this->max_frame_size)
@@ -266,9 +260,9 @@ abstract class WebSocket extends HttpServer
             }
         }
 
+        //mask-key: int32
         if (0x0 !== $ws['mask'])
         {
-            //int32
             $ws['mask'] = array_map('ord', str_split(substr($buffer, $data_offset, 4)));
             $data_offset += 4;
         }

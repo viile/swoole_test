@@ -228,16 +228,8 @@ abstract class WebSocket extends HttpServer
         $length        =  &$ws['length'];
         $data_offset ++;
 
-        //数据长度为0的帧
-        if (0 === $length)
-        {
-            $ws['finish'] = true;
-            $ws['message'] = '';
-            $buffer = substr($buffer, $data_offset + 4);
-            return $ws;
-        }
         //126 short
-        elseif($length == 0x7e)
+        if($length == 0x7e)
         {
             //2
             $handle = unpack('nl', substr($buffer, $data_offset, 2));
@@ -269,6 +261,14 @@ abstract class WebSocket extends HttpServer
 
         //把头去掉
         $buffer = substr($buffer, $data_offset);
+
+        //数据长度为0的帧
+        if (0 === $length)
+        {
+            $ws['finish'] = true;
+            $ws['message'] = '';
+            return $ws;
+        }
 
         //完整的一个数据帧
         if (strlen($buffer) >= $length)

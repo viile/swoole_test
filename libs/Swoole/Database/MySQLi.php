@@ -1,5 +1,6 @@
 <?php
 namespace Swoole\Database;
+
 /**
  * MySQL数据库封装类
  * @package SwooleExtend
@@ -43,10 +44,12 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
     }
     /**
      * 执行一个SQL语句
-     * @param $sql 执行的SQL语句
+     * @param string $sql 执行的SQL语句
+     * @return MySQLiRecord | false
      */
     function query($sql)
     {
+        $result = false;
         for ($i = 0; $i < 2; $i++)
         {
             $result = parent::query($sql);
@@ -57,12 +60,15 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
                     $r = $this->checkConnection();
                     if ($r === true) continue;
                 }
-                echo \Swoole\Error::info("SQL Error", $this->error."<hr />$sql");
-                return false;
+                else
+                {
+                    echo \Swoole\Error::info("SQL Error", $this->error."<hr />$sql");
+                    return false;
+                }
             }
             break;
         }
-        if($result === false)
+        if ($result === false)
         {
             echo \Swoole\Error::info("SQL Error", $this->error."<hr />$sql");
             return false;

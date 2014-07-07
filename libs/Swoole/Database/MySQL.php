@@ -49,13 +49,35 @@ class MySQL implements \Swoole\IDatabase
 	}
 	/**
 	 * 执行一个SQL语句
-	 * @param $sql 执行的SQL语句
-	 */
+     * @param string $sql 执行的SQL语句
+     * @return MySQLRecord | false
+     */
 	function query($sql)
 	{
 		mysql_real_escape_string($sql, $this->conn);
-		$res = mysql_query($sql,$this->conn);
-		if(!$res) echo Swoole\Error::info("SQL Error", mysql_error($this->conn)."<hr />$sql");
+        $res = false;
+
+        for ($i = 0; $i < 2; $i++)
+        {
+            $res = mysql_query($sql, $this->conn);
+            if ($res === false)
+            {
+                if (mysql_errno($this->conn) == 2006 or mysql_errno($this->conn) == 2013)
+                {
+                    $r = $this->checkConnection();
+                    if ($r === true) continue;
+                }
+                echo \Swoole\Error::info("SQL Error", mysql_error($this->conn)."<hr />$sql");
+                return false;
+            }
+            break;
+        }
+
+		if (!$res)
+        {
+            echo Swoole\Error::info("SQL Error", mysql_error($this->conn)."<hr />$sql");
+            return false;
+        }
 		return new MySQLRecord($res);
 	}
 	/**
@@ -72,9 +94,22 @@ class MySQL implements \Swoole\IDatabase
         return mysql_real_escape_string($value, $this->conn);
     }
 
+    /**
+     * 检查数据库连接,是否有效，无效则重新建立
+     */
+    protected function checkConnection()
+    {
+        if (!@$this->ping())
+        {
+            $this->close();
+            return $this->connect();
+        }
+        return true;
+    }
+
 	function ping()
 	{
-		if(!mysql_ping($this->conn)) return false;
+		if (!mysql_ping($this->conn)) return false;
 		else return true;
 	}
 	/**

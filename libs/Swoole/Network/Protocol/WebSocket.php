@@ -451,6 +451,7 @@ abstract class WebSocket extends HttpServer
     {
         $this->log("close client_id = $client_id");
         unset($this->ws_list[$client_id], $this->connections[$client_id], $this->requests[$client_id]);
+        parent::onClose($serv, $client_id, $from_id);
     }
 
     /**

@@ -90,7 +90,7 @@ class HttpServer extends Swoole\Network\Protocol\WebServer implements Swoole\Ser
     function onClose($serv, $client_id, $from_id)
     {
         $this->log("client[#$client_id@$from_id] close");
-        unset($this->requests[$client_id]);
+        unset($this->requests[$client_id], $this->buffer_header[$client_id]);
     }
 
     function checkHeader($client_id, $http_data)

@@ -67,9 +67,9 @@ $server = new \Swoole\Network\Server('0.0.0.0', 9503);
 $server->setProtocol($AppSvr);
 //$server->daemonize(); //作为守护进程
 $server->run(array(
-    'worker_num' => 2,
-    'max_request' => 1000,
-    'ipc_mode' => 2,
-    'heartbeat_check_interval' => 40,
-    'heartbeat_idle_time' => 60,
+    'worker_num' => 1,
+    //'max_request' => 1000,
+    //'ipc_mode' => 2,
+    //'heartbeat_check_interval' => 40,
+    //'heartbeat_idle_time' => 60,
 ));

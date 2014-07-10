@@ -105,7 +105,7 @@ class HTML
         {
             foreach($remove_attrs as $attr)
             {
-                $regx = '~<([a-z]+[^>]*)([\'"\s]+'.$attr.'\s?=\s?[\'"]?[^\'^"]*[\'"]?)([^>]*)>~i';
+                $regx = '~<([a-z]+[^>]*)([\'"\s]+'.$attr.'\s?=\s?[\'"]?[^\'"\s]*[\'"]?)([^>]*)>~i';
                 $html = preg_replace($regx,'<$1 $3>', $html);
             }
             return $html;

@@ -72,21 +72,21 @@ class Server extends \Swoole\Server implements \Swoole\Server\Driver
 
     function shutdown()
     {
-        $this->sw->shutdown();
+        return $this->sw->shutdown();
     }
 
     function close($client_id)
     {
-        $this->sw->close($client_id);
+        return $this->sw->close($client_id);
     }
 
     function addListener($host, $port)
     {
-        $this->sw->addlistener($host, $port);
+        return $this->sw->addlistener($host, $port);
     }
 
     function send($client_id, $data)
     {
-        $this->sw->send($client_id, $data);
+        return $this->sw->send($client_id, $data);
     }
 }

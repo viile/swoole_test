@@ -36,6 +36,12 @@ class Server extends \Swoole\Server implements \Swoole\Server\Driver
         $this->swooleSetting['daemonize'] = 1;
     }
 
+    function onMasterStart($serv)
+    {
+        global $argv;
+        Swoole\Console::setProcessName('php ' . $argv[0] . ': master -host=' . $this->host . ' -port=' . $this->port);
+    }
+
     function run($setting = array())
     {
         $set = array_merge($this->swooleSetting, $setting);
@@ -44,15 +50,12 @@ class Server extends \Swoole\Server implements \Swoole\Server\Driver
         //1.7.0
         if ($version[1] >= 7)
         {
-            $this->sw->on('ManagerStart', function($serv){
+            $this->sw->on('ManagerStart', function($serv) {
                 global $argv;
                 Swoole\Console::setProcessName('php '.$argv[0].': manager');
             });
         }
-        $this->sw->on('Start', function ($serv) {
-            global $argv;
-            Swoole\Console::setProcessName('php ' . $argv[0] . ': master -host=' . $this->host . ' -port=' . $this->port);
-        });
+        $this->sw->on('Start', array($this, 'onMasterStart'));
         $this->sw->on('WorkerStart', array($this->protocol, 'onStart'));
         $this->sw->on('Connect', array($this->protocol, 'onConnect'));
         $this->sw->on('Receive', array($this->protocol, 'onReceive'));

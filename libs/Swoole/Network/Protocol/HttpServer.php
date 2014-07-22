@@ -105,7 +105,7 @@ class HttpServer extends Swoole\Network\Protocol\WebServer implements Swoole\Ser
             //HTTP结束符
             $ret = strpos($http_data, self::HTTP_EOF);
             //没有找到EOF，继续等待数据
-            if($ret === false)
+            if ($ret === false)
             {
                 return false;
             }

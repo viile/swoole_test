@@ -18,7 +18,7 @@ class JS
     static function charset($return = false)
     {
         $out = '<meta http-equiv="Content-Type" content="text/html; charset='.self::$charset.'">';
-        if(self::$return or $return) return $out;
+        if ($return) return $out;
         else echo $out;
     }
 
@@ -27,13 +27,13 @@ class JS
      * @param $js
      * @return unknown_type
      */
-    static function echojs($js, $return= false)
+    static function echojs($js, $return = false)
     {
-    	$out = self::charset();
+    	$out = self::charset($return);
         $out .= self::$head;
         $out .= $js;
         $out .= self::$foot;
-        if(!Swoole\Error::$stop or $return) return $out;
+        if (!Error::$stop or $return) return $out;
         else echo $out;
     }
     /**

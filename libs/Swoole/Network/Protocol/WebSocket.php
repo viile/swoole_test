@@ -140,7 +140,7 @@ abstract class WebSocket extends HttpServer
      */
     public function onReceive($server, $fd, $from_id, $data)
     {
-        //$this->log("received data. length = ".strlen($data));
+        $this->log("received data: $data. length = ".strlen($data));
         //未连接
         if (!isset($this->connections[$fd]))
         {

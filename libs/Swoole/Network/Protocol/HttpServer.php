@@ -12,10 +12,8 @@ use Swoole;
  */
 class HttpServer extends Swoole\Network\Protocol\WebServer implements Swoole\Server\Protocol
 {
-    private $swoole_server;
-
+    protected $swoole_server;
     public $onRequest;
-
     protected $buffer_header = array();
     protected $buffer_maxlen = 65535; //最大POST尺寸，超过将写文件
 
@@ -140,16 +138,16 @@ class HttpServer extends Swoole\Network\Protocol\WebServer implements Swoole\Ser
 
     function checkPost($request)
     {
-        if(isset($request->head['Content-Length']))
+        if (isset($request->head['Content-Length']))
         {
             //超过最大尺寸
-            if(intval($request->head['Content-Length']) > $this->config['access']['post_maxsize'])
+            if (intval($request->head['Content-Length']) > $this->config['access']['post_maxsize'])
             {
                 $this->log("checkPost fail. post_data is too long.");
                 return self::ST_ERROR;
             }
             //不完整，继续等待数据
-            if(intval($request->head['Content-Length']) > strlen($request->body))
+            if (intval($request->head['Content-Length']) > strlen($request->body))
             {
                 return self::ST_WAIT;
             }

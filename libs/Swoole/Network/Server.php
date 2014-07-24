@@ -14,21 +14,21 @@ class Server extends \Swoole\Server implements \Swoole\Server\Driver
     protected $sw;
     protected $swooleSetting;
 
-    function __construct($host, $port, $timeout=0)
+    function __construct($host, $port, $ssl = false)
     {
-        $this->sw = new \swoole_server($host, $port, self::$sw_mode, SWOOLE_SOCK_TCP);
+        $flag = $ssl ? (SWOOLE_SOCK_TCP | SWOOLE_SSL) : SWOOLE_SOCK_TCP;
+        $this->sw = new \swoole_server($host, $port, self::$sw_mode, $flag);
         $this->host = $host;
         $this->port = $port;
         Swoole\Error::$stop = false;
         Swoole\JS::$return = true;
-        $this->swooleSetting = array('timeout' => 2.5,  //select and epoll_wait timeout.
-            //'poll_thread_num' => 4,  //reactor thread num
-            //'writer_num' => 4,       //writer thread num
+        $this->swooleSetting = array(
+            //'reactor_num' => 4,      //reactor thread num
             //'worker_num' => 4,       //worker process num
             'backlog' => 128,        //listen backlog
             //'open_cpu_affinity' => 1,
             //'open_tcp_nodelay' => 1,
-            'log_file' => '/tmp/swoole.log', 
+            //'log_file' => '/tmp/swoole.log',
         );
     }
     function daemonize()

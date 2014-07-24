@@ -21,4 +21,9 @@ $server = new \Swoole\Network\Server('0.0.0.0', 8888);
 
 $server->setProtocol($AppSvr);
 //$server->daemonize(); //作为守护进程
-$server->run(array('worker_num' => 8, 'max_request' => 5000, 'log_file' => '/tmp/swoole.log'));
+$server->run(array('worker_num' => 1,
+    'max_request' => 5000,
+    //'ssl_key_file' => __DIR__.'/ssl/ssl.key',
+    //'ssl_cert_file' => __DIR__.'/ssl/ssl.crt',
+    //'log_file' => '/tmp/swoole.log',
+));

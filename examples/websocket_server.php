@@ -63,7 +63,8 @@ $AppSvr->setLogger(new \Swoole\Log\EchoLog(true)); //Logger
  * SelectTCP 使用select做事件循环，支持windows平台
  * EventTCP 使用libevent，需要安装libevent扩展
  */
-$server = new \Swoole\Network\Server('0.0.0.0', 9443, true);
+$enable_ssl = true;
+$server = new \Swoole\Network\Server('0.0.0.0', 9443, $enable_ssl);
 $server->setProtocol($AppSvr);
 //$server->daemonize(); //作为守护进程
 $server->run(array(

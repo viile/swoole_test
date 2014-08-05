@@ -98,19 +98,18 @@ abstract class Server implements Server\Driver
 
     function spawn($setting)
     {
-        if (!extension_loaded('pcntl'))
-        {
-            trigger_error(__METHOD__." require pcntl extension!");
-            return;
-        }
         $num = 0;
         if (isset($setting['worker_num']))
         {
-            $num = (int) $setting['worker_num'] - 1;
+            $num = (int) $setting['worker_num'];
         }
         if ($num < 2)
         {
             return;
+        }
+		if (!extension_loaded('pcntl'))
+        {
+            die(__METHOD__." require pcntl extension!");
         }
         $pids = array();
         for($i=0; $i<$num; $i++)

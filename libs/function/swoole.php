@@ -34,10 +34,11 @@ function sql($sql,$num=0)
 	if(empty($php->db)) return false;
 	else return $php->db->query($sql)->fetchall();
 }
-function update()
+
+function update($id, $data, $table, $where)
 {
-	global $php;
-	return $php->db->update($id,$data,$table,$where='id');
+    global $php;
+    return $php->db->update($id, $data, $table, $where);
 }
 function insert($data,$table)
 {
@@ -50,15 +51,15 @@ function insert($data,$table)
  * @param $value
  * @return unknown_type
  */
-function assign($name,$value)
+function assign($name, $value)
 {
-	global $php;
-	return $php->tpl->assign($name,$value);
+    global $php;
+    $php->tpl->assign($name, $value);
 }
 function ref($name,&$value)
 {
     global $php;
-	return $php->tpl->ref($name,$value);
+	$php->tpl->ref($name,$value);
 }
 /**
  * 渲染模板
@@ -68,7 +69,7 @@ function ref($name,&$value)
 function display($tplname=null)
 {
 	global $php;
-	return $php->tpl->display($tplname);
+	$php->tpl->display($tplname);
 }
 /**
  * 缓存设置

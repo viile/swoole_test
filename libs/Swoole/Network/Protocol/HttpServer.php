@@ -47,7 +47,7 @@ class HttpServer extends Swoole\Network\Protocol\WebServer implements Swoole\Ser
             Swoole\Console::changeUser($this->config['server']['user']);
         }
 
-        if (isset($this->config['server']['process_rename']))
+        if ($this->server instanceof Swoole\Network\Server and isset($this->config['server']['process_rename']))
         {
             global $argv;
             if ($worker_id >= $serv->setting['worker_num'])
@@ -59,6 +59,7 @@ class HttpServer extends Swoole\Network\Protocol\WebServer implements Swoole\Ser
                 Swoole\Console::setProcessName('php '.$argv[0].': worker');
             }
         }
+
         Swoole\Error::$echo_html = true;
         $this->swoole_server = $serv;
         Swoole::$php->server = $this;

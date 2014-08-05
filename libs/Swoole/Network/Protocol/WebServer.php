@@ -130,18 +130,34 @@ class WebServer extends Swoole\Network\Protocol
         }
         if ($opt['m'] == 'fastcgi')
         {
-            $svr = new Swoole\Network\Protocol\AppFPM();
+            $protocol = new Swoole\Network\Protocol\AppFPM();
         }
         else
         {
-            $svr = new Swoole\Network\Protocol\AppServer();
+            $protocol = new Swoole\Network\Protocol\AppServer();
         }
         if ($ini_file)
         {
-            $svr->loadSetting($ini_file); //加载配置文件
+            $protocol->loadSetting($ini_file); //加载配置文件
         }
-        $svr->default_port = $opt['p'];
-        $svr->default_host = $opt['h'];
-        return $svr;
+        $protocol->default_port = $opt['p'];
+        $protocol->default_host = $opt['h'];
+
+        /**
+         * 如果你没有安装swoole扩展，这里还可选择
+         * BlockTCP 阻塞的TCP，支持windows平台
+         * SelectTCP 使用select做事件循环，支持windows平台
+         * EventTCP 使用libevent，需要安装libevent扩展
+         */
+        if (extension_loaded('swoole'))
+        {
+            $server = new Swoole\Network\Server($protocol->default_host, $protocol->default_port);
+        }
+        else
+        {
+            $server = new Swoole\Network\SelectTCP($protocol->default_host, $protocol->default_port);
+        }
+        $server->setProtocol($protocol);
+        return $protocol;
     }
 }

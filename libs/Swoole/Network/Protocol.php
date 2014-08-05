@@ -33,6 +33,17 @@ class Protocol
         $this->log = $log;
     }
 
+    function run($array)
+    {
+        \Swoole\Error::$echo_html = true;
+        $this->server->run($array);
+    }
+
+    function daemonize()
+    {
+        $this->server->daemonize();
+    }
+
     /**
      * 打印Log信息
      * @param $msg

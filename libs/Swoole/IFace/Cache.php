@@ -8,19 +8,19 @@ interface Cache
      * @param $key
      * @param $value
      * @param $expire
-     * @return unknown_type
+     * @return bool
      */
     function set($key,$value,$expire=0);
     /**
      * 获取缓存值
      * @param $key
-     * @return unknown_type
+     * @return mixed
      */
     function get($key);
     /**
      * 删除缓存值
      * @param $key
-     * @return unknown_type
+     * @return bool
      */
     function delete($key);
 }

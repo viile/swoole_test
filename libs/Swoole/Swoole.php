@@ -9,6 +9,18 @@ require_once __DIR__ . '/PluginLoader.php';
  * @package SwooleSystem
  * @author Tianfeng.Han
  * @subpackage base
+ * @property \Swoole\Database $db
+ * @property \Swoole\IFace\Cache $cache
+ * @property \Swoole\Upload $upload
+ * @property \Swoole\Event $event
+ * @property \Swoole\Session $session
+ * @property \Swoole\Template $tpl
+ * @property \redis  $redis
+ * @property \MongoClient $mongo
+ * @property \Swoole\Config $config
+ * @property \Swoole\Http\PWS $http
+ * @property \Swoole\Log $log
+ * @property \Swoole\Auth $user
  */
 class Swoole
 {
@@ -55,9 +67,9 @@ class Swoole
      */
     static public $php;
     public $pagecache;
+
     /**
      * 发生错误时的回调函数
-     * @var unknown_type
      */
     public $error_callback;
 

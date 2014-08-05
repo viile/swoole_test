@@ -4,6 +4,18 @@ namespace Swoole;
  * Controller的基类，控制器基类
  * @package Swoole\System
  * @subpackage MVC
+ * @property \Swoole\Database $db
+ * @property \Swoole\IFace\Cache $cache
+ * @property \Swoole\Upload $upload
+ * @property \Swoole\Event $event
+ * @property \Swoole\Session $session
+ * @property \Swoole\Template $tpl
+ * @property \redis  $redis
+ * @property \MongoClient $mongo
+ * @property \Swoole\Config $config
+ * @property \Swoole\Http\PWS $http
+ * @property \Swoole\Log $log
+ * @property \Swoole\Auth $user
  */
 class Controller
 {
@@ -27,14 +39,14 @@ class Controller
         {
             define('TPL_PATH', $this->template_dir);
         }
-        if($this->if_filter) Filter::request();
+        if ($this->if_filter) Filter::request();
         $swoole->__init();
     }
+
     /**
      * 跟踪信息
      * @param $title
      * @param $value
-     * @return unknown_type
      */
     protected function trace($title,$value='')
     {

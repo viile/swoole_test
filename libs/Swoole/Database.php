@@ -121,6 +121,7 @@ class Database
 	/**
 	 * 执行一条SQL语句
 	 * @param $sql
+     * @return \Swoole\Database\MySQLiRecord
 	 */
 	public function query($sql)
 	{

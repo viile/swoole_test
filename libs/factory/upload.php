@@ -5,7 +5,7 @@ if (!empty(Swoole::$php->config['upload']['base_dir']))
 }
 elseif (defined('UPLOAD_DIR'))
 {
-    $basedir = 'UPLOAD_DIR';
+    $basedir = UPLOAD_DIR;
 }
 else
 {

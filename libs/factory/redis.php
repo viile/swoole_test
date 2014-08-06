@@ -3,7 +3,7 @@ global $php;
 $config = $php->config['redis']['master'];
 if (empty($config["host"]))
 {
-    $php->config['redis']['master']["host"] = '127.0.0.1';
+    $config["host"] = '127.0.0.1';
 }
 if (empty($config["port"]))
 {

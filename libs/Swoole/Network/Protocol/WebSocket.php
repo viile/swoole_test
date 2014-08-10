@@ -91,46 +91,52 @@ abstract class WebSocket extends HttpServer
         }
         $this->log('clean connections');
     }
+
     abstract function onMessage($client_id, $message);
 
-    /**
-     * 握手建立连接
-     */
-    function createConnection($client_id, $data)
+    function onWsConnect($client_id, $request)
     {
-        $st = $this->checkData($client_id, $data);
-        if ($st === self::ST_ERROR)
-        {
-            $this->log("CLOSE. http header[$data] error.");
-            $this->server->close($client_id);
-            return false;
-        }
-        elseif ($st === self::ST_WAIT)
-        {
-            return true;
-        }
 
-        $request = $this->requests[$client_id];
-        if (empty($request))
-        {
-            $this->log("CLOSE. request object not found.");
-            $this->server->close($client_id);
-            return false;
-        }
-
-        $response = new Swoole\Response;
-        $this->doHandshake($request, $response);
-        $this->response($client_id, $request, $response);
-
-        $conn = array('header' => $request->head, 'time' => time(), 'buffer' => '');
-        $this->connections[$client_id] = $conn;
-
-        if (count($this->connections) > $this->max_connect)
-        {
-            $this->cleanConnection();
-        }
-        return true;
     }
+
+    function onWsRequest(Swoole\Request $request)
+    {
+        $response = $this->currentResponse = new Swoole\Response();
+        $this->doHandshake($request, $response);
+
+        return $response;
+    }
+
+    function onRequest(Swoole\Request $request)
+    {
+        if ($request->isWebSocket())
+        {
+            return $this->onWsRequest($request);
+        }
+        else
+        {
+            return parent::onRequest($request);
+        }
+    }
+
+    function afterResponse($client_id, Swoole\Request $request, Swoole\Request $response)
+    {
+        if ($request->isWebSocket())
+        {
+            $conn = array('header' => $request->head, 'time' => time(), 'buffer' => '');
+            $this->connections[$client_id] = $conn;
+
+            if (count($this->connections) > $this->max_connect)
+            {
+                $this->cleanConnection();
+            }
+
+            $this->onWsConnect($client_id, $request);
+        }
+
+        parent::afterResponse($client_id, $request, $response);
+    }
+
 
     /**
      * Read a frame.
@@ -144,8 +150,7 @@ abstract class WebSocket extends HttpServer
         //未连接
         if (!isset($this->connections[$fd]))
         {
-            $this->createConnection($fd, $data);
-            return;
+            return parent::onReceive($server,$fd, $from_id, $data);
         }
         //file_put_contents('./websocket.log', $data, FILE_APPEND);
         do

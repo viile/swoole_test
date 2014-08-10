@@ -94,11 +94,23 @@ abstract class WebSocket extends HttpServer
 
     abstract function onMessage($client_id, $message);
 
+    /**
+     * Called on WebSocket connection established.
+     *
+     * @param $client_id
+     * @param $request
+     */
     function onWsConnect($client_id, $request)
     {
-
+        $this->log("WebSocket connection #$client_id is connected");
     }
 
+    /**
+     * Produce response for WebSocket request.
+     *
+     * @param Swoole\Request $request
+     * @return Swoole\Response
+     */
     function onWsRequest(Swoole\Request $request)
     {
         $response = $this->currentResponse = new Swoole\Response();
@@ -109,17 +121,17 @@ abstract class WebSocket extends HttpServer
 
     function onRequest(Swoole\Request $request)
     {
-        if ($request->isWebSocket())
-        {
-            return $this->onWsRequest($request);
-        }
-        else
-        {
-            return parent::onRequest($request);
-        }
+        return $request->isWebSocket() ? $this->onWsRequest($request) : parent::onRequest($request);
     }
 
-    function afterResponse($client_id, Swoole\Request $request, Swoole\Request $response)
+    /**
+     * Clean and fire onWsConnect().
+     *
+     * @param $client_id
+     * @param Swoole\Request $request
+     * @param Swoole\Response $response
+     */
+    function afterResponse($client_id, Swoole\Request $request, Swoole\Response $response)
     {
         if ($request->isWebSocket())
         {

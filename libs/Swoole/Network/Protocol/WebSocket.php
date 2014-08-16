@@ -37,6 +37,8 @@ abstract class WebSocket extends HttpServer
     public $max_connect = 10000;
     public $max_frame_size = 2097152; //数据包最大长度，超过此长度会被认为是非法请求
     public $heart_time = 600; //600s life time
+	
+	public $keepalive = true;
 
     /**
      * Do the handshake.

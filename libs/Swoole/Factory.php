@@ -14,11 +14,16 @@ class Factory
             $config = \Swoole::getInstance()->config[strtolower($objectType)][$id];
             if(empty($objectType) or empty($config['type']))
             {
-                throw new \Exception("config error.$objectType/$id not found");
+                throw new FactoryException("config error.$objectType/$id not found");
             }
             $class = '\\Swoole\\'.$objectType.'\\'.$config['type'];
             self::$pool[$id] = new $class($config);
         }
         return self::$pool[$id];
 	}
+}
+
+class FactoryException extends \Exception
+{
+
 }

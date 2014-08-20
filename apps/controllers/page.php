@@ -48,6 +48,19 @@ class page extends Swoole\Controller
         $_SESSION['hello'] = 'swoole';
     }
 
+    function redirect()
+    {
+        $this->http->redirect('http://www.baidu.com');
+        $_SESSION['hello'] = 'swoole';
+    }
+
+    function http_header()
+    {
+        $this->http->status(302);
+        $this->http->header('Location', 'http://www.baidu.com');
+        $_SESSION['hello'] = 'swoole';
+    }
+
     function session_read()
     {
         $this->session->start();

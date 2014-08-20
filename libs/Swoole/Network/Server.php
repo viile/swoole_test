@@ -83,9 +83,9 @@ class Server extends \Swoole\Server implements \Swoole\Server\Driver
         return $this->sw->close($client_id);
     }
 
-    function addListener($host, $port)
+    function addListener($host, $port, $type)
     {
-        return $this->sw->addlistener($host, $port);
+        return $this->sw->addlistener($host, $port, $type);
     }
 
     function send($client_id, $data)

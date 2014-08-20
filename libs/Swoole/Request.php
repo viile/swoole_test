@@ -59,4 +59,9 @@ class Request
     {
         $_REQUEST = $_SESSION = $_COOKIE = $_FILES = $_POST = $_SERVER = $_GET = array();
     }
+
+    function isWebSocket()
+    {
+        return isset($this->head['Upgrade']) && $this->head['Upgrade'] == 'websocket';
+    }
 }

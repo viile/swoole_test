@@ -239,6 +239,11 @@ class HttpServer extends Swoole\Network\Protocol\WebServer implements Swoole\Ser
         $response = $this->onRequest($request);
         //发送response
         $this->response($client_id, $request, $response);
+        $this->afterResponse($client_id, $request, $response);
+    }
+
+    function afterResponse($client_id, Swoole\Request $request, Swoole\Response $response)
+    {
         if(!$this->keepalive or $response->head['Connection'] == 'close')
         {
             $this->server->close($client_id);

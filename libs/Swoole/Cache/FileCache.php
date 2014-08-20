@@ -12,11 +12,11 @@ class FileCache implements \Swoole\IFace\Cache
     protected $config;
 	function __construct($config)
 	{
-	    if(!isset($config['cache_dir']))
+        if (!isset($config['cache_dir']))
         {
-            $config['cache_dir'] = WEBPATH.'/cache/filecache';
+            throw new \Exception(__CLASS__.": require cache_dir");
         }
-        if(!is_dir($config['cache_dir']))
+        if (!is_dir($config['cache_dir']))
         {
             mkdir($config['cache_dir'], 0755, true);
         }

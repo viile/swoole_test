@@ -413,11 +413,11 @@ class Swoole
         }
 
         //响应请求
-        if($controller->is_ajax)
+        if ($controller->is_ajax)
         {
             $return = json_encode($return);
         }
-        if(defined('SWOOLE_SERVER')) return $return;
+        if (defined('SWOOLE_SERVER')) return $return;
         else echo $return;
     }
 

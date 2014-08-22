@@ -160,14 +160,12 @@ abstract class WebSocket extends HttpServer
      */
     public function onReceive($server, $fd, $from_id, $data)
     {
-        $this->log("received data: $data. length = ".strlen($data));
         //未连接
         if (!isset($this->connections[$fd]))
         {
-            echo "new connection\n";
+            $this->log("[{$fd}] received data: $data. length = ".strlen($data));
             return parent::onReceive($server,$fd, $from_id, $data);
         }
-        //file_put_contents('./websocket.log', $data, FILE_APPEND);
         do
         {
             //新的请求
@@ -390,12 +388,12 @@ abstract class WebSocket extends HttpServer
      */
     function opcodeSwitch($client_id, &$ws)
     {
-        var_dump($client_id, $ws);
+        $this->log("[$client_id] opcode={$ws['opcode']}");
         switch($ws['opcode'])
         {
             case self::OPCODE_BINARY_FRAME:
             case self::OPCODE_TEXT_FRAME:
-                if(0x1 === $ws['fin'])
+                if (0x1 === $ws['fin'])
                 {
                     $this->onMessage($client_id, $ws);
                 }
@@ -404,11 +402,12 @@ abstract class WebSocket extends HttpServer
                     $this->log("not finish frame");
                 }
                 break;
+
             case self::OPCODE_PING:
                 $message = &$ws['message'];
                 if (0x0  === $ws['fin'] or 0x7d  <  $ws['length'])
                 {
-                    $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
+                    $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "ping error");
                     break;
                 }
                 $this->connections[$client_id]['time'] = time();
@@ -416,9 +415,9 @@ abstract class WebSocket extends HttpServer
                 break;
 
             case self::OPCODE_PONG:
-                if(0 === $ws['fin'])
+                if (0 === $ws['fin'])
                 {
-                    $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
+                    $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "pong? server cannot pong.");
                 }
                 break;
 
@@ -426,7 +425,7 @@ abstract class WebSocket extends HttpServer
                 $length = &$ws['length'];
                 if(1 === $length or 0x7d < $length)
                 {
-                    $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
+                    $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "client active close");
                     break;
                 }
                 $code   = self::CLOSE_NORMAL;

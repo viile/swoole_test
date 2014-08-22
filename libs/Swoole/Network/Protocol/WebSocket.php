@@ -164,6 +164,7 @@ abstract class WebSocket extends HttpServer
         //未连接
         if (!isset($this->connections[$fd]))
         {
+            echo "new connection\n";
             return parent::onReceive($server,$fd, $from_id, $data);
         }
         //file_put_contents('./websocket.log', $data, FILE_APPEND);
@@ -389,6 +390,7 @@ abstract class WebSocket extends HttpServer
      */
     function opcodeSwitch($client_id, &$ws)
     {
+        var_dump($client_id, $ws);
         switch($ws['opcode'])
         {
             case self::OPCODE_BINARY_FRAME:
@@ -402,7 +404,6 @@ abstract class WebSocket extends HttpServer
                     $this->log("not finish frame");
                 }
                 break;
-
             case self::OPCODE_PING:
                 $message = &$ws['message'];
                 if (0x0  === $ws['fin'] or 0x7d  <  $ws['length'])
@@ -485,6 +486,7 @@ abstract class WebSocket extends HttpServer
     {
         $this->send($client_id, pack('n', $code).$reason, self::OPCODE_CONNECTION_CLOSE);
         $this->log("server close connection[$client_id]. reason: $reason, OPCODE = $code");
+        unset($this->ws_list[$client_id], $this->connections[$client_id], $this->requests[$client_id]);
         return $this->server->close($client_id);
     }
 }

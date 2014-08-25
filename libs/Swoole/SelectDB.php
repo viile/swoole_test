@@ -113,7 +113,13 @@ class SelectDB
      */
     function from($table)
     {
-        $this->table=$table;
+        if (strpos($table,"`") === false)
+        {
+            $this->table= "`".$table."`";
+        }
+        else{
+            $this->table=$table;
+        }
     }
     /**
      * 指定查询的字段，select * from table

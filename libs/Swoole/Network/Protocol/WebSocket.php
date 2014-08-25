@@ -423,7 +423,7 @@ abstract class WebSocket extends HttpServer
 
             case self::OPCODE_CONNECTION_CLOSE:
                 $length = &$ws['length'];
-                if(1 === $length or 0x7d < $length)
+                if (1 === $length or 0x7d < $length)
                 {
                     $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "client active close");
                     break;

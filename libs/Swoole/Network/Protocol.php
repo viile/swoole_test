@@ -39,6 +39,11 @@ class Protocol
         $this->server->run($array);
     }
 
+    function setConfigJS($config)
+    {
+
+    }
+
     function daemonize()
     {
         $this->server->daemonize();

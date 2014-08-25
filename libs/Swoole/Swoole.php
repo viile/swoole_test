@@ -32,6 +32,7 @@ class Swoole
     public $server;
     public $protocol;
     public $request;
+
     /**
      * @var Swoole\Response
      */
@@ -79,7 +80,8 @@ class Swoole
     public $genv;
     public $env;
 
-    private $hooks = array();
+    protected $hooks = array();
+    protected $router_function;
 
     const HOOK_INIT  = 1; //初始化
     const HOOK_ROUTE = 2; //URL路由
@@ -120,6 +122,8 @@ class Swoole
         $this->addHook(Swoole::HOOK_ROUTE, 'swoole_urlrouter_rewrite');
         //mvc
         $this->addHook(Swoole::HOOK_ROUTE, 'swoole_urlrouter_mvc');
+        //设置路由函数
+        $this->router(array($this, 'urlRoute'));
     }
 
     static function getInstance()
@@ -250,12 +254,12 @@ class Swoole
      */
     function router($function)
     {
-        $this->addHook(self::HOOK_ROUTE, $function);
+        $this->router_function = $function;
     }
 
     function urlRoute()
     {
-        if(empty($this->hooks[self::HOOK_ROUTE]))
+        if (empty($this->hooks[self::HOOK_ROUTE]))
         {
             echo Swoole\Error::info('MVC Error!',"UrlRouter hook is empty");
             return false;
@@ -325,21 +329,23 @@ class Swoole
      */
     function runMVC()
     {
-        $mvc = $this->urlRoute();
+        $mvc = call_user_func($this->router_function);
         if ($mvc === false)
         {
             $this->http->status(404);
             return Swoole\Error::info('MVC Error', "url route fail!");
         }
-        //check name
+        //check controller name
         if (!preg_match('/^[a-z0-9_]+$/i', $mvc['controller']))
         {
         	return Swoole\Error::info('MVC Error!',"controller[{$mvc['controller']}] name incorrect.Regx: /^[a-z0-9_]+$/i");
         }
+        //check view name
         if (!preg_match('/^[a-z0-9_]+$/i',$mvc['view']))
         {
         	return Swoole\Error::info('MVC Error!',"view[{$mvc['view']}] name incorrect.Regx: /^[a-z0-9_]+$/i");
         }
+        //check app name
         if (isset($mvc['app']) and !preg_match('/^[a-z0-9_]+$/i',$mvc['app']))
         {
         	return Swoole\Error::info('MVC Error!',"app[{$mvc['app']}] name incorrect.Regx: /^[a-z0-9_]+$/i");

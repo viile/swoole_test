@@ -5,11 +5,20 @@ require __DIR__ . '/../libs/lib_config.php';
 
 class WebSocket extends Swoole\Network\Protocol\WebSocket
 {
+    protected $message;
+
     function onStart($serv, $worker_id = 0)
     {
+        Swoole::$php->router(array($this, 'router'));
         //$serv->addTimer(1000);
         parent::onStart($serv, $worker_id);
     }
+
+    function router()
+    {
+        var_dump($this->message);
+    }
+
     /**
      * 下线时，通知所有人
      */
@@ -21,14 +30,24 @@ class WebSocket extends Swoole\Network\Protocol\WebSocket
         parent::onClose($serv, $client_id, $from_id);
     }
 
-    /**
-     * 接收到消息时
-     * @see WSProtocol::onMessage()
-     */
     function onMessage($client_id, $ws)
     {
         $this->log("onMessage: ".$client_id.' = '.$ws['message']);
-        $this->send($client_id, "Server: ".$ws['message']);
+
+        $this->message = $ws['message'];
+        $response = Swoole::$php->runMVC();
+
+        $this->send($client_id, $response);
+        //$this->broadcast($client_id, $ws['message']);
+    }
+
+    /**
+     * 接收到消息时
+     */
+    function onMessageNO($client_id, $ws)
+    {
+        $this->log("onMessage: ".$client_id.' = '.$ws['message']);
+        $this->send($client_id, 'Server: '.$ws['message']);
 		//$this->broadcast($client_id, $ws['message']);
     }
 
@@ -63,7 +82,7 @@ $AppSvr->setLogger(new \Swoole\Log\EchoLog(true)); //Logger
  * SelectTCP 使用select做事件循环，支持windows平台
  * EventTCP 使用libevent，需要安装libevent扩展
  */
-$enable_ssl = true;
+$enable_ssl = false;
 $server = new \Swoole\Network\Server('0.0.0.0', 9443, $enable_ssl);
 $server->setProtocol($AppSvr);
 //$server->daemonize(); //作为守护进程

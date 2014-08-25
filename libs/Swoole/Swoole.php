@@ -244,6 +244,15 @@ class Swoole
     	return $this->$lib_name;
     }
 
+    /**
+     * 设置路由器
+     * @param $function
+     */
+    function router($function)
+    {
+        $this->addHook(self::HOOK_ROUTE, $function);
+    }
+
     function urlRoute()
     {
         if(empty($this->hooks[self::HOOK_ROUTE]))

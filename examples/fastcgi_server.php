@@ -9,7 +9,7 @@ Swoole\Config::$debug = false;
 
 Swoole\Error::$echo_html = true;
 
-class MyFastCGI extends Swoole\Network\Protocol\FastCGI
+class MyFastCGI extends Swoole\Protocol\FastCGI
 {
 	function onRequest(Swoole\Request $request)
 	{

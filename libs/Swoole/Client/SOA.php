@@ -1,6 +1,6 @@
 <?php
 namespace Swoole\Client;
-use Swoole\Network\Protocol;
+use Swoole\Protocol;
 
 class SOA
 {
@@ -14,6 +14,7 @@ class SOA
     const TYPE_ASYNC = 1;
     const TYPE_SYNC  = 2;
     public $re_connect = true; //重新connect
+
     /**
      * 发送请求
      * @param $type

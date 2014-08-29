@@ -1,11 +1,12 @@
 <?php
 namespace Swoole\Network;
 use Swoole;
+
 /**
  * Class Server
  * @package Swoole\Network
  */
-class Server extends \Swoole\Server implements \Swoole\Server\Driver
+class Server extends Swoole\Server implements Swoole\Server\Driver
 {
     static $sw_mode = SWOOLE_PROCESS;
     /**
@@ -13,6 +14,30 @@ class Server extends \Swoole\Server implements \Swoole\Server\Driver
      */
     protected $sw;
     protected $swooleSetting;
+
+    /**
+     * 自动推断扩展支持
+     * 默认使用swoole扩展,其次是libevent,最后是select(支持windows)
+     * @param      $host
+     * @param      $port
+     * @param bool $ssl
+     * @return EventTCP|SelectTCP|Server
+     */
+    static function autoCreate($host, $port, $ssl = false)
+    {
+        if (class_exists('\\swoole_server', false))
+        {
+            return new self($host, $port, $ssl);
+        }
+        elseif (function_exists('event_base_new'))
+        {
+            return new EventTCP($host, $port, $ssl);
+        }
+        else
+        {
+            return new SelectTCP($host, $port, $ssl);
+        }
+    }
 
     function __construct($host, $port, $ssl = false)
     {

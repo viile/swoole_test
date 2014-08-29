@@ -2,7 +2,7 @@
 namespace Swoole\Protocol;
 use Swoole;
 
-class WebServer extends Base
+abstract class WebServer extends Base
 {
     const SOFTWARE = "SwooleFramework";
     public $config = array();
@@ -156,21 +156,9 @@ class WebServer extends Base
         $protocol->default_port = $opt['p'];
         $protocol->default_host = $opt['h'];
 
-        /**
-         * 如果你没有安装swoole扩展，这里还可选择
-         * BlockTCP 阻塞的TCP，支持windows平台
-         * SelectTCP 使用select做事件循环，支持windows平台
-         * EventTCP 使用libevent，需要安装libevent扩展
-         */
-        if (extension_loaded('swoole'))
-        {
-            $server = new Swoole\Network\Server($protocol->default_host, $protocol->default_port);
-        }
-        else
-        {
-            $server = new Swoole\Network\SelectTCP($protocol->default_host, $protocol->default_port);
-        }
+        $server = Swoole\Network\Server::autoCreate($protocol->default_host, $protocol->default_port);
         $server->setProtocol($protocol);
+
         return $protocol;
     }
 }

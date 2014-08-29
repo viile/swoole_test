@@ -3,7 +3,7 @@ define('DEBUG', 'on');
 define("WEBPATH", str_replace("\\","/", __DIR__));
 require __DIR__ . '/../libs/lib_config.php';
 
-class WebSocket extends Swoole\Protocol\CometServer
+class WebSocket extends Swoole\Protocol\WebSocket
 {
     protected $message;
 

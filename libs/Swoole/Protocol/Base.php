@@ -1,11 +1,12 @@
 <?php
 namespace Swoole\Protocol;
+use Swoole;
 
 /**
  * 协议基类，实现一些公用的方法
  * @package Swoole\Protocol
  */
-class Base
+abstract class Base implements Swoole\IFace\Protocol
 {
     public $default_port;
     public $default_host;

@@ -1,5 +1,6 @@
 <?php
 namespace Swoole;
+use Swoole;
 
 class Response
 {
@@ -103,7 +104,7 @@ class Response
         //fill header
         if (!isset($this->head['Server']))
         {
-            $this->head['Server'] = \Swoole\Network\Protocol\WebServer::SOFTWARE;
+            $this->head['Server'] = Swoole\Protocol\WebServer::SOFTWARE;
         }
         if (!isset($this->head['Content-Type']))
         {

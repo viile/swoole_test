@@ -1,16 +1,8 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: htf
- * Date: 14-5-7
- * Time: 下午4:16
- */
-
-namespace Swoole\Network\Protocol;
-
+namespace Swoole\Protocol;
 use Swoole;
 
-class Ftp extends Swoole\Network\Protocol implements  Swoole\IFace\Protocol
+class FtpServer extends Base
 {
     const EOF = "\r\n";
     static $software = "swoole-ftp-server";

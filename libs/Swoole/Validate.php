@@ -49,19 +49,33 @@ class Validate
      * 正则验证
      * @param $regx
      * @param $input
-     * @return unknown_type
+     * @return bool|string
      */
-    static function regx($regx,$input)
+    static function regx($regx, $input)
     {
-        $n = preg_match($regx,$input,$match);
-        if($n===0) return false;
-        else return $match[0];
+        $n = preg_match($regx, $input, $match);
+        if ($n === 0)
+        {
+            return false;
+        }
+        else
+        {
+            return $match[0];
+        }
     }
-    static function check($ctype,$input)
+
+    static function check($ctype, $input)
     {
-        if(isset(self::$regx[$ctype])) return self::regx(self::$regx[$ctype],$input);
-        else return self::$ctype($input);
+        if (isset(self::$regx[$ctype]))
+        {
+            return self::regx(self::$regx[$ctype], $input);
+        }
+        else
+        {
+            return self::$ctype($input);
+        }
     }
+
     /**
      * 验证字符串格式
      * @param $str

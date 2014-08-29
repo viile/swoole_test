@@ -3,7 +3,7 @@ namespace Swoole\Protocol;
 
 /**
  * 协议基类，实现一些公用的方法
- * @package Swoole\Network
+ * @package Swoole\Protocol
  */
 class Base
 {

@@ -54,6 +54,20 @@ class WebServer extends Base
         $this->apps_path = $path;
     }
 
+    /**
+     * 得到请求对象
+     * @param $fd
+     * @return Swoole\Request
+     */
+    function getRequest($fd)
+    {
+        return $this->requests[$fd];
+    }
+
+    /**
+     * 从ini文件中加载配置
+     * @param $ini_file
+     */
     function loadSetting($ini_file)
     {
         if (!is_file($ini_file)) exit("Swoole AppServer配置文件错误($ini_file)\n");
@@ -129,11 +143,11 @@ class WebServer extends Base
         }
         if ($opt['m'] == 'fastcgi')
         {
-            $protocol = new Swoole\Network\Protocol\AppFPM();
+            $protocol = new Swoole\Protocol\AppFPM();
         }
         else
         {
-            $protocol = new Swoole\Network\Protocol\AppServer();
+            $protocol = new Swoole\Protocol\AppServer();
         }
         if ($ini_file)
         {

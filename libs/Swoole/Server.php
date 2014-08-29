@@ -1,16 +1,12 @@
 <?php
 namespace Swoole;
+use Swoole;
 
 abstract class Server implements Server\Driver
 {
-    /**
-     * @var Server\Protocol
-     */
-    public $protocols = array();
-
     public $setting = array();
     /**
-     * @var Server\Protocol
+     * @var Swoole\IFace\Protocol
      */
     public $protocol;
 	public $host = '0.0.0.0';
@@ -44,7 +40,7 @@ abstract class Server implements Server\Driver
 
     function addListener($protocol, $port)
     {
-        if(!($protocol instanceof \Swoole\Server\Protocol))
+        if(!($protocol instanceof \Swoole\IFace\Protocol))
         {
             throw new \Exception("addListener must use swoole extension.");
         }
@@ -52,13 +48,14 @@ abstract class Server implements Server\Driver
 
 	/**
 	 * 应用协议
-	 * @return unknown_type
+     * @param $protocol Swoole\Protocol\Base
+	 * @return null
 	 */
 	function setProtocol($protocol)
 	{
-        if(!($protocol instanceof \Swoole\Server\Protocol))
+        if (!($protocol instanceof Swoole\IFace\Protocol))
         {
-             throw new \Exception("The protocol is not instanceof \\Swoole\\Server\\Protocol");
+             throw new \Exception("The protocol is not instanceof \\Swoole\\IFace\\Protocol");
         }
 		$this->protocol = $protocol;
         $protocol->server = $this;
@@ -71,7 +68,11 @@ abstract class Server implements Server\Driver
         return array('remote_port' => $port, 'remote_ip' => $ip);
     }
 
-	function accept()
+    /**
+     * 接受连接
+     * @return bool|int
+     */
+    function accept()
 	{
 		$client_socket = stream_socket_accept($this->server_sock, 0);
         //惊群

@@ -1,5 +1,6 @@
 <?php
 namespace Swoole;
+
 class Console
 {
     static function getOpt($cmd)

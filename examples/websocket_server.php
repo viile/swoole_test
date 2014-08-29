@@ -3,14 +3,17 @@ define('DEBUG', 'on');
 define("WEBPATH", str_replace("\\","/", __DIR__));
 require __DIR__ . '/../libs/lib_config.php';
 
-class WebSocket extends Swoole\Network\Protocol\WebSocket
+class WebSocket extends Swoole\Protocol\CometServer
 {
     protected $message;
 
+    /**
+     * @param     $serv swoole_server
+     * @param int $worker_id
+     */
     function onStart($serv, $worker_id = 0)
     {
         Swoole::$php->router(array($this, 'router'));
-        //$serv->addTimer(1000);
         parent::onStart($serv, $worker_id);
     }
 
@@ -30,7 +33,7 @@ class WebSocket extends Swoole\Network\Protocol\WebSocket
         parent::onClose($serv, $client_id, $from_id);
     }
 
-    function onMessage($client_id, $ws)
+    function onMessage_mvc($client_id, $ws)
     {
         $this->log("onMessage: ".$client_id.' = '.$ws['message']);
 
@@ -44,7 +47,7 @@ class WebSocket extends Swoole\Network\Protocol\WebSocket
     /**
      * 接收到消息时
      */
-    function onMessageNO($client_id, $ws)
+    function onMessage($client_id, $ws)
     {
         $this->log("onMessage: ".$client_id.' = '.$ws['message']);
         $this->send($client_id, 'Server: '.$ws['message']);
@@ -60,11 +63,6 @@ class WebSocket extends Swoole\Network\Protocol\WebSocket
                 $this->send($clid, $msg);
             }
         }
-    }
-
-    function onTimer($serv, $interval)
-    {
-        echo "timer $interval\n";
     }
 }
 

@@ -1,11 +1,11 @@
 <?php
-namespace Swoole\Network;
+namespace Swoole\Protocol;
 
 /**
  * 协议基类，实现一些公用的方法
  * @package Swoole\Network
  */
-class Protocol
+class Base
 {
     public $default_port;
     public $default_host;

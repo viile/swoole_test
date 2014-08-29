@@ -1,5 +1,5 @@
 <?php
-namespace Swoole\Server;
+namespace Swoole\IFace;
 
 interface Protocol
 {

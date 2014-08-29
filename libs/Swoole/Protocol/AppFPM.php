@@ -1,9 +1,10 @@
 <?php
-namespace Swoole\Network\Protocol;
+namespace Swoole\Protocol;
 use Swoole;
 
 require_once LIBPATH . '/function/cli.php';
-class AppServer extends HttpServer
+
+class AppFPM extends FastCGI
 {
     protected $router_function;
     protected $apps_path;
@@ -19,23 +20,20 @@ class AppServer extends HttpServer
             }
             else
             {
-                throw new \Exception("AppServer require apps_path");
+                throw new \Exception(__CLASS__.": require apps_path");
             }
         }
         $php = Swoole::getInstance();
         $php->addHook(Swoole::HOOK_CLEAN, function(){
             $php = Swoole::getInstance();
             //模板初始化
-            if (!empty($php->tpl))
+            if(!empty($php->tpl))
             {
                 $php->tpl->clear_all_assign();
             }
             //还原session
-            if (!empty($php->session))
-            {
-                $php->session->open = false;
-                $php->session->readonly = false;
-            }
+            $php->session->open = false;
+            $php->session->readonly = false;
         });
     }
 

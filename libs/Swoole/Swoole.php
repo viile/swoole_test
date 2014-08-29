@@ -312,7 +312,7 @@ class Swoole
         }
         catch(\Exception $e)
         {
-            if ($request->finish != 1) $this->server->http_error(404, $response, $e->getMessage());
+            if ($request->finish != 1) $this->server->httpError(404, $response, $e->getMessage());
         }
         //重定向
         if (isset($response->head['Location']))

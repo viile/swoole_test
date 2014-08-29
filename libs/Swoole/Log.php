@@ -1,6 +1,15 @@
 <?php
 namespace Swoole;
 
+/**
+ * Class Log
+ * @package Swoole
+ * @method info
+ * @method notice
+ * @method warn
+ * @method error
+ * @method trace
+ */
 abstract class Log
 {
     protected $level_line;

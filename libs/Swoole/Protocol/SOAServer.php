@@ -1,12 +1,12 @@
 <?php
-namespace Swoole\Network\Protocol;
+namespace Swoole\Protocol;
 
 use Swoole;
 /**
  * Class Server
  * @package Swoole\Network
  */
-class SOAServer extends \Swoole\Network\Protocol implements \Swoole\Server\Protocol
+class SOAServer extends Base implements Swoole\IFace\Protocol
 {
     protected $_buffer; //buffer区
     protected $_fdfrom; //保存fd对应的from_id

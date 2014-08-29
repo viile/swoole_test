@@ -1,9 +1,8 @@
 <?php
-namespace Swoole\Network\Protocol;
-
+namespace Swoole\Protocol;
 use Swoole;
 
-class WebServer extends Swoole\Network\Protocol
+class WebServer extends Base
 {
     const SOFTWARE = "SwooleFramework";
     public $config = array();

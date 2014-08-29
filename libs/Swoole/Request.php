@@ -10,6 +10,14 @@ class Request
     public $fd;
     public $id;
 
+    /**
+     * 请求时间
+     * @var int
+     */
+    public $time;
+
+    public $remote_ip;
+
     public $get = array();
     public $post = array();
     public $file = array();
@@ -41,18 +49,16 @@ class Request
         if ($this->cookie) $_COOKIE = $this->cookie;
         if ($this->server) $_SERVER = $this->server;
         $_REQUEST = array_merge($this->get, $this->post, $this->cookie);
-        if (isset($this->head['Host']))
+
+        /**
+         * 将HTTP头信息赋值给$_SERVER超全局变量
+         */
+        foreach($this->head as $key => $value)
         {
-            $_SERVER["HTTP_HOST"] = $this->head['Host'];
+            $_key = 'HTTP_'.strtoupper(str_replace('-', '_', $key));
+            $_SERVER[$_key] = $value;
         }
-        if (isset($this->head['User-Agent']))
-        {
-            $_SERVER["HTTP_USER_AGENT"] = $this->head['User-Agent'];
-        }
-        if (!isset($_SERVER['REQUEST_URI']))
-        {
-            $_SERVER['REQUEST_URI'] = $this->meta['uri'];
-        }
+        $_SERVER['REMOTE_ADDR'] = $this->remote_ip;
     }
 
     function unsetGlobal()

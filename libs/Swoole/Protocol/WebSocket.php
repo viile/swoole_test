@@ -1,5 +1,5 @@
 <?php
-namespace Swoole\Network\Protocol;
+namespace Swoole\Protocol;
 use Swoole;
 
 abstract class WebSocket extends HttpServer
@@ -113,7 +113,7 @@ abstract class WebSocket extends HttpServer
      * @param Swoole\Request $request
      * @return Swoole\Response
      */
-    function onWsRequest(Swoole\Request $request)
+    function onWebSocketRequest(Swoole\Request $request)
     {
         $response = $this->currentResponse = new Swoole\Response();
         $this->doHandshake($request, $response);
@@ -123,7 +123,7 @@ abstract class WebSocket extends HttpServer
 
     function onRequest(Swoole\Request $request)
     {
-        return $request->isWebSocket() ? $this->onWsRequest($request) : parent::onRequest($request);
+        return $request->isWebSocket() ? $this->onWebSocketRequest($request) : parent::onRequest($request);
     }
 
     /**
@@ -133,24 +133,22 @@ abstract class WebSocket extends HttpServer
      * @param Swoole\Request $request
      * @param Swoole\Response $response
      */
-    function afterResponse($client_id, Swoole\Request $request, Swoole\Response $response)
+    function afterResponse(Swoole\Request $request, Swoole\Response $response)
     {
         if ($request->isWebSocket())
         {
             $conn = array('header' => $request->head, 'time' => time(), 'buffer' => '');
-            $this->connections[$client_id] = $conn;
+            $this->connections[$request->fd] = $conn;
 
             if (count($this->connections) > $this->max_connect)
             {
                 $this->cleanConnection();
             }
 
-            $this->onWsConnect($client_id, $request);
+            $this->onWsConnect($request->fd, $request);
         }
-
-        parent::afterResponse($client_id, $request, $response);
+        parent::afterResponse($request, $response);
     }
-
 
     /**
      * Read a frame.

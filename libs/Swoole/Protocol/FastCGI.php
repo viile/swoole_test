@@ -1,9 +1,9 @@
 <?php
-namespace Swoole\Network\Protocol;
+namespace Swoole\Protocol;
 
 use Swoole;
 
-class FastCGI extends Swoole\Network\Protocol\WebServer implements Swoole\Server\Protocol
+class FastCGI extends WebServer implements Swoole\IFace\Protocol
 {
     protected $lowMark = 8; // initial value of the minimal amout of bytes in buffer
     protected $highMark = 0xFFFFFF; // initial value of the maximum amout of bytes in buffer

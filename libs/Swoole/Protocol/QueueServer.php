@@ -1,29 +1,32 @@
 <?php
-namespace Swoole\Network\Protocol;
-class UDPQueue implements \Swoole\Server\Protocol
+namespace Swoole\Protocol;
+use Swoole;
+
+class UDPQueue implements Swoole\IFace\Protocol
 {
     public $queue;
     function __construct($name)
     {
         $this->queue = new FileQueue(array('name'=>$name));
     }
-    function onData($peer,$data)
+    function onReceive($serv, $fd, $from_id, $data)
     {
         $this->queue->put($data);
         echo "queue in data:".$data.NL;
     }
-    function onStart()
+
+    function onStart($serv)
     {
         echo "server running!";
     }
 
-    function onShutdown()
+    function onShutdown($serv)
     {
         echo "server shutdown!";
     }
 }
 
-class TCPQueue implements \Swoole\Server\Protocol
+class TCPQueue implements Swoole\IFace\Protocol
 {
     public $queue;
     function __construct($name)

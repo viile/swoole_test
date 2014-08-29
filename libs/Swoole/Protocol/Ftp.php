@@ -10,7 +10,7 @@ namespace Swoole\Network\Protocol;
 
 use Swoole;
 
-class Ftp extends Swoole\Network\Protocol implements Swoole\Server\Protocol
+class Ftp extends Swoole\Network\Protocol implements  Swoole\IFace\Protocol
 {
     const EOF = "\r\n";
     static $software = "swoole-ftp-server";

@@ -39,7 +39,6 @@ class Upload
 
     /**
      * 限制上传文件的尺寸，如果超过尺寸，则压缩
-     * @var unknown_type
      */
     public $max_width = 0; //如果为0的话不压缩
     public $max_height;
@@ -47,7 +46,6 @@ class Upload
 
     /**
      * 产生缩略图
-     * @var unknown_type
      */
     public $thumb_prefix = 'thumb_';
     public $thumb_dir;
@@ -63,9 +61,6 @@ class Upload
      * @var int
      */
     public $error_code;
-
-    public $referrer_url;
-    public $http_timeout = 10;
 
     function __construct($base_dir)
     {
@@ -125,7 +120,7 @@ class Upload
     	}
     	//上传的最终绝对路径，如果不存在则创建目录
     	$path = WEBPATH.$up_dir;
-    	if(!is_dir($path))
+    	if (!is_dir($path))
         {
             if(mkdir($path, 0777, true)===false)
             {
@@ -152,7 +147,7 @@ class Upload
     	}
 
     	//生成文件名
-    	if ($filename===null)
+        if ($filename === null)
     	{
     	    $filename= RandomKey::randtime();
 	        //如果已存在此文件，不断随机直到产生一个不存在的文件名
@@ -209,7 +204,7 @@ class Upload
     /**
      * 获取MIME对应的扩展名
      * @param $mime
-     * @return unknown_type
+     * @return bool
      */
     public function mime_type($mime)
     {
@@ -219,80 +214,10 @@ class Upload
     /**
      * 根据文件名获取扩展名
      * @param $file
-     * @return unknown_type
+     * @return string
      */
     static public function file_ext($file)
     {
     	return strtolower(trim(substr(strrchr($file, '.'), 1)));
-    }
-
-    function downloadFile($url, $file, $min_file_size = 0)
-    {
-        $url = trim(html_entity_decode($url));
-        $curl = new Client\CURL;
-        if (!empty($this->referrer_url))
-        {
-            $curl->setReferrer($this->referrer_url);
-        }
-        $fp = fopen($file, 'w');
-        if (!$fp)
-        {
-            return false;
-        }
-        return $curl->download($url, $fp, null, $this->http_timeout);
-    }
-
-    /**
-     * 自动将给定的内容$data中远程图片的url改为本地图片，并自动将远程图片保存到本地
-     * 指定最小尺寸，过滤小图片
-     * @param $content
-     * @param $from_url
-     * @param $min_file_size
-     * @return int
-     */
-    function imageLocal(&$content, $from_url, $min_file_size = 0)
-    {
-        preg_match_all('~<img[^>]*(?<!_mce_)src\s?=\s?([\'"])((?:(?!\1).)*)[^>]*>~i', $content, $match);
-        if (empty($match[2]))
-        {
-            return 0;
-        }
-
-        $image_n = 0;
-        $replaced = array();
-        $this->referrer_url = $from_url;
-
-        foreach ($match[2] as $uri)
-        {
-            //已经替换过的
-            if (isset($replaced[$uri]))
-            {
-                continue;
-            }
-
-            $_abs_uri = HTML::parseRelativePath($from_url, $uri);
-            $info = parse_url($_abs_uri);
-            $path = $info['host'].'/'.ltrim($info['path'], '/');
-            $file =  $this->base_dir.'/'.$path;
-
-            $update = true;
-            if (!is_file($file))
-            {
-                $dir = dirname($file);
-                if (!is_dir($dir))
-                {
-                    mkdir($dir, 0777, true);
-                }
-                $update = $this->downloadFile($_abs_uri, $file, $min_file_size);
-            }
-            if ($update)
-            {
-                $new_uri = $this->base_url .'/'. ltrim($path, '/');
-                $content = str_replace($uri, $new_uri, $content);
-                $replaced[$uri] = true;
-                $image_n ++;
-            }
-        }
-        return $image_n;
     }
 }

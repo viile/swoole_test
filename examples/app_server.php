@@ -3,7 +3,7 @@ define('DEBUG', 'on');
 define("WEBPATH", realpath(__DIR__.'/../'));
 require dirname(__DIR__) . '/libs/lib_config.php';
 
-$server = Swoole\Network\Protocol\WebServer::create(__DIR__.'/swoole.ini');
+$server = Swoole\Protocol\WebServer::create(__DIR__.'/swoole.ini');
 $server->setAppPath(WEBPATH.'/apps/');                                 //设置应用所在的目录
 $server->setDocumentRoot(WEBPATH);
 $server->setLogger(new \Swoole\Log\EchoLog(__DIR__."/webserver.log")); //Logger

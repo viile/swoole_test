@@ -50,6 +50,7 @@ class Request
         if ($this->server) $_SERVER = $this->server;
         $_REQUEST = array_merge($this->get, $this->post, $this->cookie);
 
+        $_SERVER['REQUEST_URI'] = $this->meta['uri'];
         /**
          * 将HTTP头信息赋值给$_SERVER超全局变量
          */

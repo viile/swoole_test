@@ -38,9 +38,9 @@ abstract class Server implements Server\Driver
 		$this->timeout = $timeout;
 	}
 
-    function addListener($protocol, $port)
+    function addListener($host, $port, $type)
     {
-        if(!($protocol instanceof \Swoole\IFace\Protocol))
+        if (!($this->protocol instanceof Swoole\Network\Server))
         {
             throw new \Exception("addListener must use swoole extension.");
         }

@@ -52,7 +52,7 @@ class ImageLocal
             {
                 $replaced_uri = $uri;
             }
-            $_abs_uri = HTML::parseRelativePath($from_url, $replaced_uri);
+            $_abs_uri = html_entity_decode(HTML::parseRelativePath($from_url, $replaced_uri));
             $info = parse_url($_abs_uri);
             $path = $info['host'].'/'.ltrim($info['path'], '/');
             $file =  $this->base_dir.'/'.$path;
@@ -77,6 +77,10 @@ class ImageLocal
                 $content = str_replace($uri, $new_uri, $content);
                 $replaced[$uri] = true;
                 $image_n ++;
+            }
+            else
+            {
+                return false;
             }
         }
         return $image_n;

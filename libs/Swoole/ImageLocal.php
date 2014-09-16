@@ -27,7 +27,7 @@ class ImageLocal
      */
     function execute(&$content, $from_url, $min_file_size = 0)
     {
-        preg_match_all('~<img[^>]*(?<!_mce_)src\s?=\s?([\'"])((?:(?!\1).)*)[^>]*>~i', $content, $match);
+        preg_match_all('~<img[^>]*(?<!_mce_)src\s?=\s?([\'"])((?:(?!\1).)*?)\1[^>]*>~i', $content, $match);
         if (empty($match[2]))
         {
             return 0;
@@ -43,6 +43,10 @@ class ImageLocal
             if (isset($replaced[$uri]))
             {
                 continue;
+            }
+            if(!(strpos($uri,"data:image") === false))
+            {
+                return false;
             }
             if ($this->beforeUrlGet)
             {

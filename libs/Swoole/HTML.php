@@ -70,7 +70,7 @@ class HTML
                     break;
                 }
                 $search2 = '</'.$r.'>';
-                $pos2 = stripos($html, $search2);
+                $pos2 = stripos($html, $search2,$pos1);
                 $offset = $pos2 + strlen($search2);
 
                 //TODO 这里可能会是JS中又包含JS

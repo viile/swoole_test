@@ -135,8 +135,8 @@ class WebSocket
      */
     protected function parseData($response)
     {
-        if (!$this->connected && isset($response['Sec-Websocket-Accept'])) {
-            if (base64_encode(pack('H*', sha1($this->key . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'))) === $response['Sec-Websocket-Accept']) {
+        if (!$this->connected && (strpos($response,'Sec-Websocket-Accept') !== false) ) {
+            if ((strpos($response, base64_encode(pack('H*', sha1($this->key . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')))) !== false)) {
                 $this->connected = true;
             } else {
                 throw new \Exception("error response key.");

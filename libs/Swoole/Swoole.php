@@ -438,7 +438,7 @@ class Swoole
 
     function reloadController($mvc, $controller_file)
     {
-        if (extension_loaded('runkit') and $this->config['apps']['auto_reload'])
+        if (extension_loaded('runkit') and $this->server->config['apps']['auto_reload'])
         {
             clearstatcache();
             $fstat = stat($controller_file);

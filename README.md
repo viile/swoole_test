@@ -58,7 +58,7 @@ pecl install swoole
 <?php
 require __DIR__.'/libs/lib_config.php';
 
-$AppSvr = new Swoole\Network\Protocol\AppServer();
+$AppSvr = new Swoole\Protocol\AppServer();
 $AppSvr->loadSetting(__DIR__."/swoole.ini"); //加载配置文件
 $AppSvr->setAppPath(__DIR__.'/apps/'); //设置应用所在的目录
 $AppSvr->setLogger(new Swoole\Log\EchoLog(false)); //Logger

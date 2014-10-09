@@ -15,5 +15,6 @@ $mimes = array(
     'application/pdf' => 'pdf',
     'application/x-shockwave-flash' => 'swf',
     'application/x-zip-compressed' => 'zip',
+    'application/gzip' => 'gzip',
 );
 return $mimes;

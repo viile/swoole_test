@@ -113,6 +113,10 @@ class Upload
     	    if(empty($this->shard_argv)) $this->shard_argv = 8;
     	    $up_dir = $this->base_dir."/".RandomKey::randmd5($this->shard_argv);
     	}
+        elseif ($this->shard_type=='user')
+        {
+            $up_dir = $this->base_dir."/".$this->shard_argv;
+        }
     	else
     	{
     	    if(empty($this->shard_argv)) $this->shard_argv = 'Ym/d';
@@ -162,7 +166,10 @@ class Upload
 			$this->error_code = 3;
 	        return false;
     	}
-    	$filename .= '.'.$filetype;
+        if ($this->shard_type !='user')
+        {
+            $filename .= '.'.$filetype;
+        }
 
     	//检查文件大小
     	$filesize = filesize($_FILES[$name]['tmp_name']);

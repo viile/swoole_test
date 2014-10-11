@@ -31,6 +31,9 @@ class WebSocket
      * @var bool
      */
     protected $connected = false;
+    
+    const GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
+    const UserAgent = 'SwooleWebsocketClient';
 
     /**
      * @param string $host
@@ -93,10 +96,13 @@ class WebSocket
         }
         $this->buffer .= $data;
         $recv_data = $this->parseData($this->buffer);
-        if($recv_data) {
+        if($recv_data) 
+		{
             $this->buffer = '';
             return $recv_data;
-        } else {
+        } 
+		else 
+		{
             return false;
         }
     }
@@ -135,10 +141,14 @@ class WebSocket
      */
     protected function parseData($response)
     {
-        if (!$this->connected && (strpos($response,'Sec-Websocket-Accept') !== false) ) {
-            if ((strpos($response, base64_encode(pack('H*', sha1($this->key . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')))) !== false)) {
+        if (!$this->connected and strpos($response,'Sec-Websocket-Accept') !== false)
+		{
+            if ((strpos($response, base64_encode(pack('H*', sha1($this->key . self::GUID)))) !== false)) 
+			{
                 $this->connected = true;
-            } else {
+            }
+			else 
+			{
                 throw new \Exception("error response key.");
             }
         }
@@ -147,7 +157,6 @@ class WebSocket
 
     /**
      * Create header for websocket client
-     *
      * @return string
      */
     private function createHeader()
@@ -162,8 +171,8 @@ class WebSocket
         "Origin: null" . "\r\n" .
         "Host: {$host}:{$this->port}" . "\r\n" .
         "Sec-WebSocket-Key: {$this->key}" . "\r\n" .
-        "User-Agent: PHPWebSocketClient/" . self::VERSION . "\r\n" .
-        "Upgrade: websocket" . "\r\n" .
+        "User-Agent: ".self::UserAgent."/" . self::VERSION . "\r\n" .
+        "Upgrade: Websocket" . "\r\n" .
         "Connection: Upgrade" . "\r\n" .
         "Sec-WebSocket-Protocol: wamp" . "\r\n" .
         "Sec-WebSocket-Version: 13" . "\r\n" . "\r\n";

@@ -56,7 +56,7 @@ class ImageLocal
             {
                 $replaced_uri = $uri;
             }
-            $_abs_uri = html_entity_decode(HTML::parseRelativePath($from_url, $replaced_uri));
+            $_abs_uri = str_replace("%","",HTML::parseRelativePath($from_url, $replaced_uri));
             $info = parse_url($_abs_uri);
             $path = $info['host'].'/'.ltrim($info['path'], '/');
             $file =  $this->base_dir.'/'.$path;

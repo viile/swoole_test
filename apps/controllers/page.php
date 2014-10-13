@@ -74,6 +74,13 @@ class page extends Swoole\Controller
         $this->display('view_test.tpl.php');
     }
 
+    function vcode()
+    {
+        $this->session->start();
+        $this->http->header('Content-Type', 'image/jpeg');
+        Swoole\Image::verifycode_gd();
+    }
+
     //class autoload
     function class_load()
     {

@@ -26,8 +26,9 @@ class Swoole
 {
     //所有全局对象都改为动态延迟加载
     //如果希望启动加载,请使用Swoole::load()函数
+
     /**
-     * @var Swoole\Network\Protocol\HttpServer
+     * @var Swoole\Protocol\HttpServer
      */
     public $server;
     public $protocol;

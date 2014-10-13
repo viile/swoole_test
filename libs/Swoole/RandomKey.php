@@ -3,7 +3,7 @@ namespace Swoole;
 
 class RandomKey
 {
-    function getChineseCharacter()
+    static function getChineseCharacter()
     {
         $unidec = rand(19968, 24869);
         $unichr = '&#' . $unidec . ';';

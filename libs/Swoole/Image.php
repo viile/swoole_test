@@ -329,7 +329,7 @@ class Image
      * @param $img_height
      * @return unknown_type
      */
-    static function authcode_gd($img_width=80, $img_height=30)
+    static function verifycode_gd($img_width=80, $img_height=30)
     {
         $authnum = '';
         srand(microtime() * 100000);
@@ -356,7 +356,7 @@ class Image
         ImagePng($aimg);                      //生成png格式
         ImageDestroy($aimg);
     }
-    static function authcode_im()
+    static function verifycode_im()
     {
         if(empty($_SESSION)) session_start();
         $authnum = '';
@@ -424,11 +424,11 @@ class Image
      * @param $img_height
      * @return unknown_type
      */
-    static function authcode_ttf($font,$width=180,$height=130)
+    static function verify_ttf($font,$width=180,$height=130)
     {
         if(empty($_SESSION)) session_start();
         $length = 4;
-        $code = getRandNumChineseString(4);
+        $code = RandomKey::getChineseCharacter(4);
 
         $width = ($length * 45) > $width ? $length * 45 : $width;
         $_SESSION['authcode'] = md5($code);
@@ -449,7 +449,7 @@ class Image
 
         for ($i = 0; $i < $length; $i++) {
             $fontcolor = imagecolorallocate($im, mt_rand(0, 120), mt_rand(0, 120), mt_rand(0, 120)); //这样保证随机出来的颜色较深。
-            $codex = msubstr($code, $i, 1);
+            $codex = self::msubstr($code, $i, 1);
             imagettftext($im, mt_rand(16, 20), mt_rand(-60, 60), 40 * $i + 20, mt_rand(30, 35), $fontcolor, $font, $codex);
         }
         Header("Content-type: image/png");    //告诉浏览器，下面的数据是图片
@@ -471,15 +471,17 @@ class Image
      * @param $crop_size 裁切的参数，高度,宽度,四点坐标
      * @return true/false
      */
-    static function cropImage($image,$params, $original_size,$crop_size)
+    static function cropImage($image, $params, $original_size, $crop_size)
     {
-        $qulitity = isset($params['qulitity'])?$params['qulitity']:100;
-        $dst_width = isset($params['width'])?$params['width']:90;
-        $dst_height = isset($params['height'])?$params['height']:105;
+        $qulitity = isset($params['qulitity']) ? $params['qulitity'] : 100;
+        $dst_width = isset($params['width']) ? $params['width'] : 90;
+        $dst_height = isset($params['height']) ? $params['height'] : 105;
 
-        $image = WEBPATH.$image;
-        if(!file_exists($image))
-        return '错误，图片不存在！';
+        $image = WEBPATH . $image;
+        if (!file_exists($image))
+        {
+            return '错误，图片不存在！';
+        }
 
         $image_info = getimagesize($image);
 
@@ -490,7 +492,7 @@ class Image
              */
             if(isset($params['abs_width']))
             {
-                $tmp_rate = $params['abs_width'] / $original['width'];
+                $tmp_rate = $params['abs_width'] / $params['width'];
                 $crop_size['left'] = $crop_size['left'] * $tmp_rate;
                 $crop_size['top'] = $crop_size['top'] * $tmp_rate;
                 $crop_size['width'] = $crop_size['width'] * $tmp_rate;
@@ -517,29 +519,28 @@ class Image
             return imagejpeg($image_new, $file_new , $qulitity);
         }
     }
-}
 
-function msubstr($str, $start=0, $length, $charset="utf-8", $suffix=true)
-{
-    if(function_exists("mb_substr")){
-        if ($suffix && strlen($str)>$length)
-        return mb_substr($str, $start, $length, $charset)."...";
-        else
-        return mb_substr($str, $start, $length, $charset);
+    static function msubstr($str, $start=0, $length, $charset="utf-8", $suffix=true)
+    {
+        if(function_exists("mb_substr")){
+            if ($suffix && strlen($str)>$length)
+                return mb_substr($str, $start, $length, $charset)."...";
+            else
+                return mb_substr($str, $start, $length, $charset);
+        }
+        elseif(function_exists('iconv_substr')) {
+            if ($suffix && strlen($str)>$length)
+                return iconv_substr($str,$start,$length,$charset)."...";
+            else
+                return iconv_substr($str,$start,$length,$charset);
+        }
+        $re['utf-8']   = "/[\x01-\x7f]|[\xc2-\xdf][\x80-\xbf]|[\xe0-\xef][\x80-\xbf]{2}|[\xf0-\xff][\x80-\xbf]{3}/";
+        $re['gb2312'] = "/[\x01-\x7f]|[\xb0-\xf7][\xa0-\xfe]/";
+        $re['gbk']    = "/[\x01-\x7f]|[\x81-\xfe][\x40-\xfe]/";
+        $re['big5']   = "/[\x01-\x7f]|[\x81-\xfe]([\x40-\x7e]|\xa1-\xfe])/";
+        preg_match_all($re[$charset], $str, $match);
+        $slice = join("",array_slice($match[0], $start, $length));
+        if($suffix) return $slice."…";
+        return $slice;
     }
-    elseif(function_exists('iconv_substr')) {
-        if ($suffix && strlen($str)>$length)
-        return iconv_substr($str,$start,$length,$charset)."...";
-        else
-        return iconv_substr($str,$start,$length,$charset);
-    }
-    $re['utf-8']   = "/[\x01-\x7f]|[\xc2-\xdf][\x80-\xbf]|[\xe0-\xef][\x80-\xbf]{2}|[\xf0-\xff][\x80-\xbf]{3}/";
-    $re['gb2312'] = "/[\x01-\x7f]|[\xb0-\xf7][\xa0-\xfe]/";
-    $re['gbk']    = "/[\x01-\x7f]|[\x81-\xfe][\x40-\xfe]/";
-    $re['big5']   = "/[\x01-\x7f]|[\x81-\xfe]([\x40-\x7e]|\xa1-\xfe])/";
-    preg_match_all($re[$charset], $str, $match);
-    $slice = join("",array_slice($match[0], $start, $length));
-    if($suffix) return $slice."…";
-    return $slice;
 }
-?>

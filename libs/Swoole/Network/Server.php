@@ -14,6 +14,7 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
      */
     protected $sw;
     protected $swooleSetting;
+    protected $pid_file;
 
     /**
      * 自动推断扩展支持
@@ -65,12 +66,27 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
     {
         global $argv;
         Swoole\Console::setProcessName('php ' . $argv[0] . ': master -host=' . $this->host . ' -port=' . $this->port);
+        if (!empty($this->swooleSetting['pid_file']))
+        {
+            file_put_contents($this->pid_file,$serv->master_pid);
+        }
+    }
+    function onManagerStop()
+    {
+        if (!empty($this->swooleSetting['pid_file']))
+        {
+            unlink($this->pid_file);
+        }
     }
 
     function run($setting = array())
     {
-        $set = array_merge($this->swooleSetting, $setting);
-        $this->sw->set($set);
+        $this->swooleSetting = array_merge($this->swooleSetting, $setting);
+        if (!empty($this->swooleSetting['pid_file']))
+        {
+            $this->pid_file = $this->swooleSetting['pid_file'];
+        }
+        $this->sw->set($this->swooleSetting);
         $version = explode('.', SWOOLE_VERSION);
         //1.7.0
         if ($version[1] >= 7)
@@ -81,6 +97,7 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
             });
         }
         $this->sw->on('Start', array($this, 'onMasterStart'));
+        $this->sw->on('ManagerStop', array($this, 'onManagerStop'));
         $this->sw->on('WorkerStart', array($this->protocol, 'onStart'));
         $this->sw->on('Connect', array($this->protocol, 'onConnect'));
         $this->sw->on('Receive', array($this->protocol, 'onReceive'));

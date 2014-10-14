@@ -29,7 +29,7 @@ class MySQL implements \Swoole\IDatabase
 	function connect()
 	{
 		$db_config = $this->config;
-		if(empty($db_config['persistent']))
+		if (empty($db_config['persistent']))
         {
             $this->conn = mysql_connect($db_config['host'].':'.$db_config['port'], $db_config['user'],$db_config['passwd']);
         }
@@ -37,7 +37,7 @@ class MySQL implements \Swoole\IDatabase
         {
             $this->conn = mysql_pconnect($db_config['host'].':'.$db_config['port'], $db_config['user'],$db_config['passwd']);
         }
-        if(!$this->conn)
+        if (!$this->conn)
         {
             Swoole\Error::info("SQL Error", mysql_error($this->conn));
         }

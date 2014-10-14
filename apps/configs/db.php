@@ -10,5 +10,6 @@ $db['master'] = array(
     'name'    => "test",
     'charset' => "utf8",
     'setname' => true,
+    'persistent' => false, //MySQL长连接
 );
 return $db;

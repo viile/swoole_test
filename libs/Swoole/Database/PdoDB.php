@@ -9,9 +9,17 @@ namespace Swoole\Database;
 class PdoDB extends \PDO
 {
 	public $debug = false;
+    protected $config;
+
 	function __construct($db_config)
 	{
-		$dsn=$db_config['dbms'].":host=".$db_config['host'].";dbname=".$db_config['dbname'];
+        $this->config = $db_config;
+	}
+
+	function connect()
+	{
+        $db_config = &$this->config;
+        $dsn = $db_config['dbms'].":host=".$db_config['host'].";dbname=".$db_config['dbname'];
         try
         {
             if (isset($db_config['persistent']) and $db_config['persistent'])
@@ -25,19 +33,16 @@ class PdoDB extends \PDO
             if ($db_config['ifsetname']) parent::query('set names ' . $db_config['charset']);
             $this->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
         }
-		catch (\PDOException $e)
-		{
-			die("Error: " . $e->__toString() . "<br/>");
-		}
-	}
-	function connect()
-	{
-
+        catch (\PDOException $e)
+        {
+            die("Error: " . $e->__toString() . "<br/>");
+        }
 	}
 	/**
 	 * 执行一个SQL语句
 	 * @param string $sql 执行的SQL语句
-	 */
+     * @return \PDOStatement
+     */
 	public final function query($sql)
 	{
 		if($this->debug) echo "$sql<br />\n<hr />";
@@ -47,7 +52,7 @@ class PdoDB extends \PDO
 	}
 	/**
 	 * 关闭连接，释放资源
-	 * @return unknown_type
+	 * @return null
 	 */
 	function close()
 	{

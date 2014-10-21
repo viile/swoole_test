@@ -191,8 +191,8 @@ class Auth
     public static function login_require()
     {
         $check = false;
-        if(isset($_SESSION[self::$session_prefix.'isLogin']) and $_SESSION[self::$session_prefix.'isLogin']=='1') $check=true;
-        if(!$check)
+        if (isset($_SESSION[self::$session_prefix.'isLogin']) and $_SESSION[self::$session_prefix.'isLogin']=='1') $check=true;
+        if (!$check)
         {
             \Swoole::$php->http->redirect(self::$login_url.'refer='.urlencode($_SERVER["REQUEST_URI"]));
             return false;

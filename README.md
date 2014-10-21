@@ -82,4 +82,48 @@ php server.php
 
 在浏览器中打开 http://127.0.0.1:8888/
 
+Nginx+FPM+Swoole框架的URLRewrite配置
+-----
+```shell
+server {
+    listen  80;
+    server_name  www.swoole.com;
+    root  /data/wwwroot/www.swoole.com;
+
+    location / {
+        if (!-e $request_filename){
+            proxy_pass http://127.0.0.1:9501;
+        }
+    }
+}
+```
+
+Apache+Swoole框架的URLRewrite配置
+-----
+```shell
+<VirtualHost *:80>
+    ServerName www.swoole.com
+    DocumentRoot /data/webroot/www.swoole.com
+    DirectoryIndex index.html index.php
+
+    <Directory "/data/webroot/www.swoole.com">
+        Options Indexes FollowSymLinks
+            AllowOverride None
+            Require all granted
+    </Directory>
+
+#   ProxyPass /admin !
+#   ProxyPass /index.html !
+#   ProxyPass /static !
+#   ProxyPass / http://127.0.0.1:9501/
+
+    <IfModule mod_rewrite.c>
+        RewriteEngine On
+        RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
+        RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-d
+        RewriteRule ^(.*)$ http://127.0.0.1:9501$1 [L,P]
+    </IfModule>
+</VirtualHost>
+```
+
 [压测数据](doc/bench.md)

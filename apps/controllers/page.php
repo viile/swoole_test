@@ -98,22 +98,20 @@ class page extends Swoole\Controller
         $this->http->finish("die.");
     }
 
-    function js_shell()
+    function model_test()
     {
-        echo <<<HTML
-<!doctype html>
-<html>
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>多玩模调统计平台</title>
-    <script src="http://www.duowan.com/public/assets/sys/js/jquery.js"></script>
-    <script type="text/javascript" src="http://www.duowan.com/public/assets/sys/js/udb.v1.0.js"></script>
-    <script type="text/javascript">$(function () {
-            Navbar.login("/page/login/");
-        });</script>
-</head>
-<body></body>
-</html>
-HTML;
+        $model = model('User');
+        $user1 = $model->get(1); //id = 1
+        var_dump($user1->get());
+
+        $user1->name = "hantianfeng";
+        $user1->level = 99;
+        $user1->mobile = "13999998888";
+        $user1->save();
+
+        $users = $model->gets(['level' => 99]);
+
+        $model->del(2); //delete id = 2
     }
+
 }

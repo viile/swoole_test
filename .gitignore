@@ -2,3 +2,4 @@
 /vendor/
 /examples/webserver.log
 /cache/
+/examples/websocket.log

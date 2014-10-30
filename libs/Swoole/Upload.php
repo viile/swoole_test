@@ -99,28 +99,34 @@ class Upload
     function save($name, $filename=null, $allow=null)
     {
         //检查请求中是否存在上传的文件
-        if(empty($_FILES[$name]['type']))
+        if (empty($_FILES[$name]['type']))
         {
             $this->error_msg = "No upload file '$name'!";
     	    $this->error_code = 0;
     	    return false;
         }
         //最终相对目录
-    	if(!empty($this->sub_dir)) $this->base_dir = $this->base_dir."/".$this->sub_dir;
+        $base_dir = empty($this->sub_dir) ? $this->sub_dir : $this->base_dir."/".$this->sub_dir;
     	//切分目录
-    	if($this->shard_type=='randomkey')
+    	if ($this->shard_type=='randomkey')
     	{
-    	    if(empty($this->shard_argv)) $this->shard_argv = 8;
-    	    $up_dir = $this->base_dir."/".RandomKey::randmd5($this->shard_argv);
+    	    if (empty($this->shard_argv))
+            {
+                $this->shard_argv = 8;
+            }
+    	    $up_dir = $base_dir."/".RandomKey::randmd5($this->shard_argv);
     	}
         elseif ($this->shard_type=='user')
         {
-            $up_dir = $this->base_dir."/".$this->shard_argv;
+            $up_dir = $base_dir."/".$this->shard_argv;
         }
     	else
     	{
-    	    if(empty($this->shard_argv)) $this->shard_argv = 'Ym/d';
-    	    $up_dir = $this->base_dir."/".date($this->shard_argv);
+    	    if (empty($this->shard_argv))
+            {
+                $this->shard_argv = 'Ym/d';
+            }
+    	    $up_dir = $base_dir."/".date($this->shard_argv);
     	}
     	//上传的最终绝对路径，如果不存在则创建目录
     	$path = WEBPATH.$up_dir;
@@ -160,7 +166,7 @@ class Upload
 	            $filename = RandomKey::randtime();
 	        }
     	}
-    	elseif($this->overwrite===false and is_file($path.'/'.$filename.'.'.$filetype))
+    	elseif ($this->overwrite===false and is_file($path.'/'.$filename.'.'.$filetype))
     	{
 	        $this->error_msg = "File '$path/$filename.$filetype' existed!";
 			$this->error_code = 3;
@@ -173,7 +179,7 @@ class Upload
 
     	//检查文件大小
     	$filesize = filesize($_FILES[$name]['tmp_name']);
-    	if($this->max_size>0 and $filesize>$this->max_size)
+    	if ($this->max_size>0 and $filesize>$this->max_size)
     	{
     	    $this->error_msg = "File size go beyond the max_size!";
     		$this->error_code = 4;
@@ -184,7 +190,7 @@ class Upload
     	if(self::moveUploadFile($_FILES[$name]['tmp_name'], $save_filename))
     	{
     	    //产生缩略图
-    	    if($this->thumb_width and in_array($filetype,array('gif','jpg','jpeg','bmp','png')))
+    	    if ($this->thumb_width and in_array($filetype,array('gif','jpg','jpeg','bmp','png')))
     	    {
     	        if(empty($this->thumb_dir)) $this->thumb_dir = $up_dir;
     	        $thumb_file = $this->thumb_dir.'/'.$this->thumb_prefix.$filename;
@@ -192,7 +198,7 @@ class Upload
     	        $return['thumb'] = $thumb_file;
     	    }
     	    //压缩图片
-    	    if($this->max_width and in_array($filetype,array('gif','jpg','jpeg','bmp','png')))
+    	    if ($this->max_width and in_array($filetype,array('gif','jpg','jpeg','bmp','png')))
     	    {
     	        Image::thumbnail($save_filename,$save_filename,$this->max_width,$this->max_height,$this->max_qulitity);
     	    }

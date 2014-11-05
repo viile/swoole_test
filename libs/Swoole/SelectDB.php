@@ -1,10 +1,12 @@
 <?php
 namespace Swoole;
+
 /**
  * 查询数据库的封装类，基于底层数据库封装类，实现SQL生成器
+ * 注：仅支持MySQL，不兼容其他数据库的SQL语法
  * @author Tianfeng.Han
  * @package SwooleSystem
- * @subpackage dabase
+ * @subpackage Database
  */
 class SelectDB
 {
@@ -67,7 +69,6 @@ class SelectDB
     /**
      * 初始化，select的值，参数$where可以指定初始化哪一项
      * @param $what
-     * @return unknown_type
      */
     function init($what='')
     {
@@ -88,15 +89,15 @@ class SelectDB
         else
         $this->$what = '';
     }
+
     /**
      * 字段等于某个值，支持子查询，$where可以是对象
      * @param $field
-     * @param $where
-     * @return unknown_type
+     * @param $_where
      */
-    function equal($field,$_where)
+    function equal($field, $_where)
     {
-        if($_where instanceof SelectDB)
+        if ($_where instanceof SelectDB)
         {
             $where = $field.'=('.$_where->getsql().')';
         }
@@ -106,10 +107,10 @@ class SelectDB
         }
         $this->where($where);
     }
+
     /**
      * 指定表名，可以使用table1,table2
-     * @param $table_name
-     * @return null
+     * @param $table
      */
     function from($table)
     {
@@ -121,17 +122,26 @@ class SelectDB
             $this->table=$table;
         }
     }
+
     /**
      * 指定查询的字段，select * from table
      * 可多次使用，连接多个字段
      * @param $select
+     * @param $force
      * @return null
      */
-    function select($select,$force=false)
+    function select($select, $force=false)
     {
-        if($this->select=="*" or $force) $this->select=$select;
-        else $this->select=$this->select.','.$select;
+        if ($this->select == "*" or $force)
+        {
+            $this->select = $select;
+        }
+        else
+        {
+            $this->select = $this->select . ',' . $select;
+        }
     }
+
     /**
      * where参数，查询的条件
      * @param $where
@@ -149,9 +159,10 @@ class SelectDB
             $this->where=$this->where." and ".$where;
         }
     }
+
     /**
      * 指定查询所使用的索引字段
-     * @param $fields
+     * @param $field
      * @return null
      */
     function useIndex($field)
@@ -159,6 +170,7 @@ class SelectDB
         self::sql_safe($field);
         $this->use_index = "use index($field)";
     }
+
     /**
      * 相似查询like
      * @param $field
@@ -170,6 +182,7 @@ class SelectDB
         self::sql_safe($field);
         $this->where("`{$field}` like '{$like}'");
     }
+
     /**
      * 使用or连接的条件
      * @param $where
@@ -186,6 +199,7 @@ class SelectDB
             $this->where=$this->where." or ".$where;
         }
     }
+
     /**
      * 查询的条数
      * @param $limit
@@ -193,14 +207,24 @@ class SelectDB
      */
     function limit($limit)
     {
-        if(!empty($limit))
+        if (!empty($limit))
         {
             $_limit = explode(',', $limit, 2);
-            if(count($_limit)==2) $this->limit='limit '.(int)$_limit[0].','.(int)$_limit[1];
-            else $this->limit="limit ".(int)$limit;
+            if (count($_limit) == 2)
+            {
+                $this->limit = 'limit ' . (int)$_limit[0] . ',' . (int)$_limit[1];
+            }
+            else
+            {
+                $this->limit = "limit " . (int)$limit;
+            }
         }
-        else $this->limit = '';
+        else
+        {
+            $this->limit = '';
+        }
     }
+
     /**
      * 指定排序方式
      * @param $order
@@ -208,13 +232,17 @@ class SelectDB
      */
     function order($order)
     {
-        if(!empty($order))
+        if (!empty($order))
         {
             self::sql_safe($order);
-            $this->order="order by $order";
+            $this->order = "order by $order";
         }
-        else $this->order = '';
+        else
+        {
+            $this->order = '';
+        }
     }
+
     /**
      * 组合方式
      * @param $group
@@ -229,6 +257,7 @@ class SelectDB
         }
         else $this->group = '';
     }
+
     /**
      * group后条件
      * @param $having
@@ -236,13 +265,14 @@ class SelectDB
      */
     function having($having)
     {
-        if(!empty($having))
-        {
+        if (!empty($having)) {
             self::sql_safe($having);
             $this->having = "having $having";
+        } else {
+            $this->having = '';
         }
-        else $this->having = '';
     }
+
     /**
      * IN条件
      * @param $field
@@ -254,6 +284,7 @@ class SelectDB
         $ins = trim($ins, ','); //去掉2面的分号
         $this->where("`$field` in ({$ins})");
     }
+
     /**
      * NOT IN条件
      * @param $field
@@ -264,6 +295,7 @@ class SelectDB
     {
         $this->where("`$field` not in ({$ins})");
     }
+
     /**
      * INNER连接
      * @param $table_name
@@ -274,6 +306,7 @@ class SelectDB
     {
         $this->join.="INNER JOIN `{$table_name}` ON ({$on})";
     }
+
     /**
      * 左连接
      * @param $table_name
@@ -284,6 +317,7 @@ class SelectDB
     {
         $this->join.="LEFT JOIN `{$table_name}` ON ({$on})";
     }
+
     /**
      * 右连接
      * @param $table_name
@@ -294,6 +328,7 @@ class SelectDB
     {
         $this->join.="RIGHT JOIN `{$table_name}` ON ({$on})";
     }
+
     /**
      * 分页参数,指定每页数量
      * @param $pagesize
@@ -303,6 +338,7 @@ class SelectDB
     {
         $this->page_size = (int)$pagesize;
     }
+
     /**
      * 分页参数,指定当前页数
      * @param $page
@@ -312,6 +348,7 @@ class SelectDB
     {
         $this->page = (int)$page;
     }
+
     /**
      * 主键查询条件
      * @param $id
@@ -321,6 +358,7 @@ class SelectDB
     {
         $this->where("`{$this->primary}` = '$id'");
     }
+
     /**
      * 产生分页
      * @return null
@@ -328,14 +366,24 @@ class SelectDB
     function paging()
     {
         $this->num = $this->count();
-        $offset=($this->page-1)*$this->page_size;
-        if($offset<0) $offset=0;
-        if($this->num%$this->page_size>0)
-        $this->pages=intval($this->num/$this->page_size)+1;
+        $offset = ($this->page - 1) * $this->page_size;
+        if ($offset < 0)
+        {
+            $offset = 0;
+        }
+        if ($this->num % $this->page_size > 0)
+        {
+            $this->pages = intval($this->num / $this->page_size) + 1;
+        }
         else
-        $this->pages=$this->num/$this->page_size;
-        $this->limit($offset.','.$this->page_size);
-        $this->pager = new Pager(array('total'=>$this->num,'perpage'=>$this->page_size,'nowindex'=>$this->page));
+        {
+            $this->pages = $this->num / $this->page_size;
+        }
+        $this->limit($offset . ',' . $this->page_size);
+        $this->pager = new Pager(array('total'    => $this->num,
+                                       'perpage'  => $this->page_size,
+                                       'nowindex' => $this->page
+        ));
     }
 
     /**
@@ -355,13 +403,18 @@ class SelectDB
     /**
      * 获取组合成的SQL语句字符串
      * @param $ifreturn
-     * @return null
+     * @return string | null
      */
     function getsql($ifreturn=true)
     {
-        $this->sql="select {$this->select} from {$this->table} {$this->join} {$this->use_index} {$this->where} {$this->union} {$this->group} {$this->having} {$this->order} {$this->limit} {$this->for_update}";
-        if($this->if_union) $this->sql = str_replace('{#union_select#}',$this->union_select,$this->sql);
-        if($ifreturn) return $this->sql;
+        $this->sql
+            = "select {$this->select} from {$this->table} {$this->join} {$this->use_index} {$this->where} {$this->union} {$this->group} {$this->having} {$this->order} {$this->limit} {$this->for_update}";
+        if ($this->if_union) {
+            $this->sql = str_replace('{#union_select#}', $this->union_select, $this->sql);
+        }
+        if ($ifreturn) {
+            return $this->sql;
+        }
     }
 
     function raw_put($params)
@@ -378,6 +431,7 @@ class SelectDB
             }
         }
     }
+
     /**
      * 锁定行或表
      * @return null
@@ -386,6 +440,7 @@ class SelectDB
     {
         $this->for_update = 'for update';
     }
+
     /**
      * 执行生成的SQL语句
      * @param $sql
@@ -393,11 +448,15 @@ class SelectDB
      */
     function exeucte($sql='')
     {
-        if($sql=='') $this->getsql(false);
-        else $this->sql = $this->sql();
+        if ($sql == '') {
+            $this->getsql(false);
+        } else {
+            $this->sql = $sql;
+        }
         $this->res = $this->db->query($this->sql);
         $this->is_execute++;
     }
+
     /**
      * SQL联合
      * @param $sql
@@ -536,34 +595,33 @@ class SelectDB
             return $this->res->fetchall();
         }
     }
+
     /**
      * 获取当前条件下的记录数
-     * @return unknown_type
+     * @return int
      */
     public function count()
     {
-        $sql="select count({$this->count_fields}) as c from {$this->table} {$this->join} {$this->where} {$this->union} {$this->group}";
-        if($this->if_union)
-        {
-            $sql = str_replace('{#union_select#}',"count({$this->count_fields}) as c",$sql);
+        $sql
+            = "select count({$this->count_fields}) as c from {$this->table} {$this->join} {$this->where} {$this->union} {$this->group}";
+        if ($this->if_union) {
+            $sql = str_replace('{#union_select#}', "count({$this->count_fields}) as c", $sql);
             $c = $this->db->query($sql)->fetchall();
             $cc = 0;
-            foreach($c as $_c)
-            {
-                $cc+=$_c['c'];
+            foreach ($c as $_c) {
+                $cc += $_c['c'];
             }
             return intval($cc);
-        }
-        else
-        {
+        } else {
             $c = $this->db->query($sql)->fetch();
             return intval($c['c']);
         }
     }
+
     /**
      * 执行插入操作
      * @param $data
-     * @return unknown_type
+     * @return bool
      */
     function insert($data)
     {
@@ -579,26 +637,30 @@ class SelectDB
         $values = substr($values, 0, -1);
         return $this->db->query("insert into {$this->table} ($field) values($values)");
     }
+
     /**
      * 对符合当前条件的记录执行update
      * @param $data
-     * @return unknown_type
+     * @return bool
      */
     function update($data)
     {
-        $update="";
-        foreach($data as $key=>$value)
-        {
+        $update = "";
+        foreach ($data as $key => $value) {
             $value = $this->db->quote($value);
-            if($value!='' and $value{0}=='`') $update=$update."`$key`=$value,";
-            else $update=$update."`$key`='$value',";
+            if ($value != '' and $value{0} == '`') {
+                $update = $update . "`$key`=$value,";
+            } else {
+                $update = $update . "`$key`='$value',";
+            }
         }
-        $update = substr($update,0,-1);
+        $update = substr($update, 0, -1);
         return $this->db->query("update {$this->table} set $update {$this->where} {$this->limit}");
     }
+
     /**
      * 删除当前条件下的记录
-     * @return unknown_type
+     * @return bool
      */
     function delete()
     {

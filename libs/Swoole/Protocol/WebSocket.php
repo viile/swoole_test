@@ -161,7 +161,7 @@ abstract class WebSocket extends HttpServer
         //未连接
         if (!isset($this->connections[$fd]))
         {
-            $this->log("[{$fd}] received data: $data. length = ".strlen($data));
+            //$this->log("[{$fd}] received data: $data. length = ".strlen($data));
             return parent::onReceive($server,$fd, $from_id, $data);
         }
         do
@@ -453,7 +453,7 @@ abstract class WebSocket extends HttpServer
                 $this->close($client_id, self::CLOSE_NORMAL);
                 break;
             default:
-                $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
+                $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "unkown websocket opcode[{$ws['opcode']}]");
                 break;
         }
         unset($this->ws_list[$client_id]);

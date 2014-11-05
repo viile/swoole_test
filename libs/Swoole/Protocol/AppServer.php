@@ -3,6 +3,12 @@ namespace Swoole\Protocol;
 use Swoole;
 
 require_once LIBPATH . '/function/cli.php';
+
+class AppServerException extends \Exception
+{
+
+}
+
 class AppServer extends HttpServer
 {
     protected $router_function;
@@ -19,7 +25,7 @@ class AppServer extends HttpServer
             }
             else
             {
-                throw new \Exception("AppServer require apps_path");
+                throw new AppServerException("AppServer require apps_path");
             }
         }
         $php = Swoole::getInstance();

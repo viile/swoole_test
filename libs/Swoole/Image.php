@@ -11,12 +11,12 @@ class Image
 {
     /**
      * 裁切图片
-     * @param $pic 源图像
-     * @param $dst_pic 目标图像
-     * @param $width 宽度
-     * @param $height 高度
-     * @param $qulitity 质量
-     * @return unknown_type
+     * @param $pic string 源图像
+     * @param $dst_pic string 目标图像
+     * @param $width int 宽度
+     * @param $height int 高度
+     * @param $qulitity int 质量
+     * @return bool
      */
     static function cut($pic,$dst_pic,$width,$height=null,$qulitity=100)
     {
@@ -38,8 +38,10 @@ class Image
             imagejpeg($newim, $dst_pic,$qulitity);
             imagedestroy($im);
             return true;
+        } elseif ($pic != $dst_pic) {
+            return copy($pic, $dst_pic);
         }
-        elseif($pic!=$dst_pic) copy($pic,$dst_pic);
+        return false;
     }
     /**
      * 压缩图像尺寸

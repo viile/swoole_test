@@ -19,24 +19,18 @@ class PdoDB extends \PDO
 	function connect()
 	{
         $db_config = &$this->config;
-        $dsn = $db_config['dbms'].":host=".$db_config['host'].";dbname=".$db_config['dbname'];
-        try
+        $dsn = $db_config['dbms'].":host=".$db_config['host'].";dbname=".$db_config['name'];
+
+        if (isset($db_config['persistent']) and $db_config['persistent'])
         {
-            if (isset($db_config['persistent']) and $db_config['persistent'])
-            {
-                parent::__construct($dsn, $db_config['user'], $db_config['password'], array(\PDO::ATTR_PERSISTENT => true));
-            }
-            else
-            {
-                parent::__construct($dsn, $db_config['user'], $db_config['password']);
-            }
-            if ($db_config['ifsetname']) parent::query('set names ' . $db_config['charset']);
-            $this->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
+            parent::__construct($dsn, $db_config['user'], $db_config['passwd'], array(\PDO::ATTR_PERSISTENT => true));
         }
-        catch (\PDOException $e)
+        else
         {
-            die("Error: " . $e->__toString() . "<br/>");
+            parent::__construct($dsn, $db_config['user'], $db_config['passwd']);
         }
+        if ($db_config['setname']) parent::query('set names ' . $db_config['charset']);
+        $this->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
 	}
 	/**
 	 * 执行一个SQL语句

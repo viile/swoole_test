@@ -2,7 +2,7 @@
 namespace App\Controller;
 use Swoole;
 
-class DB extends Swoole\Controller
+class Db extends Swoole\Controller
 {
     function apt_test()
     {

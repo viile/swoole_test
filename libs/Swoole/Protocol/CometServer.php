@@ -174,7 +174,7 @@ abstract class CometServer extends WebSocket
         if (isset($this->fd_session_map[$fd]))
         {
             $session_id = $this->fd_session_map[$fd];
-            unset($this->fd_session_map[$fd]);
+            unset($this->fd_session_map[$fd], $this->wait_requests[$session_id], $this->sessions[$session_id]);
             //再执行一次
             $this->onExit($session_id);
         }

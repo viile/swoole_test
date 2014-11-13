@@ -94,7 +94,21 @@ abstract class WebSocket extends HttpServer
         $this->log('clean connections');
     }
 
+    /**
+     * 收到消息
+     * @param $client_id
+     * @param $message
+     *
+     * @return mixed
+     */
     abstract function onMessage($client_id, $message);
+
+    /**
+     * 客户端退出
+     * @param $client_id
+     * @return mixed
+     */
+    abstract function onExit($client_id);
 
     /**
      * Called on WebSocket connection established.
@@ -482,6 +496,7 @@ abstract class WebSocket extends HttpServer
 
     function onClose($serv, $client_id, $from_id)
     {
+        $this->onExit($client_id);
         $this->log("close client_id = $client_id");
         unset($this->ws_list[$client_id], $this->connections[$client_id], $this->requests[$client_id]);
         parent::onClose($serv, $client_id, $from_id);

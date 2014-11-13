@@ -40,21 +40,31 @@ class Response
         500 => "500 Internal Server Error",
         501 => "501 Method Not Implemented",
         503 => "503 Service Unavailable",
-        506 => "506 Variant Also Negotiates");
+        506 => "506 Variant Also Negotiates",
+    );
 
-    function send_http_status($code)
+    /**
+     * 设置Http状态
+     * @param $code
+     */
+    function sendHttpStatus($code)
     {
         $this->head[0] = $this->http_protocol.' '.self::$HTTP_HEADERS[$code];
         $this->http_status = $code;
     }
 
-    function send_head($key,$value)
+    /**
+     * 设置Http头信息
+     * @param $key
+     * @param $value
+     */
+    function setHeader($key,$value)
     {
         $this->head[$key] = $value;
     }
 
     /**
-     * ����cookie
+     * 设置COOKIE
      * @param $name
      * @param null $value
      * @param null $expire
@@ -73,10 +83,10 @@ class Response
     }
 
     /**
-     * ����head��Ϣ
+     * 添加http header
      * @param $header
      */
-    function addHeader(array $header)
+    function addHeaders(array $header)
     {
         $this->head = array_merge($this->head, $header);
     }

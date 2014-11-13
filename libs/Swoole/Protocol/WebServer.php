@@ -5,6 +5,7 @@ use Swoole;
 abstract class WebServer extends Base
 {
     const SOFTWARE = "SwooleFramework";
+    const POST_MAXSIZE = 2000000; //POST最大2M
     public $config = array();
 
     /**
@@ -100,6 +101,15 @@ abstract class WebServer extends Base
         if (empty($config['apps']['url_route'])) $config['apps']['url_route'] = 'url_route_default';
         if (empty($config['apps']['auto_reload'])) $config['apps']['auto_reload'] = 0;
         if (empty($config['apps']['charset'])) $config['apps']['charset'] = 'utf-8';
+
+        if (!empty($config['access']['post_maxsize']))
+        {
+            $this->config['server']['post_maxsize'] = $config['access']['post_maxsize'];
+        }
+        if (empty($config['server']['post_maxsize']))
+        {
+            $config['server']['post_maxsize'] = self::POST_MAXSIZE;
+        }
         /*--------------Access------------------*/
         $this->deny_dir = array_flip(explode(',', $config['access']['deny_dir']));
         $this->static_dir = array_flip(explode(',', $config['access']['static_dir']));

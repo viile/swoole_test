@@ -12,12 +12,6 @@ use Swoole;
  */
 class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Protocol
 {
-    /**
-     * 开启异步服务，启用后onRequest将不再直接发送response到浏览器
-     * @var bool
-     */
-    public $async = false;
-
     protected $swoole_server;
     protected $buffer_header = array();
     protected $buffer_maxlen = 65535; //最大POST尺寸，超过将写文件
@@ -128,7 +122,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
                 //解析失败
                 if ($request->head == false)
                 {
-                    $this->log("parseHeader fail. header=".$header);
+                    $this->log("parseHeader failed. header=".$header);
                     return false;
                 }
             }
@@ -147,9 +141,9 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         if (isset($request->head['Content-Length']))
         {
             //超过最大尺寸
-            if (intval($request->head['Content-Length']) > $this->config['access']['post_maxsize'])
+            if (intval($request->head['Content-Length']) > $this->config['server']['post_maxsize'])
             {
-                $this->log("checkPost fail. post_data is too long.");
+                $this->log("checkPost failed. post_data is too long.");
                 return self::ST_ERROR;
             }
             //不完整，继续等待数据
@@ -239,22 +233,14 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         $this->parseRequest($request);
         $request->fd = $client_id;
         $this->currentRequest = $request;
-        if ($this->async)
+
+        //处理请求，产生response对象
+        $response = $this->onRequest($request);
+        if ($response and $response instanceof Swoole\Response)
         {
-            $this->onAsyncRequest($request);
-        }
-        else
-        {
-            //处理请求，产生response对象
-            $response = $this->onRequest($request);
             //发送response
             $this->response($request, $response);
         }
-    }
-
-    function onAsyncRequest(Swoole\Request $request)
-    {
-        throw new \Exception(__METHOD__." is an abstract method.");
     }
 
     function afterResponse(Swoole\Request $request, Swoole\Response $response)
@@ -349,7 +335,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
      */
     function httpError($code, Swoole\Response $response, $content = '')
     {
-        $response->send_http_status($code);
+        $response->sendHttpStatus($code);
         $response->head['Content-Type'] = 'text/html';
         $response->body = Swoole\Error::info(Swoole\Response::$HTTP_HEADERS[$code], "<p>$content</p><hr><address>" . self::SOFTWARE . " at {$this->server->host} Port {$this->server->port}</address>");
     }
@@ -378,7 +364,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         {
             $this->currentResponse = new Swoole\Response();
         }
-        $this->currentResponse->send_http_status(500);
+        $this->currentResponse->sendHttpStatus(500);
         $this->currentResponse->body = $message;
         $this->response($this->currentRequest, $this->currentResponse);
     }
@@ -460,7 +446,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
                     {
                         //不需要读文件了
                         $read_file = false;
-                        $response->send_http_status(304);
+                        $response->sendHttpStatus(304);
                     }
                 }
                 else
@@ -505,7 +491,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
             }
             catch (\Exception $e)
             {
-                $response->send_http_status(404);
+                $response->sendHttpStatus(404);
                 $response->body = $e->getMessage() . '!<br /><h1>' . self::SOFTWARE . '</h1>';
             }
             $response->body = ob_get_contents();

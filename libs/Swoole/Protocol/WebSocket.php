@@ -67,8 +67,8 @@ abstract class WebSocket extends HttpServer
          *   ? Sec-WebSocket-Protocol;
          *   ? Sec-WebSocket-Extensions.
          */
-        $response->send_http_status(101);
-        $response->addHeader(array(
+        $response->sendHttpStatus(101);
+        $response->addHeaders(array(
             'Upgrade' => 'websocket',
             'Connection' => 'Upgrade',
             'Sec-WebSocket-Accept' => base64_encode(sha1($key . static::GUID, true)),
@@ -107,6 +107,18 @@ abstract class WebSocket extends HttpServer
         $this->log("WebSocket connection #$client_id is connected");
     }
 
+
+    /**
+     * Produce response for Http request.
+     *
+     * @param $request
+     * @return Swoole\Response
+     */
+    function onHttpRequest(Swoole\Request $request)
+    {
+        return parent::onRequest($request);
+    }
+
     /**
      * Produce response for WebSocket request.
      *
@@ -117,13 +129,17 @@ abstract class WebSocket extends HttpServer
     {
         $response = $this->currentResponse = new Swoole\Response();
         $this->doHandshake($request, $response);
-
         return $response;
     }
 
+    /**
+     * Request come
+     * @param Swoole\Request $request
+     * @return Swoole\Response
+     */
     function onRequest(Swoole\Request $request)
     {
-        return $request->isWebSocket() ? $this->onWebSocketRequest($request) : parent::onRequest($request);
+        return $request->isWebSocket() ? $this->onWebSocketRequest($request) : $this->onHttpRequest($request);
     }
 
     /**

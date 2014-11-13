@@ -45,18 +45,20 @@ class RandomKey
     {
         return intval($uid/$base);
     }
+
     /**
      * 按UNIX时间戳产生随机数
-     * @param $length
-     * @return unknown_type
+     * @param $rand_length
+     * @return string
      */
-    static function randtime($rand_length=6)
+    static function randtime($rand_length = 6)
     {
         list($usec, $sec) = explode(" ", microtime());
-        $min = intval('1'.str_repeat('0',$rand_length-1));
-        $max = intval(str_repeat('9',$rand_length));
-        return substr($sec,-5).((int)$usec*100).rand($min,$max);
+        $min = intval('1' . str_repeat('0', $rand_length - 1));
+        $max = intval(str_repeat('9', $rand_length));
+        return substr($sec, -5) . ((int)$usec * 100) . rand($min, $max);
     }
+
     /**
      * 产生一个随机MD5字符的一部分
      * @param $length
@@ -69,4 +71,3 @@ class RandomKey
         return substr(md5($seed.rand(111111,999999)),0,$length);
     }
 }
-?>

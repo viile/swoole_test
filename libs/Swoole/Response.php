@@ -47,7 +47,7 @@ class Response
      * 设置Http状态
      * @param $code
      */
-    function sendHttpStatus($code)
+    function setHttpStatus($code)
     {
         $this->head[0] = $this->http_protocol.' '.self::$HTTP_HEADERS[$code];
         $this->http_status = $code;

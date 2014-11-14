@@ -170,7 +170,6 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         }
         //检测头
         $request = $this->checkHeader($client_id, $http_data);
-        $this->log("new http request. fd={$client_id}");
         //错误的http头
         if ($request === false)
         {
@@ -335,7 +334,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
      */
     function httpError($code, Swoole\Response $response, $content = '')
     {
-        $response->sendHttpStatus($code);
+        $response->setHttpStatus($code);
         $response->head['Content-Type'] = 'text/html';
         $response->body = Swoole\Error::info(Swoole\Response::$HTTP_HEADERS[$code], "<p>$content</p><hr><address>" . self::SOFTWARE . " at {$this->server->host} Port {$this->server->port}</address>");
     }
@@ -364,7 +363,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         {
             $this->currentResponse = new Swoole\Response();
         }
-        $this->currentResponse->sendHttpStatus(500);
+        $this->currentResponse->setHttpStatus(500);
         $this->currentResponse->body = $message;
         $this->response($this->currentRequest, $this->currentResponse);
     }
@@ -446,7 +445,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
                     {
                         //不需要读文件了
                         $read_file = false;
-                        $response->sendHttpStatus(304);
+                        $response->setHttpStatus(304);
                     }
                 }
                 else
@@ -491,7 +490,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
             }
             catch (\Exception $e)
             {
-                $response->sendHttpStatus(404);
+                $response->setHttpStatus(404);
                 $response->body = $e->getMessage() . '!<br /><h1>' . self::SOFTWARE . '</h1>';
             }
             $response->body = ob_get_contents();

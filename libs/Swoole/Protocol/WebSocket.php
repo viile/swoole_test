@@ -67,7 +67,7 @@ abstract class WebSocket extends HttpServer
          *   ? Sec-WebSocket-Protocol;
          *   ? Sec-WebSocket-Extensions.
          */
-        $response->sendHttpStatus(101);
+        $response->setHttpStatus(101);
         $response->addHeaders(array(
             'Upgrade' => 'websocket',
             'Connection' => 'Upgrade',

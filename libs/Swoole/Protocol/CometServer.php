@@ -48,17 +48,28 @@ abstract class CometServer extends WebSocket
      */
     function onHttpRequest(Swoole\Request $request)
     {
-        if (!isset($request->post['type']))
-        {
-            return false;
-        }
         //新连接
         if (empty($request->post['session_id']))
         {
+            if (empty($request->post['type']) or $request->post['type'] != 'connect')
+            {
+                goto access_deny;
+            }
+            $this->log("Connect [fd={$request->fd}]");
             $session = $this->createNewSession();
             $response = new Swoole\Response;
             $response->setHeader('Access-Control-Allow-Origin', $this->origin);
             $response->body = json_encode(array('success' => 1, 'session_id' => $session->id));
+            return $response;
+        }
+
+        if (empty($request->post['type']) or empty($request->post['session_id']) or empty($this->sessions[$request->post['session_id']]))
+        {
+            access_deny:
+            $response = new Swoole\Response;
+            $response->setHeader('Connection', 'close');
+            $response->setHttpStatus(403);
+            $response->body = "<h1>Access Deny.</h1>";
             return $response;
         }
 
@@ -69,18 +80,29 @@ abstract class CometServer extends WebSocket
         {
             $response = new Swoole\Response;
             $response->setHeader('Access-Control-Allow-Origin', $this->origin);
-            $response->body = json_encode(array('success' => 1, 'session_id' => $session->id));
+            $response->body = json_encode(array('success' => 1, ));
             $this->response($request, $response);
+            $this->log("Publish [fd={$request->fd}, session=$session_id]");
             $this->onMessage($session_id, $request->post);
         }
         elseif($request->post['type'] == 'sub')
         {
             $this->wait_requests[$session_id] = $request;
             $this->fd_session_map[$request->fd] = $session_id;
+            $this->log("Subscribe [fd={$request->fd}, session=$session_id]");
             if ($session->getMessageCount() > 0)
             {
                 $this->sendMessage($session);
             }
+        }
+        else
+        {
+            $session = $this->createNewSession();
+            $response = new Swoole\Response;
+            $response->setHeader('Connection', 'close');
+            $response->setHttpStatus(404);
+            $response->body = "<h1>Channel Not Found</h1>";
+            return $response;
         }
     }
 
@@ -92,7 +114,6 @@ abstract class CometServer extends WebSocket
     {
         if (!isset($this->sessions[$session_id]))
         {
-            $this->log("CometSesesion #$session_id no exists");
             return false;
         }
         return $this->sessions[$session_id];
@@ -117,6 +138,7 @@ abstract class CometServer extends WebSocket
             $session = $this->getSession($session_id);
             if (!$session)
             {
+                $this->log("CometSesesion #$session_id no exists. Send failed.");
                 return false;
             }
             else
@@ -182,13 +204,11 @@ abstract class CometServer extends WebSocket
     }
 }
 
-class CometSession
+class CometSession extends \SplQueue
 {
-    public $request;
-    public $id;
-
     static $round_id = 1;
 
+    public $id;
     /**
      * @var \SplQueue
      */
@@ -197,21 +217,20 @@ class CometSession
     function __construct()
     {
         $this->id = self::$round_id++;
-        $this->msg_queue = new \SplQueue;
     }
 
     function getMessageCount()
     {
-        return count($this->msg_queue);
+        return count($this);
     }
 
     function pushMessage($msg)
     {
-        return $this->msg_queue->enqueue($msg);
+        return $this->enqueue($msg);
     }
 
     function popMessage()
     {
-        return $this->msg_queue->dequeue();
+        return $this->dequeue();
     }
 }

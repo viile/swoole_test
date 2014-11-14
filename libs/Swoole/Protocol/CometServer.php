@@ -206,8 +206,6 @@ abstract class CometServer extends WebSocket
 
 class CometSession extends \SplQueue
 {
-    static $round_id = 1;
-
     public $id;
     /**
      * @var \SplQueue
@@ -216,7 +214,7 @@ class CometSession extends \SplQueue
 
     function __construct()
     {
-        $this->id = self::$round_id++;
+        $this->id = md5(uniqid('', true));
     }
 
     function getMessageCount()

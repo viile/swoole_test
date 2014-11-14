@@ -191,6 +191,17 @@ abstract class CometServer extends WebSocket
         }
     }
 
+    /**
+     * 判断是否为Comet客户端连接
+     * @param $client_id
+     *
+     * @return bool
+     */
+    function isCometClient($client_id)
+    {
+        return strlen($client_id) === 32;
+    }
+
     final function onClose($serv, $fd, $reactor_id)
     {
         if (isset($this->fd_session_map[$fd]))

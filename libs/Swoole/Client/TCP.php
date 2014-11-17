@@ -11,9 +11,11 @@ class TCP extends Socket
      */
     public $try_reconnect = true;
     public $connected = false; //是否已连接
+
     /**
      * 发送数据
      * @param string $data
+     * @return bool | int
      */
     function send($data)
     {

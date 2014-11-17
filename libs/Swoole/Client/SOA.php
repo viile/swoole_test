@@ -1,6 +1,6 @@
 <?php
 namespace Swoole\Client;
-use Swoole\Protocol;
+use Swoole\Protocol\SOAServer;
 
 class SOA
 {
@@ -8,12 +8,12 @@ class SOA
 
     protected $wait_list = array();
     protected $timeout = 0.5;
-    protected $packet_maxlen = 2465792;
+    protected $packet_maxlen = 2097152;   //最大不超过2M的数据包
 
     const OK = 0;
-    const TYPE_ASYNC = 1;
-    const TYPE_SYNC  = 2;
-    public $re_connect = true; //重新connect
+    const TYPE_ASYNC        = 1;
+    const TYPE_SYNC         = 2;
+    public $re_connect      = true;    //重新connect
 
     /**
      * 发送请求
@@ -33,26 +33,27 @@ class SOA
         $ret = $socket->connect($svr['host'], $svr['port'], $this->timeout);
         //使用SOCKET的编号作为ID
         $retObj->id = (int)$socket->get_socket();
-        if($ret === false)
+        if ($ret === false)
         {
-            $retObj->code = SOAClient_Result::ERR_CONNECT;
+            $retObj->code = SOA_Result::ERR_CONNECT;
             unset($retObj->socket);
             return false;
         }
         //发送失败了
-        if($retObj->socket->send(self::packData($retObj->send)) === false)
+        if ($retObj->socket->send(SOAServer::packData($retObj->send)) === false)
         {
-            $retObj->code = SOAClient_Result::ERR_SEND;
+            $retObj->code = SOA_Result::ERR_SEND;
             unset($retObj->socket);
             return false;
         }
         //加入wait_list
-        if($type != self::TYPE_ASYNC)
+        if ($type != self::TYPE_ASYNC)
         {
             $this->wait_list[$retObj->id] = $retObj;
         }
         return true;
     }
+
     /**
      * 完成请求
      * @param $retData
@@ -60,99 +61,100 @@ class SOA
      */
     protected function finish($retData, $retObj)
     {
-        $retObj->data = $retData;
-        if(!empty($retData) and isset($retData['errno']))
+        //解包失败了
+        if ($retData === false)
         {
-            if($retData['errno'] === self::OK)
-            {
-                $retObj->code = self::OK;
-            }
-            else
-            {
-                $retObj->code = SOAClient_Result::ERR_SERVER;
-            }
+            $retObj->code = SOA_Result::ERR_UNPACK;
         }
+        //调用成功
+        elseif($retData['errno'] === self::OK)
+        {
+            $retObj->code = self::OK;
+            $retObj->data = $retData['data'];
+        }
+        //服务器返回失败
         else
         {
-            $retObj->code = SOAClient_Result::ERR_UNPACK;
+            $retObj->code = SOA_Result::ERR_SERVER;
+            $retObj->data = '';
         }
-        if($retObj->type != self::TYPE_ASYNC)
+        if ($retObj->type != self::TYPE_ASYNC)
         {
             unset($this->wait_list[$retObj->id]);
         }
     }
 
+    /**
+     * 添加服务器
+     * @param array $servers
+     */
     function addServers(array $servers)
     {
-        $this->servers = array_merge($this->servers, $servers);
+        if (isset($servers['host']))
+        {
+            $this->servers[] = $servers;
+        }
+        else
+        {
+            $this->servers = array_merge($this->servers, $servers);
+        }
     }
 
+    /**
+     * 从配置中取出一个服务器配置
+     * @return array
+     * @throws \Exception
+     */
     function getServer()
     {
-        if(empty($this->servers))
+        if (empty($this->servers))
         {
             throw new \Exception("servers config empty.");
         }
         $_svr = $this->servers[array_rand($this->servers)];
-        $svr = array('host'=>'', 'port'=>0);
+        $svr = array('host' => '', 'port' => 0);
         list($svr['host'], $svr['port']) = explode(':', $_svr, 2);
         return $svr;
     }
 
-    /**
-     * 打包数据
-     * @param $data
-     * @return string
-     */
-    static function packData($data)
-    {
-        return pack('n', Protocol\SOAServer::STX).serialize($data).pack('n', Protocol\SOAServer::ETX);
-    }
+
 
     /**
-     * 解包
-     * @param $recv
-     * @param bool $unseralize
-     * @return string
-     */
-    static function unpackData($recv, $unseralize = true)
-    {
-        $data = substr($recv, 2, strlen($recv)-4);
-        return unserialize($data);
-    }
-    /**
      * RPC调用
-     * @param $function
+     *
+*@param $function
      * @param $params
-     * @return SOAClient_Result
+     *
+*@return SOA_Result
      */
-    function task($function, $params)
+    function task($function, $params = array())
     {
-        $retObj = new SOAClient_Result();
+        $retObj = new SOA_Result();
         $send = array('call' => $function, 'params' => $params);
         $this->request(self::TYPE_SYNC, $send, $retObj);
         return $retObj;
     }
+
     /**
      * 异步任务
      * @param $function
      * @param $params
-     * @return SOAClient_Result
+     * @return SOA_Result
      */
     function async($function, $params)
     {
-        $retObj = new SOAClient_Result();
+        $retObj = new SOA_Result();
         $send = array('call' => $function, 'params' => $params);
         $this->request(self::TYPE_ASYNC, $send, $retObj);
-        if($retObj->socket != null)
+        if ($retObj->socket != null)
         {
             $recv = $retObj->socket->recv();
-            if($recv==false)
+            if ($recv == false)
             {
-                $retObj->code = SOAClient_Result::ERR_TIMEOUT;
+                $retObj->code = SOA_Result::ERR_TIMEOUT;
                 return $retObj;
             }
-            $this->finish(self::unpackData($recv), $retObj);
+            $this->finish(SOAServer::unpackData($recv), $retObj);
         }
         return $retObj;
     }
@@ -167,10 +169,10 @@ class SOA
         $st = microtime(true);
         $t_sec = (int)$timeout;
         $t_usec = (int)(($timeout - $t_sec) * 1000 * 1000);
-        $buffer = array();
+        $buffer = $header = array();
         $success_num = 0;
 
-        while(true)
+        while (true)
         {
             $write = $error = $read = array();
             if(empty($this->wait_list))
@@ -184,7 +186,7 @@ class SOA
                     $read[] = $obj->socket->get_socket();
                 }
             }
-            if(empty($read))
+            if (empty($read))
             {
                 break;
             }
@@ -198,49 +200,53 @@ class SOA
                     $retObj = $this->wait_list[$id];
                     $data = $retObj->socket->recv();
                     //socket被关闭了
-                    if(empty($data))
+                    if (empty($data))
                     {
-                        $retObj->code = SOAClient_Result::ERR_CLOSED;
+                        $retObj->code = SOA_Result::ERR_CLOSED;
                         unset($this->wait_list[$id], $retObj->socket);
                         continue;
                     }
-                    if(!isset($buffer[$id]))
+                    //一个新的请求，缓存区中没有数据
+                    if (!isset($buffer[$id]))
                     {
-                        $_stx = unpack('nstx', substr($data, 0, 2));
-                        //错误的起始符
-                        if($_stx == false or $_stx['stx'] != Protocol\SOAServer::STX)
+                        //这里仅使用了length和type，uid,serid未使用
+                        $header[$id] = unpack(SOAServer::HEADER_STRUCT, substr($data, 0, SOAServer::HEADER_SIZE));
+                        //错误的包头
+                        if ($header[$id] === false or $header[$id]['length'] <= 0)
                         {
-                            $retObj->code = SOAClient_Result::ERR_STX;
+                            $retObj->code = SOA_Result::ERR_HEADER;
                             unset($this->wait_list[$id]);
                             continue;
                         }
-                        $buffer[$id] = '';
+                        //错误的长度值
+                        elseif ($header[$id]['length'] > $this->packet_maxlen)
+                        {
+                            $retObj->code = SOA_Result::ERR_TOOBIG;
+                            unset($this->wait_list[$id]);
+                            continue;
+                        }
+                        $buffer[$id] = substr($data, SOAServer::HEADER_SIZE);
                     }
-                    $buffer[$id] .= $data;
-                    $_etx = unpack('netx', substr($buffer[$id], -2, 2));
-                    //收到结束符
-                    if($_etx!=false and $_etx['etx'] === Protocol\SOAServer::ETX)
+                    else
+                    {
+                        $buffer[$id] .= $data;
+                    }
+                    //达到规定的长度
+                    if (strlen($buffer[$id]) == $header[$id]['length'])
                     {
                         //成功处理
-                        $this->finish(self::unpackData($buffer[$id]), $retObj);
+                        $this->finish(SOAServer::unpackData($buffer[$id], $header[$id]['type']), $retObj);
                         $success_num++;
-                    }
-                    //超过最大长度将丢弃
-                    elseif(strlen($data) > $this->packet_maxlen)
-                    {
-                        $retObj->code = SOAClient_Result::ERR_TOOBIG;
-                        unset($this->wait_list[$id]);
-                        continue;
                     }
                     //继续等待数据
                 }
             }
             //发生超时
-            if((microtime(true) - $st) > $timeout)
+            if ((microtime(true) - $st) > $timeout)
             {
                 foreach($this->wait_list as $obj)
                 {
-                    $obj->code = ($obj->socket->connected)?SOAClient_Result::ERR_TIMEOUT:SOAClient_Result::ERR_CONNECT;
+                    $obj->code = ($obj->socket->connected) ? SOA_Result::ERR_TIMEOUT : SOA_Result::ERR_CONNECT;
                 }
                 //清空当前列表
                 $this->wait_list = array();
@@ -254,7 +260,7 @@ class SOA
 
 }
 
-class SOAClient_Result
+class SOA_Result
 {
     public $id;
     public $code = self::ERR_NO_READY;
@@ -274,7 +280,9 @@ class SOAClient_Result
     const ERR_SEND       = 8004; //发送失败
     const ERR_SERVER     = 8005; //server返回了错误码
     const ERR_UNPACK     = 8006; //解包失败了
-    const ERR_STX        = 8007; //错误的起始符
+
+    const ERR_HEADER     = 8007; //错误的协议头
     const ERR_TOOBIG     = 8008; //超过最大允许的长度
-    const ERR_CLOSED     = 8009;
+    const ERR_CLOSED     = 8009; //连接被关闭
+
 }

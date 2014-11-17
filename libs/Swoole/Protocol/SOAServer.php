@@ -8,83 +8,51 @@ use Swoole;
  */
 class SOAServer extends Base implements Swoole\IFace\Protocol
 {
-    protected $_buffer; //buffer区
+    protected $_buffer  = array(); //buffer区
+    protected $_headers = array(); //保存头
     protected $_fdfrom; //保存fd对应的from_id
 
     protected $errCode;
     protected $errMsg;
 
-    protected $packet_maxlen = 2465792; //2M默认最大长度
-    protected $buffer_maxlen = 10240;   //最大待处理区长度,超过后将丢弃最早入队数据
+    public $packet_maxlen       = 2465792; //2M默认最大长度
+    protected $buffer_maxlen    = 10240; //最大待处理区排队长度, 超过后将丢弃最早入队数据
     protected $buffer_clear_num = 100; //超过最大长度后，清理100个数据
 
-    const STX = 0xABAB;
-    const ETX = 0xEFEF;
+    const ERR_HEADER            = 9001;   //错误的包头
+    const ERR_TOOBIG            = 9002;   //请求包体长度超过允许的范围
+    const ERR_SERVER_BUSY       = 9003;   //服务器繁忙，超过处理能力
 
-    const ERR_STX         = 9001;
-    const ERR_OVER_MAXLEN = 9002;
-    const ERR_BUFFER_FULL = 9003;
+    const ERR_UNPACK            = 9204;   //解包失败
+    const ERR_PARAMS            = 9205;   //参数错误
+    const ERR_NOFUNC            = 9206;   //函数不存在
+    const ERR_CALL              = 9207;   //执行错误
 
-    const ERR_UNPACK      = 9204; //解包失败
-    const ERR_PARAMS      = 9205; //参数错误
-    const ERR_NOFUNC      = 9206; //函数不存在
-    const ERR_CALL        = 9207; //执行错误
+    const HEADER_SIZE           = 16;
+    const HEADER_STRUCT         = "Nlength/Ntype/Nuid/Nserid";
+    const HEADER_PACK           = "NNNN";
 
-    protected $appNS = array(); //应用程序命名空间
-    public $function_map = array(); //接口列表
+    const DECODE_PHP            = 1;   //使用PHP的serialize打包
+    const DECODE_JSON           = 2;   //使用json_encode打包
 
-    function onStart($serv)
-    {
-        $this->log("Server@{$this->server->host}:{$this->server->port} is running.");
-    }
-    function onShutdown($serv)
-    {
-        $this->log("Server is shutdown");
-    }
-    function onWorkerStart($serv, $worker_id)
-    {
-        $this->log("Worker[$worker_id] is start");
-    }
+    protected $appNamespaces    = array(); //应用程序命名空间
+
     function onWorkerStop($serv, $worker_id)
     {
         $this->log("Worker[$worker_id] is stop");
     }
+
     function onTimer($serv, $interval)
     {
         $this->log("Timer[$interval] call");
     }
-    /**
-     * 返回false丢弃包并发送错误码，返回true将进行下一步处理，返回0表示继续等待包
-     * @param $data
-     * @return false or true or 0
-     */
-    function _packetReform($data)
-    {
-        $_etx = unpack('netx', substr($data, -2, 2));
-        //收到结束符
-        if($_etx!=false and $_etx['etx'] === self::ETX)
-        {
-            return true;
-        }
-        //超过最大长度将丢弃
-        elseif(strlen($data) > $this->packet_maxlen)
-        {
-            $this->errCode = self::ERR_OVER_MAXLEN;
-            $this->log("ERROR: packet too big.data=".$data);
-            return false;
-        }
-        //继续等待数据
-        else
-        {
-            return 0;
-        }
-    }
+
     function onReceive($serv, $fd, $from_id, $data)
     {
-        if(!isset($this->_buffer[$fd]) or $this->_buffer[$fd]==='')
+        if (!isset($this->_buffer[$fd]) or $this->_buffer[$fd] === '')
         {
             //超过buffer区的最大长度了
-            if(count($this->_buffer) >= $this->buffer_maxlen)
+            if (count($this->_buffer) >= $this->buffer_maxlen)
             {
                 $n = 0;
                 foreach($this->_buffer as $k=>$v)
@@ -96,48 +64,98 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
                     if($n >= $this->buffer_clear_num) break;
                 }
             }
-            $_stx = unpack('nstx', substr($data, 0, 2));
-            //错误的起始符
-            if($_stx == false or $_stx['stx'] != self::STX)
-            {
-                $this->errCode = self::ERR_STX;
-                $this->log("ERROR: No stx.data=".$data);
-                return false;
-            }
-            $this->_buffer[$fd] = '';
-        }
-        $this->_buffer[$fd] .= $data;
-        $ret = $this->_packetReform($this->_buffer[$fd]);
-        //继续等待数据
-        if($ret === 0)
-        {
-            return true;
-        }
-        //丢弃此包
-        elseif($ret === false)
-        {
-            $this->log("ERROR: lose data=".$data);
-            $this->server->close($fd, $from_id);
-            //这里可以加log
-        }
-        //处理数据
-        else
-        {
-            //这里需要去掉STX和ETX
-            $retData = $this->task($fd, substr($this->_buffer[$fd], 2, strlen($this->_buffer[$fd])-4));
-            //执行失败
-            if($retData === false)
+            //解析包头
+            $header = unpack(self::HEADER_STRUCT, substr($data, 0, self::HEADER_SIZE));
+
+            //错误的包头
+            if ($header === false)
             {
                 $this->server->close($fd);
             }
-            else
+            $this->_headers[$fd] = $header;
+            //长度错误
+            if ($header['length'] - self::HEADER_SIZE > $this->packet_maxlen or strlen($data) > $this->packet_maxlen)
             {
-                $this->server->send($fd, pack('n', self::STX).serialize($retData).pack('n', self::ETX));
+                return $this->sendErrorMessage($fd, self::ERR_TOOBIG);
             }
-            //清理缓存
-            $this->_buffer[$fd] = '';
+            //加入缓存区
+            $this->_buffer[$fd] = substr($data, self::HEADER_SIZE);
+        }
+        else
+        {
+            $this->_buffer[$fd] .= $data;
+        }
+
+        //长度不足
+        if (strlen($this->_buffer[$fd]) < $this->_headers[$fd]['length'])
+        {
+            return true;
+        }
+
+        //数据解包
+        $request = self::unpackData($this->_buffer[$fd],  $this->_headers[$fd]['type']);
+        if ($request === false)
+        {
+            $this->sendErrorMessage($fd, self::ERR_UNPACK);
+        }
+        //执行远程调用
+        else
+        {
+            $response = $this->call($request);
+            $this->server->send($fd, self::packData($response, $this->_headers[$fd]['type']));
+        }
+        //清理缓存
+        $this->_buffer[$fd] = '';
+        unset($this->_headers[$fd]);
+        return true;
+    }
+
+    function sendErrorMessage($fd, $errno)
+    {
+        return $this->server->send($fd, self::packData(array('errno' => $errno), $this->_headers[$fd]['type']));
+    }
+
+    /**
+     * 打包数据
+     * @param $data
+     * @param $type
+     * @param $uid
+     * @param $serid
+     * @return string
+     */
+    static function packData($data, $type = self::DECODE_PHP, $uid = 0, $serid = 0)
+    {
+        switch($type)
+        {
+            case self::DECODE_JSON:
+                $body = json_encode($data);
+                break;
+            case self::DECODE_PHP:
+            default:
+                $body = serialize($data);
+                break;
+        }
+        return pack(SOAServer::HEADER_PACK, strlen($body), $type, $uid, $serid) . $body;
+    }
+
+    /**
+     * 解包
+     * @param string $data
+     * @param int $unseralize_type
+     * @return string
+     */
+    static function unpackData($data, $unseralize_type = self::DECODE_PHP)
+    {
+        switch ($unseralize_type)
+        {
+            case self::DECODE_JSON:
+                return json_decode($data, true);
+            case self::DECODE_PHP;
+            default:
+                return unserialize($data);
         }
     }
+
     function onConnect($serv, $fd, $from_id)
     {
         $this->_fdfrom[$fd] = $from_id;
@@ -155,23 +173,18 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
         Swoole\Loader::setRootNS($name, $path);
     }
 
-    function task($client_id, $data)
+    protected function call($request)
     {
-        $request = unserialize($data);
-        if($request === false)
-        {
-            return array('errno'=>self::ERR_UNPACK);
-        }
-        if(empty($request['call']) or empty($request['params']))
+        if (empty($request['call']))
         {
             return array('errno'=>self::ERR_PARAMS);
         }
-        if(!is_callable($request['call']))
+        if (!is_callable($request['call']))
         {
             return array('errno'=>self::ERR_NOFUNC);
         }
         $ret = call_user_func($request['call'], $request['params']);
-        if($ret === false)
+        if ($ret === false)
         {
             return array('errno'=>self::ERR_CALL);
         }

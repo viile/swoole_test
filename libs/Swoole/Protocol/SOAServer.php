@@ -93,7 +93,7 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
         }
 
         //数据解包
-        $request = self::unpackData($this->_buffer[$fd],  $this->_headers[$fd]['type']);
+        $request = self::decode($this->_buffer[$fd],  $this->_headers[$fd]['type']);
         if ($request === false)
         {
             $this->sendErrorMessage($fd, self::ERR_UNPACK);
@@ -102,7 +102,7 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
         else
         {
             $response = $this->call($request);
-            $this->server->send($fd, self::packData($response, $this->_headers[$fd]['type']));
+            $this->server->send($fd, self::encode($response, $this->_headers[$fd]['type']));
         }
         //清理缓存
         $this->_buffer[$fd] = '';
@@ -112,7 +112,7 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
 
     function sendErrorMessage($fd, $errno)
     {
-        return $this->server->send($fd, self::packData(array('errno' => $errno), $this->_headers[$fd]['type']));
+        return $this->server->send($fd, self::encode(array('errno' => $errno), $this->_headers[$fd]['type']));
     }
 
     /**
@@ -123,7 +123,7 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
      * @param $serid
      * @return string
      */
-    static function packData($data, $type = self::DECODE_PHP, $uid = 0, $serid = 0)
+    static function encode($data, $type = self::DECODE_PHP, $uid = 0, $serid = 0)
     {
         switch($type)
         {
@@ -139,12 +139,12 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
     }
 
     /**
-     * 解包
+     * 解包数据
      * @param string $data
      * @param int $unseralize_type
      * @return string
      */
-    static function unpackData($data, $unseralize_type = self::DECODE_PHP)
+    static function decode($data, $unseralize_type = self::DECODE_PHP)
     {
         switch ($unseralize_type)
         {

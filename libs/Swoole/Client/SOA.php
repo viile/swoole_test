@@ -40,7 +40,7 @@ class SOA
             return false;
         }
         //发送失败了
-        if ($retObj->socket->send(SOAServer::packData($retObj->send)) === false)
+        if ($retObj->socket->send(SOAServer::encode($retObj->send)) === false)
         {
             $retObj->code = SOA_Result::ERR_SEND;
             unset($retObj->socket);
@@ -154,7 +154,7 @@ class SOA
                 $retObj->code = SOA_Result::ERR_TIMEOUT;
                 return $retObj;
             }
-            $this->finish(SOAServer::unpackData($recv), $retObj);
+            $this->finish(SOAServer::decode($recv), $retObj);
         }
         return $retObj;
     }
@@ -235,7 +235,7 @@ class SOA
                     if (strlen($buffer[$id]) == $header[$id]['length'])
                     {
                         //成功处理
-                        $this->finish(SOAServer::unpackData($buffer[$id], $header[$id]['type']), $retObj);
+                        $this->finish(SOAServer::decode($buffer[$id], $header[$id]['type']), $retObj);
                         $success_num++;
                     }
                     //继续等待数据

@@ -82,6 +82,10 @@ class SOA
         {
             unset($this->wait_list[$retObj->id]);
         }
+        if ($retObj->callback)
+        {
+            call_user_func($retObj->callback, $retObj);
+        }
     }
 
     /**
@@ -118,20 +122,20 @@ class SOA
     }
 
 
-
     /**
      * RPC调用
      *
-*@param $function
+     * @param $function
      * @param $params
-     *
-*@return SOA_Result
+     * @param $callback
+     * @return SOA_Result
      */
-    function task($function, $params = array())
+    function task($function, $params = array(), $callback = null)
     {
         $retObj = new SOA_Result();
         $send = array('call' => $function, 'params' => $params);
         $this->request(self::TYPE_SYNC, $send, $retObj);
+        $retObj->callback = $callback;
         return $retObj;
     }
 
@@ -268,6 +272,12 @@ class SOA_Result
     public $data = null;
     public $send;  //要发送的数据
     public $type;
+
+    /**
+     * 回调函数
+     * @var mixed
+     */
+    public $callback;
 
     /**
      * @var \Swoole\Client\TCP

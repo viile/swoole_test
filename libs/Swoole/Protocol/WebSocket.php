@@ -67,8 +67,8 @@ abstract class WebSocket extends HttpServer
          *   ? Sec-WebSocket-Protocol;
          *   ? Sec-WebSocket-Extensions.
          */
-        $response->send_http_status(101);
-        $response->addHeader(array(
+        $response->setHttpStatus(101);
+        $response->addHeaders(array(
             'Upgrade' => 'websocket',
             'Connection' => 'Upgrade',
             'Sec-WebSocket-Accept' => base64_encode(sha1($key . static::GUID, true)),
@@ -94,7 +94,21 @@ abstract class WebSocket extends HttpServer
         $this->log('clean connections');
     }
 
+    /**
+     * 收到消息
+     * @param $client_id
+     * @param $message
+     *
+     * @return mixed
+     */
     abstract function onMessage($client_id, $message);
+
+    /**
+     * 客户端退出
+     * @param $client_id
+     * @return mixed
+     */
+    abstract function onExit($client_id);
 
     /**
      * Called on WebSocket connection established.
@@ -107,6 +121,18 @@ abstract class WebSocket extends HttpServer
         $this->log("WebSocket connection #$client_id is connected");
     }
 
+
+    /**
+     * Produce response for Http request.
+     *
+     * @param $request
+     * @return Swoole\Response
+     */
+    function onHttpRequest(Swoole\Request $request)
+    {
+        return parent::onRequest($request);
+    }
+
     /**
      * Produce response for WebSocket request.
      *
@@ -117,13 +143,17 @@ abstract class WebSocket extends HttpServer
     {
         $response = $this->currentResponse = new Swoole\Response();
         $this->doHandshake($request, $response);
-
         return $response;
     }
 
+    /**
+     * Request come
+     * @param Swoole\Request $request
+     * @return Swoole\Response
+     */
     function onRequest(Swoole\Request $request)
     {
-        return $request->isWebSocket() ? $this->onWebSocketRequest($request) : parent::onRequest($request);
+        return $request->isWebSocket() ? $this->onWebSocketRequest($request) : $this->onHttpRequest($request);
     }
 
     /**
@@ -466,6 +496,7 @@ abstract class WebSocket extends HttpServer
 
     function onClose($serv, $client_id, $from_id)
     {
+        $this->onExit($client_id);
         $this->log("close client_id = $client_id");
         unset($this->ws_list[$client_id], $this->connections[$client_id], $this->requests[$client_id]);
         parent::onClose($serv, $client_id, $from_id);

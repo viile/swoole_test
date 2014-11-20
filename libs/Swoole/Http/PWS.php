@@ -10,12 +10,12 @@ class PWS implements \Swoole\IFace\Http
     function header($k, $v)
     {
         $k = ucwords($k);
-        \Swoole::$php->response->send_head($k, $v);
+        \Swoole::$php->response->setHeader($k, $v);
     }
 
     function status($code)
     {
-        \Swoole::$php->response->send_http_status($code);
+        \Swoole::$php->response->setHttpStatus($code);
     }
 
     function response($content)
@@ -25,8 +25,8 @@ class PWS implements \Swoole\IFace\Http
 
     function redirect($url, $mode = 301)
     {
-        \Swoole::$php->response->send_http_status($mode);
-        \Swoole::$php->response->send_head('Location', $url);
+        \Swoole::$php->response->setHttpStatus($mode);
+        \Swoole::$php->response->setHeader('Location', $url);
     }
 
     function finish($content = null)

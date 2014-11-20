@@ -318,7 +318,7 @@ class Swoole
         //重定向
         if (isset($response->head['Location']))
         {
-            $response->send_http_status(301);
+            $response->setHttpStatus(301);
         }
         return $response;
     }

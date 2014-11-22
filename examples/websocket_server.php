@@ -23,14 +23,22 @@ class WebSocket extends Swoole\Protocol\WebSocket
     }
 
     /**
+     * 进入
+     * @param $client_id
+     */
+    function onEnter($client_id)
+    {
+
+    }
+
+    /**
      * 下线时，通知所有人
      */
-    function onClose($serv, $client_id, $from_id)
+    function onExit($client_id)
     {
         //将下线消息发送给所有人
         //$this->log("onOffline: " . $client_id);
         //$this->broadcast($client_id, "onOffline: " . $client_id);
-        parent::onClose($serv, $client_id, $from_id);
     }
 
     function onMessage_mvc($client_id, $ws)

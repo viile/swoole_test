@@ -109,6 +109,7 @@ abstract class WebSocket extends HttpServer
      * @return mixed
      */
     abstract function onExit($client_id);
+    abstract function onEnter($client_id);
 
     /**
      * Called on WebSocket connection established.

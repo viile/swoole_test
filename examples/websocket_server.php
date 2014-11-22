@@ -89,7 +89,7 @@ $AppSvr->setLogger(new \Swoole\Log\EchoLog(true)); //Logger
  * EventTCP 使用libevent，需要安装libevent扩展
  */
 $enable_ssl = false;
-$server = new \Swoole\Network\Server('0.0.0.0', 9443, $enable_ssl);
+$server = Swoole\Network\Server::autoCreate('0.0.0.0', 9443, $enable_ssl);
 $server->setProtocol($AppSvr);
 //$server->daemonize(); //作为守护进程
 $server->run(array(

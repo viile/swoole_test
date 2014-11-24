@@ -108,7 +108,19 @@ abstract class WebSocket extends HttpServer
      * @param $client_id
      * @return mixed
      */
-    abstract function onExit($client_id);
+    function onExit($client_id)
+    {
+
+    }
+
+    /**
+     *
+     * @param $client_id
+     */
+    function onEnter($client_id)
+    {
+
+    }
 
     /**
      * Called on WebSocket connection established.
@@ -119,8 +131,8 @@ abstract class WebSocket extends HttpServer
     function onWsConnect($client_id, $request)
     {
         $this->log("WebSocket connection #$client_id is connected");
+        $this->onEnter($client_id);
     }
-
 
     /**
      * Produce response for Http request.

@@ -32,6 +32,12 @@ class PdoDB extends \PDO
         if ($db_config['setname']) parent::query('set names ' . $db_config['charset']);
         $this->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
 	}
+
+    function quote($str)
+    {
+        return trim(parent::quote($str), '\'');
+    }
+
 	/**
 	 * 执行一个SQL语句
 	 * @param string $sql 执行的SQL语句
@@ -39,10 +45,15 @@ class PdoDB extends \PDO
      */
 	public final function query($sql)
 	{
-		if($this->debug) echo "$sql<br />\n<hr />";
-		parent::quote($sql);
-		$res = parent::query($sql) or \Swoole\Error::info("SQL Error",implode(", ",$this->errorInfo())."<hr />$sql");
-		return $res;
+        if ($this->debug)
+        {
+            echo "$sql<br />\n<hr />";
+        }
+        $res = parent::query($sql) or \Swoole\Error::info(
+            "SQL Error",
+            implode(", ", $this->errorInfo()) . "<hr />$sql"
+        );
+        return $res;
 	}
 	/**
 	 * 关闭连接，释放资源

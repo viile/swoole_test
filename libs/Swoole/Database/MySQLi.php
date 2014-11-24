@@ -42,10 +42,17 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
 		}        
         return true;
     }
+
+    /**
+     * 过滤特殊字符
+     * @param $value
+     * @return string
+     */
     function quote($value)
     {
         return $this->escape_string($value);
     }
+
     /**
      * 执行一个SQL语句
      * @param string $sql 执行的SQL语句

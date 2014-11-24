@@ -630,8 +630,8 @@ class SelectDB
         foreach($data as $key => $value)
         {
             $value = $this->db->quote($value);
-            $field=$field."`$key`,";
-            $values=$values."'$value',";
+            $field = $field . "`$key`,";
+            $values = $values . "'$value',";
         }
         $field = substr($field, 0, -1);
         $values = substr($values, 0, -1);

@@ -12,4 +12,10 @@ class Db extends Swoole\Controller
         $res = $apt->getall();
         var_dump($res);
     }
+
+    function put()
+    {
+        $model = Model('User');
+        $model->put(array('name' => 'swoole', 'level' => 5, 'mobile' => '19999990000'));
+    }
 }

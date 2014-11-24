@@ -13,7 +13,7 @@ class Loader
 	/**
 	 * 命名空间的路径
 	 */
-	static $nsPath;
+	protected static $namespaces;
 	
 	static $swoole;
 	static $_objects;
@@ -76,9 +76,9 @@ class Loader
 	static function autoload($class)
 	{
 		$root = explode('\\', trim($class, '\\'), 2);
-		if (count($root) > 1 and isset(self::$nsPath[$root[0]]))
+		if (count($root) > 1 and isset(self::$namespaces[$root[0]]))
 		{
-            include self::$nsPath[$root[0]].'/'.str_replace('\\', '/', $root[1]).'.php';
+            include self::$namespaces[$root[0]].'/'.str_replace('\\', '/', $root[1]).'.php';
 		}
 	}
 	/**
@@ -86,8 +86,8 @@ class Loader
 	 * @param $root
 	 * @param $path
 	 */
-	static function setRootNS($root, $path)
+	static function addNameSpace($root, $path)
 	{
-		self::$nsPath[$root] = $path;
+		self::$namespaces[$root] = $path;
 	}
 }

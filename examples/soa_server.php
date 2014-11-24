@@ -1,13 +1,14 @@
 <?php
 define('DEBUG', 'on');
-define('WEBPATH', str_replace("\\", "/", __DIR__));
-require __DIR__ . '/../libs/lib_config.php';
+define('WEBPATH', dirname(__DIR__));
+require WEBPATH . '/libs/lib_config.php';
 
 $AppSvr = new Swoole\Protocol\SOAServer;
 $AppSvr->setLogger(new \Swoole\Log\EchoLog(true)); //Logger
 
 /**
- * 注册一个命名空间到SOA服务器
+ * 注册一个自定义的命名空间到SOA服务器
+ * 默认使用 apps/classes
  */
 $AppSvr->addNameSpace('BL', __DIR__ . '/class');
 

@@ -1,12 +1,12 @@
 <?php
 define('DEBUG', 'on');
-define("WEBPATH", str_replace("\\","/", __DIR__));
+define('WEBPATH', dirname(__DIR__));
 require __DIR__ . '/../libs/lib_config.php';
 //require __DIR__ . '/../vendor/autoload.php';
 
 $cloud = new Swoole\Client\SOA;
-//$cloud->setServer('task', array('10.232.41.141:9502'));
 $cloud->addServers(array('127.0.0.1:8888'));
+
 $s = microtime(true);
 $ok = $err = 0;
 for ($i = 0; $i < 1; $i++)
@@ -18,7 +18,7 @@ for ($i = 0; $i < 1; $i++)
     $ret2 = $cloud->task("BL\\Test::hello");
     $ret3 = $cloud->task("BL\\Test::test1", "hello{$i}_3");
     $ret4 = $cloud->task("BL\\Test::test1", "hello{$i}_4");
-    $ret5 = $cloud->task("BL\\Test::test1", "hello{$i}_5");
+    $ret5 = $cloud->task("App\\Test::test1");
     $ret6 = $cloud->task("BL\\Test::test1", "hello{$i}_6");
     $ret7 = $cloud->task("BL\\Test::test1", "hello{$i}_7");
     $ret8 = $cloud->task("BL\\Test::test1", "hello{$i}_8");

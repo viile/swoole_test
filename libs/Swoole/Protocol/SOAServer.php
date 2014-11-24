@@ -164,13 +164,21 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
     {
         unset($this->_buffer[$fd], $this->_fdfrom[$fd]);
     }
+
+    /**
+     * 增加命名空间
+     * @param $name
+     * @param $path
+     *
+     * @throws \Exception
+     */
     function addNameSpace($name, $path)
     {
         if(!is_dir($path))
         {
             throw new \Exception("$path is not real path.");
         }
-        Swoole\Loader::setRootNS($name, $path);
+        Swoole\Loader::addNameSpace($name, $path);
     }
 
     protected function call($request)

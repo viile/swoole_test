@@ -18,7 +18,9 @@ $server->setProtocol($AppSvr);
 //$server->daemonize(); //作为守护进程
 $server->run(
     array(
+        //TODO： 实际使用中必须调大进程数
         'worker_num'            => 4,
+
         'max_request'           => 5000,
         'dispatch_mode'         => 3,
         'open_length_check'     => 1,

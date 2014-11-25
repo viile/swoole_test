@@ -34,9 +34,10 @@ class Loader
     {
         require __DIR__ . '/../lib_config.php';
     }
+
 	/**
 	 * 加载一个模型对象
-	 * @param $model_name 模型名称
+	 * @param $model_name string 模型名称
 	 * @return $model_object 模型对象
 	 */
 	static function loadModel($model_name)
@@ -52,23 +53,27 @@ class Loader
 			return self::$_objects['model'][$model_name];
 		}
 	}
+
 	/**
 	 * 加载接口模块
 	 * @param $lib_name
-	 * @return unknown_type
+	 * @return mixed
 	 */
 	static function loadLib($lib_name)
 	{
-		if(isset(self::$_objects['lib'][$lib_name]))
-			return self::$_objects['lib'][$lib_name];
-		else
-		{
-			require(LIBPATH.'/factory/'.$lib_name.'.php');
-			$lib_object = $$lib_name;
-			self::$_objects['lib'][$lib_name] = $lib_object;
-			return $lib_object;
-		}
+        if (isset(self::$_objects['lib'][$lib_name]))
+        {
+            return self::$_objects['lib'][$lib_name];
+        }
+        else
+        {
+            require(LIBPATH . '/factory/' . $lib_name . '.php');
+            $lib_object = $$lib_name;
+            self::$_objects['lib'][$lib_name] = $lib_object;
+            return $lib_object;
+        }
 	}
+
 	/**
 	 * 自动载入类
 	 * @param $class

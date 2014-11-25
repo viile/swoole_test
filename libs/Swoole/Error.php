@@ -12,22 +12,22 @@ class Error extends \Exception
 {
     /**
      * 错误ID
-     * @var unknown_type
+     * @var int
      */
 	public $error_id;
-	/**
+
+    /**
 	 * 错误信息
-	 * @var unknown_type
+	 * @var string
 	 */
 	public $error_msg;
 	static public $error_code;
     static public $stop = true;
     static $echo_html = false;
-	/**
+
+    /**
 	 * 错误对象
-	 * @param $error 如果为INT，则读取错误信息字典，否则设置错误字符串
-	 * @param $stop 是否终止程序运行(exit)
-	 * @return unknown_type
+	 * @param $error string 如果为INT，则读取错误信息字典，否则设置错误字符串
 	 */
 	function __construct($error)
 	{
@@ -54,14 +54,21 @@ class Error extends \Exception
 	    }
 		global $php;
 		//如果定义了错误监听程序
-        if(isset($php->error_call[$this->error_id])) call_user_func($php->error_call[$this->error_id],$error);
-        if(self::$stop) exit(Error::info('Swoole Error',$this->error_msg));
+        if (isset($php->error_call[$this->error_id]))
+        {
+            call_user_func($php->error_call[$this->error_id], $error);
+        }
+        if (self::$stop)
+        {
+            exit(Error::info('Swoole Error', $this->error_msg));
+        }
 	}
+
 	/**
 	 * 输出一条错误信息，并结束程序的运行
 	 * @param $msg
 	 * @param $content
-	 * @return unknown_type
+	 * @return string
 	 */
 	static function info($msg,$content)
 	{

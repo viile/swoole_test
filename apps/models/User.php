@@ -4,5 +4,9 @@ use Swoole;
 
 class User extends Swoole\Model
 {
+    /**
+     * 表名
+     * @var string
+     */
     public $table = 'users';
 }

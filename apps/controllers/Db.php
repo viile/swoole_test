@@ -13,9 +13,16 @@ class Db extends Swoole\Controller
         var_dump($res);
     }
 
+    function tables()
+    {
+        $tables = $this->db->query("show tables")->fetchall();
+        var_dump($tables);
+    }
+
     function put()
     {
         $model = Model('User');
-        $model->put(array('name' => 'swoole', 'level' => 5, 'mobile' => '19999990000'));
+        $id = $model->put(array('name' => 'swoole', 'level' => 5, 'mobile' => '19999990000'));
+        echo "insert id = $id\n";
     }
 }

@@ -23,16 +23,6 @@ spl_autoload_register('\\Swoole\\Loader::autoload');
 global $php;
 $php = Swoole::getInstance();
 
-/**
- *函数的命名空间
- */
-function import_func($space_name)
-{
-    if($space_name{0}=='@') $func_file = WEBPATH.'/class/'.substr($space_name,1).'.func.php';
-    else $func_file = LIBPATH.'/function/'.$space_name.'.php';
-    require_once($func_file);
-}
-
 function createModel($model_name)
 {
     return model($model_name);

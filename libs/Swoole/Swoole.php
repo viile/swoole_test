@@ -353,30 +353,12 @@ class Swoole
         }
 		$this->env['mvc'] = $mvc;
 
-        //未使用命名空间
-        $controller_class_no_namespace = $mvc['controller'];
-        $controller_path = self::$app_path."/controllers/{$mvc['controller']}.php";
-        if (class_exists($controller_class_no_namespace, false))
-        {
-            $controller_class = $controller_class_no_namespace;
-            goto do_action;
-        }
-        else
-        {
-            if (is_file($controller_path))
-            {
-                require_once $controller_path;
-                $controller_class = $controller_class_no_namespace;
-                goto do_action;
-            }
-        }
-
         //使用命名空间，文件名必须大写
-        $controller_class_use_namespace = '\\App\\Controller\\'.ucwords($mvc['controller']);
-        $controller_path = self::$app_path."/controllers/".ucwords($mvc['controller']).".php";
-        if (class_exists($controller_class_use_namespace, false))
+        $controller_class = '\\App\\Controller\\'.ucwords($mvc['controller']);
+        $controller_path = self::$app_path.'/controllers/'.ucwords($mvc['controller']).'.php';
+
+        if (class_exists($controller_class, false))
         {
-            $controller_class = $controller_class_use_namespace;
             goto do_action;
         }
         else
@@ -384,7 +366,6 @@ class Swoole
             if (is_file($controller_path))
             {
                 require_once $controller_path;
-                $controller_class = $controller_class_use_namespace;
                 goto do_action;
             }
         }

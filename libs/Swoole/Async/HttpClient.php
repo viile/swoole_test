@@ -23,6 +23,8 @@ class HttpClient
     protected $trunk_length = 0;
     protected $userAgent = 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.116 Safari/537.36';
     protected $onReadyCallback;
+    protected $post_data;
+    protected $method = 'GET';
 
     function parseHeader($data)
     {
@@ -151,15 +153,13 @@ class HttpClient
     function onConnect(\swoole_client $cli)
     {
         echo "Connected\n";
-        $header = 'GET '.$this->uri['path'].' HTTP/1.1'. self::EOF;
+        $header = $this->method.' '.$this->uri['path'].' HTTP/1.1'. self::EOF;
         $header .= 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' . self::EOF;
-        $header .= 'Accept-Encoding: gzip,deflate,sdch' . self::EOF;
+        $header .= 'Accept-Encoding: gzip,deflate' . self::EOF;
         $header .= 'Accept-Language: zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4,ja;q=0.2' . self::EOF;
         $header .= 'Host: '.$this->uri['host']. self::EOF;
-        $header .= 'RA-Sid: 2A784AF7-20140212-113827-085a9c-c4de6e' . self::EOF;
-        $header .= 'RA-Ver: 2.2.1' . self::EOF;
-        $header .= 'Referer: http://'.$this->uri['host'].'/' . self::EOF;
         $header .= $this->userAgent . self::EOF;
+
         if (!empty($this->reqHeader))
         {
             foreach ($this->reqHeader as $k => $v)
@@ -167,8 +167,16 @@ class HttpClient
                 $header .= $k . ': ' . $v . self::EOF;
             }
         }
+
         $this->errorLog(__LINE__, $header);
-        $cli->send($header . self::EOF);
+        $body = '';
+        if ($this->post_data)
+        {
+            $header .= 'Content-Type: application/x-www-form-urlencoded' . self::EOF;
+            $header .= 'Content-Length: ' . strlen($this->post_data) . self::EOF;
+            $body = $this->post_data;
+        }
+        $cli->send($header . self::EOF . $body);
     }
 
     function  onReady($func)
@@ -247,13 +255,26 @@ class HttpClient
         $cli->connect($this->uri['host'], $this->uri['port'], $this->timeout);
     }
 
+    function get()
+    {
+        $this->execute();
+    }
+
     function __construct($url)
     {
         $this->url = $url;
         $this->uri = parse_url($this->url);
+
         if (empty($this->uri['port']))
         {
             $this->uri['port'] = self::PORT;
         }
+    }
+
+    function post(array $data)
+    {
+        $this->post_data = http_build_query($data);
+        $this->method = 'POST';
+        $this->execute();
     }
 }

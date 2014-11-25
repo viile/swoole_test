@@ -233,6 +233,11 @@ class HttpClient
 
     function execute()
     {
+        if (empty($this->onReadyCallback))
+        {
+            throw new \Exception(__CLASS__." require onReadyCallback");
+        }
+
         $cli = new \swoole_client(SWOOLE_TCP, SWOOLE_SOCK_ASYNC);
         $this->cli = $cli;
         $cli->on('connect', array($this, 'onConnect'));

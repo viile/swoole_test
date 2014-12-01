@@ -46,19 +46,6 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
             Swoole\Console::changeUser($this->config['server']['user']);
         }
 
-        if ($this->server instanceof Swoole\Network\Server and isset($this->config['server']['process_rename']))
-        {
-            global $argv;
-            if ($worker_id >= $serv->setting['worker_num'])
-            {
-                Swoole\Console::setProcessName('php '.$argv[0].': task');
-            }
-            else
-            {
-                Swoole\Console::setProcessName('php '.$argv[0].': worker');
-            }
-        }
-
         Swoole\Error::$echo_html = true;
         $this->swoole_server = $serv;
         Swoole::$php->server = $this;

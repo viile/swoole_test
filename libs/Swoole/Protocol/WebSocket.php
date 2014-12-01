@@ -240,6 +240,8 @@ abstract class WebSocket extends HttpServer
                 //数据已完整，进行处理
                 if (strlen($ws['data']) >= $ws['length'])
                 {
+                    $ws['fin'] = 1;
+                    $ws['finish'] = true;
                     $ws['data'] = substr($ws['data'], 0, $ws['length']);
                     $ws['message'] = $this->parseMessage($ws);
                     $this->opcodeSwitch($fd, $ws);

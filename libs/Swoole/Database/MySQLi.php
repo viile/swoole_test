@@ -26,7 +26,7 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
     function connect($host = NULL, $user = NULL, $password = NULL, $database = NULL, $port = NULL, $socket = NULL)
     {
         $db_config = &$this->config;
-        if ($db_config['persistent'])
+        if (!empty($db_config['persistent']))
         {
             $db_config['host'] = 'p:'.$db_config['host'];
         }

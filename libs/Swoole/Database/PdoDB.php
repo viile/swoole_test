@@ -21,7 +21,7 @@ class PdoDB extends \PDO
         $db_config = &$this->config;
         $dsn = $db_config['dbms'].":host=".$db_config['host'].";dbname=".$db_config['name'];
 
-        if (isset($db_config['persistent']) and $db_config['persistent'])
+        if (!empty($db_config['persistent']))
         {
             parent::__construct($dsn, $db_config['user'], $db_config['passwd'], array(\PDO::ATTR_PERSISTENT => true));
         }

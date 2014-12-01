@@ -16,7 +16,7 @@ class MySQL implements \Swoole\IDatabase
 
 	function __construct($db_config)
 	{
-		if(empty($db_config['port']))
+		if (empty($db_config['port']))
 		{
 			$db_config['port'] = self::DEFAULT_PORT;
 		}

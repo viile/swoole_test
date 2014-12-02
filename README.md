@@ -38,9 +38,8 @@ SwooleFramework: PHP的高级开发框架
 
 在线体验地址：<http://www.swoole.com/page/index/>
 
-赞助Swoole开源项目
+赞助Swoole开源项目（支付宝）
 -----
-支付宝二维码
 ![捐赠Swoole开源项目](http://wiki.swoole.com/static/image/alipay.png)
 
 Composer

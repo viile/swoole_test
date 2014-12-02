@@ -66,16 +66,35 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
     {
         global $argv;
         Swoole\Console::setProcessName('php ' . $argv[0] . ': master -host=' . $this->host . ' -port=' . $this->port);
+        
         if (!empty($this->swooleSetting['pid_file']))
         {
             file_put_contents($this->pid_file,$serv->master_pid);
         }
     }
+    
     function onManagerStop()
     {
         if (!empty($this->swooleSetting['pid_file']))
         {
             unlink($this->pid_file);
+        }
+    }
+    
+    function onWorkerStart($serv, $worker_id)
+    {
+        global $argv;
+        if ($worker_id >= $serv->setting['worker_num'])
+        {
+            Swoole\Console::setProcessName('php ' . $argv[0] . ': task');
+        }
+        else
+        {
+            Swoole\Console::setProcessName('php ' . $argv[0] . ': worker');
+        }
+        if (method_exists($this->protocol, 'onStart'))
+        {
+            $this->protocol->onStart($serv, $worker_id);
         }
     }
 
@@ -98,23 +117,7 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
         }
         $this->sw->on('Start', array($this, 'onMasterStart'));
         $this->sw->on('ManagerStop', array($this, 'onManagerStop'));
-
-        $this->sw->on('WorkerStart', function($serv, $worker_id) {
-            global $argv;
-            if ($worker_id >= $serv->setting['worker_num'])
-            {
-                Swoole\Console::setProcessName('php ' . $argv[0] . ': task');
-            }
-            else
-            {
-                Swoole\Console::setProcessName('php ' . $argv[0] . ': worker');
-            }
-            if (method_exists($this->protocol, 'onStart'))
-            {
-                $this->protocol->onStart($serv, $worker_id);
-            }
-        });
-
+        $this->sw->on('WorkerStart', array($this, 'onWorkerStart'));
         $this->sw->on('Connect', array($this->protocol, 'onConnect'));
         $this->sw->on('Receive', array($this->protocol, 'onReceive'));
         $this->sw->on('Close', array($this->protocol, 'onClose'));

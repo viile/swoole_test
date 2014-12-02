@@ -40,7 +40,8 @@ SwooleFramework: PHP的高级开发框架
 
 赞助Swoole开源项目
 -----
-捐赠地址：http://me.alipay.com/swoole
+支付宝二维码
+![捐赠Swoole开源项目](http://wiki.swoole.com/static/image/alipay.png)
 
 Composer
 -----

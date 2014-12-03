@@ -13,7 +13,6 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
      * @var \swoole_server
      */
     protected $sw;
-    protected $swooleSetting;
     protected $pid_file;
 
     /**
@@ -22,7 +21,7 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
      * @param      $host
      * @param      $port
      * @param bool $ssl
-     * @return EventTCP|SelectTCP|Server
+     * @return Server
      */
     static function autoCreate($host, $port, $ssl = false)
     {
@@ -48,7 +47,7 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
         $this->port = $port;
         Swoole\Error::$stop = false;
         Swoole\JS::$return = true;
-        $this->swooleSetting = array(
+        $this->runtimeSetting = array(
             //'reactor_num' => 4,      //reactor thread num
             //'worker_num' => 4,       //worker process num
             'backlog' => 128,        //listen backlog
@@ -59,7 +58,7 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
     }
     function daemonize()
     {
-        $this->swooleSetting['daemonize'] = 1;
+        $this->runtimeSetting['daemonize'] = 1;
     }
 
     function onMasterStart($serv)
@@ -67,7 +66,7 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
         global $argv;
         Swoole\Console::setProcessName('php ' . $argv[0] . ': master -host=' . $this->host . ' -port=' . $this->port);
         
-        if (!empty($this->swooleSetting['pid_file']))
+        if (!empty($this->runtimeSetting['pid_file']))
         {
             file_put_contents($this->pid_file,$serv->master_pid);
         }
@@ -75,7 +74,7 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
     
     function onManagerStop()
     {
-        if (!empty($this->swooleSetting['pid_file']))
+        if (!empty($this->runtimeSetting['pid_file']))
         {
             unlink($this->pid_file);
         }
@@ -100,12 +99,12 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
 
     function run($setting = array())
     {
-        $this->swooleSetting = array_merge($this->swooleSetting, $setting);
-        if (!empty($this->swooleSetting['pid_file']))
+        $this->runtimeSetting = array_merge($this->runtimeSetting, $setting);
+        if (!empty($this->runtimeSetting['pid_file']))
         {
-            $this->pid_file = $this->swooleSetting['pid_file'];
+            $this->pid_file = $this->runtimeSetting['pid_file'];
         }
-        $this->sw->set($this->swooleSetting);
+        $this->sw->set($this->runtimeSetting);
         $version = explode('.', SWOOLE_VERSION);
         //1.7.0
         if ($version[1] >= 7)

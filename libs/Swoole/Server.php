@@ -6,12 +6,14 @@ abstract class Server implements Server\Driver
 {
     public $setting = array();
     /**
-     * @var Swoole\IFace\Protocol
+     * @var Swoole\Protocol\WebServer
      */
     public $protocol;
 	public $host = '0.0.0.0';
 	public $port;
 	public $timeout;
+
+    public $runtimeSetting;
 
 	public $buffer_size = 8192;
 	public $write_buffer_size = 2097152;

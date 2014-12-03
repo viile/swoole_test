@@ -6,6 +6,9 @@ abstract class WebServer extends Base
 {
     const SOFTWARE = "SwooleFramework";
     const POST_MAXSIZE = 2000000; //POST最大2M
+    const DEFAULT_PORT = 8888;
+    const DEFAULT_HOST = '0.0.0.0';
+
     public $config = array();
 
     /**
@@ -136,16 +139,6 @@ abstract class WebServer extends Base
         {
             $opt['m'] = 'server';
         }
-        //host
-        if (empty($opt['h']))
-        {
-            $opt['h'] = '0.0.0.0';
-        }
-        //port
-        if (empty($opt['p']))
-        {
-            $opt['p'] = 8888;
-        }
         //daemonize
         if (empty($opt['d']))
         {
@@ -163,11 +156,40 @@ abstract class WebServer extends Base
         {
             $protocol->loadSetting($ini_file); //加载配置文件
         }
-        $protocol->default_port = $opt['p'];
-        $protocol->default_host = $opt['h'];
+        //port
+        if (!empty($opt['p']))
+        {
+            $protocol->default_port = $opt['p'];
+        }
+        elseif (!empty($protocol->config['server']['port']))
+        {
+            $protocol->default_port = $protocol->config['server']['port'];
+        }
+        else
+        {
+            $protocol->default_port = self::DEFAULT_PORT;
+        }
+        //host
+        if (!empty($opt['h']))
+        {
+            $protocol->default_host = $opt['h'];
+        }
+        elseif (!empty($protocol->config['server']['host']))
+        {
+            $protocol->default_host = $protocol->config['server']['host'];
+        }
+        else
+        {
+            $protocol->default_host = self::DEFAULT_HOST;
+        }
 
         $server = Swoole\Network\Server::autoCreate($protocol->default_host, $protocol->default_port);
         $server->setProtocol($protocol);
+
+        if (!empty($protocol->config['server']['worker_num']))
+        {
+            $server->runtimeSetting['worker_num'] = $protocol->config['server']['worker_num'];
+        }
 
         return $protocol;
     }

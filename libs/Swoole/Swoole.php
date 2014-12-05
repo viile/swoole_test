@@ -265,7 +265,8 @@ class Swoole
             echo Swoole\Error::info('MVC Error!',"UrlRouter hook is empty");
             return false;
         }
-        $uri = parse_url($_SERVER['REQUEST_URI']);
+
+        $uri = trim($_SERVER['REQUEST_URI'], '/');
         $mvc = array();
 
         //URL Router
@@ -342,7 +343,7 @@ class Swoole
         	return Swoole\Error::info('MVC Error!',"controller[{$mvc['controller']}] name incorrect.Regx: /^[a-z0-9_]+$/i");
         }
         //check view name
-        if (!preg_match('/^[a-z0-9_]+$/i',$mvc['view']))
+        if (!preg_match('/^[a-z0-9_]+$/i', $mvc['view']))
         {
         	return Swoole\Error::info('MVC Error!',"view[{$mvc['view']}] name incorrect.Regx: /^[a-z0-9_]+$/i");
         }
@@ -491,11 +492,14 @@ class Swoole
 function swoole_urlrouter_rewrite(&$uri)
 {
     $rewrite = Swoole::$php->config['rewrite'];
-    if(empty($rewrite) or !is_array($rewrite)) return false;
+    if (empty($rewrite) or !is_array($rewrite))
+    {
+        return false;
+    }
     $match = array();
     foreach($rewrite as $rule)
     {
-        if(preg_match('#'.$rule['regx'].'#', $uri['path'], $match))
+        if(preg_match('#'.$rule['regx'].'#', $uri, $match))
         {
             //合并到GET中
             if(isset($rule['get']))
@@ -515,20 +519,28 @@ function swoole_urlrouter_rewrite(&$uri)
 function swoole_urlrouter_mvc(&$uri)
 {
     $array = array('controller'=>'page', 'view'=>'index');
-    if(!empty($_GET["c"])) $array['controller'] = $_GET["c"];
-    if(!empty($_GET["v"])) $array['view'] = $_GET["v"];
+    if (!empty($_GET["c"]))
+    {
+        $array['controller'] = $_GET["c"];
+    }
 
-    if(empty($uri['path']) or $uri['path']=='/' or substr($uri['path'], -9) == 'index.php')
+    if (!empty($_GET["v"]))
+    {
+        $array['view'] = $_GET["v"];
+    }
+
+    if (empty($uri) or substr($uri, -8) == 'index.php')
     {
         return $array;
     }
-    $request = explode('/', trim($uri['path'], '/'), 3);
-    if(count($request) < 2)
+
+    $request = explode('/', $uri, 3);
+    if (count($request) < 2)
     {
         return $array;
     }
-    $array['controller']=$request[0];
-    $array['view']=$request[1];
+    $array['controller'] = $request[0];
+    $array['view'] = $request[1];
     if(isset($request[2]))
     {
         $request[2] = trim($request[2], '/');

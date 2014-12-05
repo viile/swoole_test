@@ -30,10 +30,10 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
         {
             $db_config['host'] = 'p:'.$db_config['host'];
         }
-        parent::connect($db_config['host'], $db_config['user'], $db_config['passwd'], $db_config['name']);
+        parent::connect($db_config['host'], $db_config['user'], $db_config['passwd'], $db_config['name'], $db_config['port']);
         if (mysqli_connect_errno())
         {
-            trigger_error("Mysqli connect failed: %s\n".mysqli_connect_error());
+            trigger_error("Mysqli connect failed: ".mysqli_connect_error());
             return false;
         }
         if (!empty($db_config['charset']))

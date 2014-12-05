@@ -68,6 +68,18 @@ class Controller
         return $content;
     }
 
+    function value($array, $key, $default = '')
+    {
+        if (isset($array[$key]))
+        {
+            return $array[$key];
+        }
+        else
+        {
+            return $default;
+        }
+    }
+
     function message($code = 0, $msg = 'success')
     {
         $ret = array('code' => $code, 'msg' => $msg);

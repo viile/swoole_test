@@ -160,30 +160,29 @@ class Form
      * $attrArray html标签的熟悉  就是这个select的属性标签 例如  class="x1"
      * $add_help 增加一个值为空的 请选择 项
      */
-	static function select($name,$option,$default=null,$self=null,$attrArray=null,$add_help=true)
+    static function select($name, $option, $default = null, $self = null, $attrArray = null, $add_help = true)
 	{
 		$htmlStr = "<select name=\"$name\" id=\"$name\"";
 		$htmlStr .= self::input_attr($attrArray) . ">\n";
 
-		if($add_help)
-		{
-			if($add_help===true)
-			$htmlStr .= "<option value=\"\">".self::$default_help_option."</option>\n";
-			else $htmlStr .= "<option value=\"\">$add_help</option>\n";
-		}
-		foreach($option as $key => $value)
-		{
-			if($self) $key=$value;
-			if ($key == $default)
-			{
-				$htmlStr .= "<option value=\"{$key}\" selected=\"selected\">{$value}</option>\n";
-			}
-			else
-			{
-				$htmlStr .= "<option value=\"{$key}\">{$value}</option>\n";
-			}
-		}
-		$htmlStr .= "</select>\n";
+        if ($add_help) {
+            if ($add_help === true) {
+                $htmlStr .= "<option value=\"\">" . self::$default_help_option . "</option>\n";
+            } else {
+                $htmlStr .= "<option value=\"\">$add_help</option>\n";
+            }
+        }
+        foreach ($option as $key => $value) {
+            if ($self) {
+                $key = $value;
+            }
+            if ($key == $default) {
+                $htmlStr .= "<option value=\"{$key}\" selected=\"selected\">{$value}</option>\n";
+            } else {
+                $htmlStr .= "<option value=\"{$key}\">{$value}</option>\n";
+            }
+        }
+        $htmlStr .= "</select>\n";
 
 		return $htmlStr;
 	}

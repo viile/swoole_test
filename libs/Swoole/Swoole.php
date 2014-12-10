@@ -492,22 +492,26 @@ class Swoole
 function swoole_urlrouter_rewrite(&$uri)
 {
     $rewrite = Swoole::$php->config['rewrite'];
+
     if (empty($rewrite) or !is_array($rewrite))
     {
         return false;
     }
     $match = array();
+    $uri_for_regx = '/'.$uri;
     foreach($rewrite as $rule)
     {
-        if(preg_match('#'.$rule['regx'].'#', $uri, $match))
+        if (preg_match('#'.$rule['regx'].'#i', $uri_for_regx, $match))
         {
-            //合并到GET中
-            if(isset($rule['get']))
+            if (isset($rule['get']))
             {
                 $p = explode(',', $rule['get']);
-                foreach($p as $k=>$v)
+                foreach ($p as $k => $v)
                 {
-                    $_GET[$v] = $match[$k+1];
+                    if (isset($match[$k + 1]))
+                    {
+                        $_GET[$v] = $match[$k + 1];
+                    }
                 }
             }
             return $rule['mvc'];

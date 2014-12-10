@@ -11,6 +11,11 @@ class Page extends Swoole\Controller
         return "default page";
     }
 
+    function detail()
+    {
+        var_dump($_GET);
+    }
+
     //数据库测试
     function db_test()
     {

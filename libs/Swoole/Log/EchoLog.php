@@ -1,14 +1,8 @@
 <?php
 namespace Swoole\Log;
-/**
- * Created by JetBrains PhpStorm.
- * User: htf
- * Date: 13-7-17
- * Time: ����9:49
- * To change this template use File | Settings | File Templates.
- */
+use Swoole;
 
-class EchoLog extends \Swoole\Log implements \Swoole\IFace\Log
+class EchoLog extends Swoole\Log implements Swoole\IFace\Log
 {
     protected $display = true;
 

@@ -79,7 +79,7 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
             }
             break;
         }
-        if ($result === false)
+        if (!$result)
         {
             echo \Swoole\Error::info("SQL Error", $this->error."<hr />$sql");
             return false;

@@ -177,8 +177,8 @@ abstract class WebSocket extends HttpServer
     {
         if ($request->isWebSocket())
         {
-            $conn = array('header' => $request->head, 'time' => time(), 'buffer' => '');
-            $this->connections[intval($request->fd)] = $conn;
+            $conn = array('header' => $request->head, 'time' => time());
+            $this->connections[$request->fd] = $conn;
 
             if (count($this->connections) > $this->max_connect)
             {
@@ -198,8 +198,7 @@ abstract class WebSocket extends HttpServer
      */
     public function onReceive($server, $fd, $from_id, $data)
     {
-        $this->log("Connection[{$fd}] received ".strlen($data)." bytes.");
-
+        //$this->log("Connection[{$fd}] received ".strlen($data)." bytes.");
         //未连接
         if (!isset($this->connections[$fd]))
         {
@@ -548,6 +547,6 @@ abstract class WebSocket extends HttpServer
     function cleanBuffer($fd)
     {
         parent::cleanBuffer($fd);
-        unset($this->frame_list[$fd], $this->connections[intval($fd)]);
+        unset($this->frame_list[$fd], $this->connections[$fd]);
     }
 }

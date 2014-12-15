@@ -75,7 +75,12 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
     function onClose($serv, $client_id, $from_id)
     {
         $this->log("client[#$client_id@$from_id] close");
-        unset($this->requests[$client_id], $this->buffer_header[$client_id]);
+        $this->cleanBuffer($client_id);
+    }
+
+    function cleanBuffer($fd)
+    {
+        unset($this->requests[$fd], $this->buffer_header[$fd]);
     }
 
     function checkHeader($client_id, $http_data)

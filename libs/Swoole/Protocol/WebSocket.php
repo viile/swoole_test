@@ -517,7 +517,7 @@ abstract class WebSocket extends HttpServer
     {
         $this->onExit($client_id);
         $this->log("close client_id = $client_id");
-        unset($this->ws_list[$client_id], $this->connections[$client_id], $this->requests[$client_id]);
+        $this->cleanBuffer($client_id);
         parent::onClose($serv, $client_id, $from_id);
     }
 
@@ -535,7 +535,17 @@ abstract class WebSocket extends HttpServer
     {
         $this->send($fd, pack('n', $code).$reason, self::OPCODE_CONNECTION_CLOSE);
         $this->log("server close connection[$fd]. reason: $reason, close_code = $code");
-        unset($this->ws_list[$fd], $this->connections[$fd], $this->requests[$fd], $this->buffer_header[$fd]);
+        $this->cleanBuffer($fd);
         return $this->server->close($fd);
+    }
+
+    /**
+     * 清理连接缓存区
+     * @param $fd
+     */
+    function cleanBuffer($fd)
+    {
+        parent::cleanBuffer($fd);
+        unset($this->ws_list[$fd], $this->connections[$fd]);
     }
 }

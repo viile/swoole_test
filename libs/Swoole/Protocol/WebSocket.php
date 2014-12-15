@@ -431,6 +431,7 @@ abstract class WebSocket extends HttpServer
     function opcodeSwitch($client_id, &$ws)
     {
         $this->log("[$client_id] opcode={$ws['opcode']}");
+
         switch($ws['opcode'])
         {
             case self::OPCODE_BINARY_FRAME:
@@ -472,19 +473,14 @@ abstract class WebSocket extends HttpServer
                 }
                 $code   = self::CLOSE_NORMAL;
                 $reason = null;
-                if (0 < $length)
+
+                if ($length > 0)
                 {
                     $message = &$ws['message'];
                     $_code   = unpack('nc', substr($message, 0, 2));
                     $code    = &$_code['c'];
 
-                    if (1000 > $code || (1004 <= $code && $code <= 1006) || (1012 <= $code && $code <= 1016) || 5000  <= $code)
-                    {
-                        $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
-                        break;
-                    }
-
-                    if (2 < $length)
+                    if ($length > 2)
                     {
                         $reason = substr($message, 2);
                         if (false === (bool) preg_match('//u', $reason))
@@ -493,8 +489,18 @@ abstract class WebSocket extends HttpServer
                             break;
                         }
                     }
+
+                    if (1000 > $code || (1004 <= $code && $code <= 1006) || (1012 <= $code && $code <= 1016) || 5000  <= $code)
+                    {
+                        $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
+                        break;
+                    }
+                    else
+                    {
+                        $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "client active close, code={$code}");
+                        break;
+                    }
                 }
-                $this->close($client_id, self::CLOSE_NORMAL);
                 break;
             default:
                 $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "unkown websocket opcode[{$ws['opcode']}]");
@@ -527,7 +533,7 @@ abstract class WebSocket extends HttpServer
     public function close($client_id, $code = self::CLOSE_NORMAL, $reason = '')
     {
         $this->send($client_id, pack('n', $code).$reason, self::OPCODE_CONNECTION_CLOSE);
-        $this->log("server close connection[$client_id]. reason: $reason, OPCODE = $code");
+        $this->log("server close connection[$client_id]. reason: $reason, close_code = $code");
         unset($this->ws_list[$client_id], $this->connections[$client_id], $this->requests[$client_id]);
         return $this->server->close($client_id);
     }

@@ -170,8 +170,6 @@ abstract class WebSocket extends HttpServer
 
     /**
      * Clean and fire onWsConnect().
-     *
-     * @param $client_id
      * @param Swoole\Request $request
      * @param Swoole\Response $response
      */
@@ -180,7 +178,7 @@ abstract class WebSocket extends HttpServer
         if ($request->isWebSocket())
         {
             $conn = array('header' => $request->head, 'time' => time(), 'buffer' => '');
-            $this->connections[$request->fd] = $conn;
+            $this->connections[intval($request->fd)] = $conn;
 
             if (count($this->connections) > $this->max_connect)
             {
@@ -437,6 +435,7 @@ abstract class WebSocket extends HttpServer
 
         switch($ws['opcode'])
         {
+            //data frame
             case self::OPCODE_BINARY_FRAME:
             case self::OPCODE_TEXT_FRAME:
                 if (0x1 === $ws['fin'])
@@ -449,6 +448,7 @@ abstract class WebSocket extends HttpServer
                 }
                 break;
 
+            //heartbeat
             case self::OPCODE_PING:
                 $message = &$ws['message'];
                 if (0x0  === $ws['fin'] or 0x7d  <  $ws['length'])
@@ -467,6 +467,7 @@ abstract class WebSocket extends HttpServer
                 }
                 break;
 
+            //close the connection
             case self::OPCODE_CONNECTION_CLOSE:
                 $length = &$ws['length'];
                 if (1 === $length or 0x7d < $length)
@@ -474,13 +475,12 @@ abstract class WebSocket extends HttpServer
                     $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "client active close");
                     break;
                 }
-                $reason = null;
 
                 if ($length > 0)
                 {
-                    $message = &$ws['message'];
+                    $message = $ws['message'];
                     $_code   = unpack('nc', substr($message, 0, 2));
-                    $code    = &$_code['c'];
+                    $code    = $_code['c'];
 
                     if ($length > 2)
                     {
@@ -513,14 +513,13 @@ abstract class WebSocket extends HttpServer
 
     function onConnect($serv, $client_id, $from_id)
     {
-        $this->log("connected client_id = $client_id");
+        $this->log("Event: Connection[$client_id] open.");
     }
 
     function onClose($serv, $client_id, $from_id)
     {
         $this->onExit($client_id);
-        $this->log("close client_id = $client_id");
-        $this->cleanBuffer($client_id);
+        $this->log("Event: Connection[$client_id] close.");
         parent::onClose($serv, $client_id, $from_id);
     }
 
@@ -549,6 +548,6 @@ abstract class WebSocket extends HttpServer
     function cleanBuffer($fd)
     {
         parent::cleanBuffer($fd);
-        unset($this->frame_list[$fd], $this->connections[$fd]);
+        unset($this->frame_list[$fd], $this->connections[intval($fd)]);
     }
 }

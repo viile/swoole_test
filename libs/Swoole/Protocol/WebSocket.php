@@ -32,7 +32,7 @@ abstract class WebSocket extends HttpServer
      */
     const GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
-    public $ws_list = array();
+    public $frame_list = array();
     public $connections = array();
     public $max_connect = 10000;
     public $max_frame_size = 2097152; //数据包最大长度，超过此长度会被认为是非法请求
@@ -200,52 +200,54 @@ abstract class WebSocket extends HttpServer
      */
     public function onReceive($server, $fd, $from_id, $data)
     {
+        $this->log("Connection[{$fd}] received ".strlen($data)." bytes.");
+
         //未连接
         if (!isset($this->connections[$fd]))
         {
-            //$this->log("[{$fd}] received data: $data. length = ".strlen($data));
-            return parent::onReceive($server,$fd, $from_id, $data);
+            return parent::onReceive($server, $fd, $from_id, $data);
         }
-        do
+
+        while (strlen($data) > 0 and isset($this->connections[$fd]))
         {
             //新的请求
-            if (!isset($this->ws_list[$fd]))
+            if (!isset($this->frame_list[$fd]))
             {
-                $ws = $this->parseFrame($data);
-                if ($ws === false)
+                $frame = $this->parseFrame($data);
+                if ($frame === false)
                 {
                     $this->log("Error Frame");
                     $this->close($fd);
                     break;
                 }
                 //数据完整
-                if ($ws['finish'])
+                if ($frame['finish'])
                 {
-                    $this->log("NewFrame finish. Opcode=".$ws['opcode']."|Length={$ws['length']}");
-                    $this->opcodeSwitch($fd, $ws);
+                    $this->log("NewFrame finish. Opcode=".$frame['opcode']."|Length={$frame['length']}");
+                    $this->opcodeSwitch($fd, $frame);
                 }
                 //数据不完整加入到缓存中
                 else
                 {
-                    $this->ws_list[$fd] = $ws;
+                    $this->frame_list[$fd] = $frame;
                 }
             }
             else
             {
-                $ws = &$this->ws_list[$fd];
-                $ws['data'] .= $data;
+                $frame = &$this->frame_list[$fd];
+                $frame['data'] .= $data;
 
                 //$this->log("wait length = ".$ws['length'].'. data_length='.strlen($ws['data']));
 
                 //数据已完整，进行处理
-                if (strlen($ws['data']) >= $ws['length'])
+                if (strlen($frame['data']) >= $frame['length'])
                 {
-                    $ws['fin'] = 1;
-                    $ws['finish'] = true;
-                    $ws['data'] = substr($ws['data'], 0, $ws['length']);
-                    $ws['message'] = $this->parseMessage($ws);
-                    $this->opcodeSwitch($fd, $ws);
-                    $data = substr($ws['data'], $ws['length']);
+                    $frame['fin'] = 1;
+                    $frame['finish'] = true;
+                    $frame['data'] = substr($frame['data'], 0, $frame['length']);
+                    $frame['message'] = $this->parseMessage($frame);
+                    $this->opcodeSwitch($fd, $frame);
+                    $data = substr($frame['data'], $frame['length']);
                 }
                 //数据不足，跳出循环，继续等待数据
                 else
@@ -253,7 +255,8 @@ abstract class WebSocket extends HttpServer
                     break;
                 }
             }
-        } while(strlen($data) > 0 and isset($this->connections[$fd]));
+        }
+        return true;
     }
 
     /**
@@ -505,7 +508,7 @@ abstract class WebSocket extends HttpServer
                 $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "unkown websocket opcode[{$ws['opcode']}]");
                 break;
         }
-        unset($this->ws_list[$client_id]);
+        unset($this->frame_list[$client_id]);
     }
 
     function onConnect($serv, $client_id, $from_id)
@@ -546,6 +549,6 @@ abstract class WebSocket extends HttpServer
     function cleanBuffer($fd)
     {
         parent::cleanBuffer($fd);
-        unset($this->ws_list[$fd], $this->connections[$fd]);
+        unset($this->frame_list[$fd], $this->connections[$fd]);
     }
 }

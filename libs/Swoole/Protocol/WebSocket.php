@@ -471,7 +471,6 @@ abstract class WebSocket extends HttpServer
                     $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "client active close");
                     break;
                 }
-                $code   = self::CLOSE_NORMAL;
                 $reason = null;
 
                 if ($length > 0)
@@ -524,17 +523,19 @@ abstract class WebSocket extends HttpServer
 
     /**
      * Close a connection.
+     *
      * @access  public
-     * @param   int $client_id
-     * @param   int     $code
-     * @param   string  $reason    Reason.
+     * @param   int    $fd
+     * @param   int    $code
+     * @param   string $reason Reason.
+     *
      * @return  bool
      */
-    public function close($client_id, $code = self::CLOSE_NORMAL, $reason = '')
+    public function close($fd, $code = self::CLOSE_NORMAL, $reason = '')
     {
-        $this->send($client_id, pack('n', $code).$reason, self::OPCODE_CONNECTION_CLOSE);
-        $this->log("server close connection[$client_id]. reason: $reason, close_code = $code");
-        unset($this->ws_list[$client_id], $this->connections[$client_id], $this->requests[$client_id]);
-        return $this->server->close($client_id);
+        $this->send($fd, pack('n', $code).$reason, self::OPCODE_CONNECTION_CLOSE);
+        $this->log("server close connection[$fd]. reason: $reason, close_code = $code");
+        unset($this->ws_list[$fd], $this->connections[$fd], $this->requests[$fd], $this->buffer_header[$fd]);
+        return $this->server->close($fd);
     }
 }

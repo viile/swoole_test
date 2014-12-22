@@ -510,18 +510,6 @@ abstract class WebSocket extends HttpServer
         unset($this->frame_list[$client_id]);
     }
 
-    function onConnect($serv, $client_id, $from_id)
-    {
-        $this->log("Event: Connection[$client_id] open.");
-    }
-
-    function onClose($serv, $client_id, $from_id)
-    {
-        $this->onExit($client_id);
-        $this->log("Event: Connection[$client_id] close.");
-        parent::onClose($serv, $client_id, $from_id);
-    }
-
     /**
      * Close a connection.
      *
@@ -536,7 +524,6 @@ abstract class WebSocket extends HttpServer
     {
         $this->send($fd, pack('n', $code).$reason, self::OPCODE_CONNECTION_CLOSE);
         $this->log("server close connection[$fd]. reason: $reason, close_code = $code");
-        $this->cleanBuffer($fd);
         return $this->server->close($fd);
     }
 
@@ -546,7 +533,7 @@ abstract class WebSocket extends HttpServer
      */
     function cleanBuffer($fd)
     {
-        parent::cleanBuffer($fd);
         unset($this->frame_list[$fd], $this->connections[$fd]);
+        parent::cleanBuffer($fd);
     }
 }

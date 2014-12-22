@@ -65,20 +65,26 @@ class MySQL implements \Swoole\IDatabase
                 if (mysql_errno($this->conn) == 2006 or mysql_errno($this->conn) == 2013)
                 {
                     $r = $this->checkConnection();
-                    if ($r === true) continue;
+                    if ($r === true)
+                    {
+                        continue;
+                    }
                 }
-                echo \Swoole\Error::info("SQL Error", mysql_error($this->conn)."<hr />$sql");
+                echo \Swoole\Error::info("SQL Error", mysql_error($this->conn) . "<hr />$sql");
+
                 return false;
             }
             break;
         }
 
-		if (!$res)
+        if (!$res)
         {
-            echo Swoole\Error::info("SQL Error", mysql_error($this->conn)."<hr />$sql");
+            echo Swoole\Error::info("SQL Error", mysql_error($this->conn) . "<hr />$sql");
+
             return false;
         }
-		return new MySQLRecord($res);
+
+        return new MySQLRecord($res);
 	}
 	/**
 	 * 返回上一个Insert语句的自增主键ID
@@ -102,8 +108,10 @@ class MySQL implements \Swoole\IDatabase
         if (!@$this->ping())
         {
             $this->close();
+
             return $this->connect();
         }
+
         return true;
     }
 
@@ -144,11 +152,11 @@ class MySQLRecord implements \Swoole\IDbRecord
 
 	function fetchall()
 	{
-		$data = array();
-		while($record = mysql_fetch_assoc($this->result))
-		{
-			$data[] = $record;
-		}
+        $data = array();
+        while ($record = mysql_fetch_assoc($this->result))
+        {
+            $data[] = $record;
+        }
 		return $data;
 	}
 	function free()

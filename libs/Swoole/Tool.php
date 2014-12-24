@@ -30,7 +30,7 @@ class Tool
     {
         if (function_exists('scandir'))
         {
-
+            return scandir($dir);
         }
         else
         {
@@ -47,6 +47,16 @@ class Tool
             sort($files);
         }
         $dirs = scandir($dir);
+    }
+
+    /**
+     * 将PHP变量到处为文件内容
+     * @param mixed $var
+     * @return string
+     */
+    static function export($var)
+    {
+        return "<?php\nreturn ".var_export($var, true).";";
     }
 
     /**

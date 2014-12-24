@@ -9,12 +9,18 @@ namespace Swoole\Database;
  */
 class MySQLi extends \mysqli implements \Swoole\IDatabase
 {
+    const DEFAULT_PORT = 3306;
+
     public $debug = false;
     public $conn = null;
     public $config;
 
     function __construct($db_config)
     {
+        if (empty($db_config['port']))
+        {
+            $db_config['port'] = self::DEFAULT_PORT;
+        }
         $this->config = $db_config;
     }
 

@@ -19,7 +19,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
     const DATE_FORMAT_HTTP = 'D, d-M-Y H:i:s T';
 
     const HTTP_EOF = "\r\n\r\n";
-    const HTTP_HEAD_MAXLEN = 2048; //http头最大长度不得超过2k
+    const HTTP_HEAD_MAXLEN = 8192; //http头最大长度不得超过2k
 
     const ST_FINISH = 1; //完成，进入处理流程
     const ST_WAIT   = 2; //等待数据

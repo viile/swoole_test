@@ -63,18 +63,28 @@ class GeneralView
         $this->model = table($table_name);
     }
 
-    function geturl($add='')
+    function geturl($add = '')
     {
-        return $_SERVER['PHP_SELF'].'?action='.$this->action.'&'.$add;
+        return $_SERVER['PHP_SELF'] . '?action=' . $this->action . '&' . $add;
     }
 
     function run()
     {
-        $_GET['action'] = Validate::word($_GET['action']);
-        if(!empty($_GET['action'])) $this->action = $_GET['action'];
-        $method = self::$method_prefix.'_'.$this->action;
-        if(method_exists($this,$method)) call_user_func(array($this,$method));
-        else Error::info('GeneralView Error!',"View <b>{$this->app_name}->{$method}</b> Not Found!");
+        if (!empty($_GET['action']))
+        {
+            $this->action = $_GET['action'];
+        }
+        $this->action = Validate::word($this->action);
+
+        $method = self::$method_prefix . '_' . $this->action;
+        if (method_exists($this, $method))
+        {
+            call_user_func(array($this, $method));
+        }
+        else
+        {
+            Error::info('GeneralView Error!', "View <b>{$this->app_name}->{$method}</b> Not Found!");
+        }
     }
     /**
      * 处理上传文件

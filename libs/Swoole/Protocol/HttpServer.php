@@ -369,6 +369,8 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
     {
         $response = new Swoole\Response;
         $this->currentResponse = $response;
+        \Swoole::$php->request = $request;
+        \Swoole::$php->response = $response;
 
         //请求路径
         if ($request->meta['path'][strlen($request->meta['path']) - 1] == '/')
@@ -475,6 +477,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         {
             $request->setGlobal();
             $response->head['Content-Type'] = 'text/html';
+
             ob_start();
             try
             {

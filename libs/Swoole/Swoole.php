@@ -287,6 +287,22 @@ class Swoole
         return $mvc;
     }
 
+    /**
+     * 设置应用程序路径
+     * @param $dir
+     */
+    static function setAppPath($dir)
+    {
+        if (is_dir($dir))
+        {
+            self::$app_path = $dir;
+        }
+        else
+        {
+            \Swoole\Error::info("fatal error", "app_path[$dir] is not exists.");
+        }
+    }
+
     function handlerServer(Swoole\Request $request)
     {
         $response = new Swoole\Response();

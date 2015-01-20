@@ -187,6 +187,44 @@ class Form
 
 		return $htmlStr;
 	}
+
+	/**
+	 * 多选下拉选择菜单
+	 * $name  此select 的 name 标签
+	 * $array 要制作select 的数
+	 * $default 如果要设定默认选择哪个数据 就在此填入默认的数据的值
+	 * $self 设置为ture，option的值等于$value
+	 * $attrArray html标签的熟悉  就是这个select的属性标签 例如  class="x1"
+	 * $add_help 增加一个值为空的 请选择 项
+	 */
+	static function muti_select($name,$option,$default=array(),$self=null,$attrArray=null,$add_help=true)
+	{
+		$htmlStr = "<select name=\"$name\" id=\"$name\"";
+		$htmlStr .= self::input_attr($attrArray) . ">\n";
+
+		if($add_help)
+		{
+			if($add_help===true)
+				$htmlStr .= "<option value=\"\">".self::$default_help_option."</option>\n";
+			else $htmlStr .= "<option value=\"\">$add_help</option>\n";
+		}
+		foreach($option as $key => $value)
+		{
+			if($self) $key=$value;
+			if (in_array($key,$default))
+			{
+				$htmlStr .= "<option value=\"{$key}\" selected=\"selected\">{$value}</option>\n";
+			}
+			else
+			{
+				$htmlStr .= "<option value=\"{$key}\">{$value}</option>\n";
+			}
+		}
+		$htmlStr .= "</select>\n";
+
+		return $htmlStr;
+	}
+
 	/**
 	 * 单选按钮
 	 *	$name  此radio 的 name 标签

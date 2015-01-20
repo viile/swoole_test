@@ -32,7 +32,7 @@ abstract class WebSocket extends HttpServer
      */
     const GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
-    public $ws_list = array();
+    public $frame_list = array();
     public $connections = array();
     public $max_connect = 10000;
     public $max_frame_size = 2097152; //数据包最大长度，超过此长度会被认为是非法请求
@@ -170,8 +170,6 @@ abstract class WebSocket extends HttpServer
 
     /**
      * Clean and fire onWsConnect().
-     *
-     * @param $client_id
      * @param Swoole\Request $request
      * @param Swoole\Response $response
      */
@@ -179,7 +177,7 @@ abstract class WebSocket extends HttpServer
     {
         if ($request->isWebSocket())
         {
-            $conn = array('header' => $request->head, 'time' => time(), 'buffer' => '');
+            $conn = array('header' => $request->head, 'time' => time());
             $this->connections[$request->fd] = $conn;
 
             if (count($this->connections) > $this->max_connect)
@@ -200,52 +198,53 @@ abstract class WebSocket extends HttpServer
      */
     public function onReceive($server, $fd, $from_id, $data)
     {
+        //$this->log("Connection[{$fd}] received ".strlen($data)." bytes.");
         //未连接
         if (!isset($this->connections[$fd]))
         {
-            //$this->log("[{$fd}] received data: $data. length = ".strlen($data));
-            return parent::onReceive($server,$fd, $from_id, $data);
+            return parent::onReceive($server, $fd, $from_id, $data);
         }
-        do
+
+        while (strlen($data) > 0 and isset($this->connections[$fd]))
         {
             //新的请求
-            if (!isset($this->ws_list[$fd]))
+            if (!isset($this->frame_list[$fd]))
             {
-                $ws = $this->parseFrame($data);
-                if ($ws === false)
+                $frame = $this->parseFrame($data);
+                if ($frame === false)
                 {
                     $this->log("Error Frame");
                     $this->close($fd);
                     break;
                 }
                 //数据完整
-                if ($ws['finish'])
+                if ($frame['finish'])
                 {
-                    $this->log("NewFrame finish. Opcode=".$ws['opcode']."|Length={$ws['length']}");
-                    $this->opcodeSwitch($fd, $ws);
+                    $this->log("NewFrame finish. Opcode=".$frame['opcode']."|Length={$frame['length']}");
+                    $this->opcodeSwitch($fd, $frame);
                 }
                 //数据不完整加入到缓存中
                 else
                 {
-                    $this->ws_list[$fd] = $ws;
+                    $this->frame_list[$fd] = $frame;
                 }
             }
             else
             {
-                $ws = &$this->ws_list[$fd];
-                $ws['data'] .= $data;
+                $frame = &$this->frame_list[$fd];
+                $frame['data'] .= $data;
 
                 //$this->log("wait length = ".$ws['length'].'. data_length='.strlen($ws['data']));
 
                 //数据已完整，进行处理
-                if (strlen($ws['data']) >= $ws['length'])
+                if (strlen($frame['data']) >= $frame['length'])
                 {
-                    $ws['fin'] = 1;
-                    $ws['finish'] = true;
-                    $ws['data'] = substr($ws['data'], 0, $ws['length']);
-                    $ws['message'] = $this->parseMessage($ws);
-                    $this->opcodeSwitch($fd, $ws);
-                    $data = substr($ws['data'], $ws['length']);
+                    $frame['fin'] = 1;
+                    $frame['finish'] = true;
+                    $frame['data'] = substr($frame['data'], 0, $frame['length']);
+                    $frame['message'] = $this->parseMessage($frame);
+                    $this->opcodeSwitch($fd, $frame);
+                    $data = substr($frame['data'], $frame['length']);
                 }
                 //数据不足，跳出循环，继续等待数据
                 else
@@ -253,7 +252,8 @@ abstract class WebSocket extends HttpServer
                     break;
                 }
             }
-        } while(strlen($data) > 0 and isset($this->connections[$fd]));
+        }
+        return true;
     }
 
     /**
@@ -431,8 +431,10 @@ abstract class WebSocket extends HttpServer
     function opcodeSwitch($client_id, &$ws)
     {
         $this->log("[$client_id] opcode={$ws['opcode']}");
+
         switch($ws['opcode'])
         {
+            //data frame
             case self::OPCODE_BINARY_FRAME:
             case self::OPCODE_TEXT_FRAME:
                 if (0x1 === $ws['fin'])
@@ -445,6 +447,7 @@ abstract class WebSocket extends HttpServer
                 }
                 break;
 
+            //heartbeat
             case self::OPCODE_PING:
                 $message = &$ws['message'];
                 if (0x0  === $ws['fin'] or 0x7d  <  $ws['length'])
@@ -463,6 +466,7 @@ abstract class WebSocket extends HttpServer
                 }
                 break;
 
+            //close the connection
             case self::OPCODE_CONNECTION_CLOSE:
                 $length = &$ws['length'];
                 if (1 === $length or 0x7d < $length)
@@ -470,21 +474,14 @@ abstract class WebSocket extends HttpServer
                     $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "client active close");
                     break;
                 }
-                $code   = self::CLOSE_NORMAL;
-                $reason = null;
-                if (0 < $length)
+
+                if ($length > 0)
                 {
-                    $message = &$ws['message'];
+                    $message = $ws['message'];
                     $_code   = unpack('nc', substr($message, 0, 2));
-                    $code    = &$_code['c'];
+                    $code    = $_code['c'];
 
-                    if (1000 > $code || (1004 <= $code && $code <= 1006) || (1012 <= $code && $code <= 1016) || 5000  <= $code)
-                    {
-                        $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
-                        break;
-                    }
-
-                    if (2 < $length)
+                    if ($length > 2)
                     {
                         $reason = substr($message, 2);
                         if (false === (bool) preg_match('//u', $reason))
@@ -493,42 +490,50 @@ abstract class WebSocket extends HttpServer
                             break;
                         }
                     }
+
+                    if (1000 > $code || (1004 <= $code && $code <= 1006) || (1012 <= $code && $code <= 1016) || 5000  <= $code)
+                    {
+                        $this->close($client_id, self::CLOSE_PROTOCOL_ERROR);
+                        break;
+                    }
+                    else
+                    {
+                        $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "client active close, code={$code}");
+                        break;
+                    }
                 }
-                $this->close($client_id, self::CLOSE_NORMAL);
                 break;
             default:
                 $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "unkown websocket opcode[{$ws['opcode']}]");
                 break;
         }
-        unset($this->ws_list[$client_id]);
-    }
-
-    function onConnect($serv, $client_id, $from_id)
-    {
-        $this->log("connected client_id = $client_id");
-    }
-
-    function onClose($serv, $client_id, $from_id)
-    {
-        $this->onExit($client_id);
-        $this->log("close client_id = $client_id");
-        unset($this->ws_list[$client_id], $this->connections[$client_id], $this->requests[$client_id]);
-        parent::onClose($serv, $client_id, $from_id);
+        unset($this->frame_list[$client_id]);
     }
 
     /**
      * Close a connection.
+     *
      * @access  public
-     * @param   int $client_id
-     * @param   int     $code
-     * @param   string  $reason    Reason.
+     * @param   int    $fd
+     * @param   int    $code
+     * @param   string $reason Reason.
+     *
      * @return  bool
      */
-    public function close($client_id, $code = self::CLOSE_NORMAL, $reason = '')
+    public function close($fd, $code = self::CLOSE_NORMAL, $reason = '')
     {
-        $this->send($client_id, pack('n', $code).$reason, self::OPCODE_CONNECTION_CLOSE);
-        $this->log("server close connection[$client_id]. reason: $reason, OPCODE = $code");
-        unset($this->ws_list[$client_id], $this->connections[$client_id], $this->requests[$client_id]);
-        return $this->server->close($client_id);
+        $this->send($fd, pack('n', $code).$reason, self::OPCODE_CONNECTION_CLOSE);
+        $this->log("server close connection[$fd]. reason: $reason, close_code = $code");
+        return $this->server->close($fd);
+    }
+
+    /**
+     * 清理连接缓存区
+     * @param $fd
+     */
+    function cleanBuffer($fd)
+    {
+        unset($this->frame_list[$fd], $this->connections[$fd]);
+        parent::cleanBuffer($fd);
     }
 }

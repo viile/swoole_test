@@ -363,18 +363,24 @@ class Record implements \ArrayAccess
 
 	function __construct($id, $db, $table, $primary, $where='', $select='*')
 	{
-		$this->db=$db;
-		$this->_current_id=$id;
-		$this->table=$table;
-		$this->primary=$primary;
-        if (empty($where)) $where = $primary;
-		if(!empty($this->_current_id))
-		{
-			$res=$this->db->query("select $select from ".$this->table.' where '.$where."='$id' limit 1");
-			$this->_data = $res->fetch();
+        $this->db = $db;
+        $this->_current_id = $id;
+        $this->table = $table;
+        $this->primary = $primary;
+        if (empty($where))
+        {
+            $where = $primary;
+        }
+        if (!empty($this->_current_id))
+        {
+            $res = $this->db->query("select $select from " . $this->table . ' where ' . $where . "='$id' limit 1");
+            $this->_data = $res->fetch();
             $this->_current_id = $this->_data[$this->primary];
-			if(!empty($this->_data)) $this->change=1;
-		}
+            if (!empty($this->_data))
+            {
+                $this->change = 1;
+            }
+        }
 	}
 	/**
 	 * 将关联数组压入object中，赋值给各个字段
@@ -431,21 +437,24 @@ class Record implements \ArrayAccess
 	 */
 	function save()
 	{
-		if($this->change==0 or $this->change==1)
-		{
-			$ret = $this->db->insert($this->_data, $this->table);
-            if($ret === false) return false;
+        if ($this->change == 0 or $this->change == 1)
+        {
+            $ret = $this->db->insert($this->_data, $this->table);
+            if ($ret === false)
+            {
+                return false;
+            }
             //改变状态
             $this->change = 1;
-			$this->_current_id = $this->db->lastInsertId();
-		}
-		elseif($this->change==2)
-		{
-			$update = $this->_data;
-			unset($update[$this->primary]);
-			return $this->db->update($this->_current_id,$this->_change,$this->table,$this->primary);
-		}
-		return true;
+            $this->_current_id = $this->db->lastInsertId();
+        }
+        elseif ($this->change == 2)
+        {
+            $update = $this->_data;
+            unset($update[$this->primary]);
+            return $this->db->update($this->_current_id, $this->_change, $this->table, $this->primary);
+        }
+        return true;
 	}
 	function update()
 	{

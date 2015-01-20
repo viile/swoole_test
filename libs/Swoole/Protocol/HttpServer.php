@@ -19,7 +19,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
     const DATE_FORMAT_HTTP = 'D, d-M-Y H:i:s T';
 
     const HTTP_EOF = "\r\n\r\n";
-    const HTTP_HEAD_MAXLEN = 2048; //http头最大长度不得超过2k
+    const HTTP_HEAD_MAXLEN = 8192; //http头最大长度不得超过2k
 
     const ST_FINISH = 1; //完成，进入处理流程
     const ST_WAIT   = 2; //等待数据
@@ -46,19 +46,6 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
             Swoole\Console::changeUser($this->config['server']['user']);
         }
 
-        if ($this->server instanceof Swoole\Network\Server and isset($this->config['server']['process_rename']))
-        {
-            global $argv;
-            if ($worker_id >= $serv->setting['worker_num'])
-            {
-                Swoole\Console::setProcessName('php '.$argv[0].': task');
-            }
-            else
-            {
-                Swoole\Console::setProcessName('php '.$argv[0].': worker');
-            }
-        }
-
         Swoole\Error::$echo_html = true;
         $this->swoole_server = $serv;
         Swoole::$php->server = $this;
@@ -81,14 +68,19 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
 
     function onConnect($serv, $client_id, $from_id)
     {
-        $this->log("client[#$client_id@$from_id] connect");
+        $this->log("Event: client[#$client_id@$from_id] connect");
     }
 
 
     function onClose($serv, $client_id, $from_id)
     {
-        $this->log("client[#$client_id@$from_id] close");
-        unset($this->requests[$client_id], $this->buffer_header[$client_id]);
+        $this->log("Event: client[#$client_id@$from_id] close");
+        $this->cleanBuffer($client_id);
+    }
+
+    function cleanBuffer($fd)
+    {
+        unset($this->requests[$fd], $this->buffer_header[$fd]);
     }
 
     function checkHeader($client_id, $http_data)
@@ -377,6 +369,8 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
     {
         $response = new Swoole\Response;
         $this->currentResponse = $response;
+        \Swoole::$php->request = $request;
+        \Swoole::$php->response = $response;
 
         //请求路径
         if ($request->meta['path'][strlen($request->meta['path']) - 1] == '/')
@@ -483,6 +477,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         {
             $request->setGlobal();
             $response->head['Content-Type'] = 'text/html';
+
             ob_start();
             try
             {

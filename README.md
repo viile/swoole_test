@@ -7,6 +7,9 @@ SwooleFramework: PHP的高级开发框架
 * 全面采用命名空间+autoload，代码中无需任何的include/require
 * 全局注册树，所有资源都挂载到全局树上，彻底实现资源的单例管理和懒加载
 * 全栈框架，提供了数据库操作，模板，Cache，日志，队列，上传管理，用户管理等几乎所有的功能
+ 
+> 最新版本的代码已经彻底废弃非命名空间代码，升级框架之后，apps/controller/和apps/models中的代码需要按照命名空间的规范修改一次  
+
 
 应用服务器
 -----
@@ -35,9 +38,9 @@ SwooleFramework: PHP的高级开发框架
 
 在线体验地址：<http://www.swoole.com/page/index/>
 
-赞助Swoole开源项目
+赞助Swoole开源项目（支付宝）
 -----
-捐赠地址：http://me.alipay.com/swoole
+![捐赠Swoole开源项目](http://wiki.swoole.com/static/image/alipay.png)
 
 Composer
 -----

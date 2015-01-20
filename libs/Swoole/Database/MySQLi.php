@@ -3,18 +3,25 @@ namespace Swoole\Database;
 
 /**
  * MySQL数据库封装类
+ *
  * @package SwooleExtend
- * @author Tianfeng.Han
+ * @author  Tianfeng.Han
  *
  */
 class MySQLi extends \mysqli implements \Swoole\IDatabase
 {
+    const DEFAULT_PORT = 3306;
+
     public $debug = false;
     public $conn = null;
     public $config;
 
     function __construct($db_config)
     {
+        if (empty($db_config['port']))
+        {
+            $db_config['port'] = self::DEFAULT_PORT;
+        }
         $this->config = $db_config;
     }
 
@@ -23,29 +30,38 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
         return $this->insert_id;
     }
 
-    function connect($host = NULL, $user = NULL, $password = NULL, $database = NULL, $port = NULL, $socket = NULL)
+    function connect($host = null, $user = null, $password = null, $database = null, $port = null, $socket = null)
     {
-        $db_config = &$this->config;
-        if ($db_config['persistent'])
+        $db_config = & $this->config;
+        if (!empty($db_config['persistent']))
         {
-            $db_config['host'] = 'p:'.$db_config['host'];
+            $db_config['host'] = 'p:' . $db_config['host'];
         }
-        parent::connect($db_config['host'], $db_config['user'], $db_config['passwd'], $db_config['name']);
+        parent::connect(
+            $db_config['host'],
+            $db_config['user'],
+            $db_config['passwd'],
+            $db_config['name'],
+            $db_config['port']
+        );
         if (mysqli_connect_errno())
         {
-            trigger_error("Mysqli connect failed: %s\n".mysqli_connect_error());
+            trigger_error("Mysqli connect failed: " . mysqli_connect_error());
+
             return false;
         }
         if (!empty($db_config['charset']))
         {
-			$this->set_charset($db_config['charset']);
-		}        
+            $this->set_charset($db_config['charset']);
+        }
         return true;
     }
 
     /**
      * 过滤特殊字符
+     *
      * @param $value
+     *
      * @return string
      */
     function quote($value)
@@ -55,7 +71,9 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
 
     /**
      * 执行一个SQL语句
+     *
      * @param string $sql 执行的SQL语句
+     *
      * @return MySQLiRecord | false
      */
     function query($sql)
@@ -69,19 +87,22 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
                 if ($this->errno == 2013 or $this->errno == 2006)
                 {
                     $r = $this->checkConnection();
-                    if ($r === true) continue;
+                    if ($r === true)
+                    {
+                        continue;
+                    }
                 }
                 else
                 {
-                    echo \Swoole\Error::info("SQL Error", $this->error."<hr />$sql");
+                    echo \Swoole\Error::info("SQL Error", $this->error . "<hr />$sql");
                     return false;
                 }
             }
             break;
         }
-        if ($result === false)
+        if (!$result)
         {
-            echo \Swoole\Error::info("SQL Error", $this->error."<hr />$sql");
+            echo \Swoole\Error::info("SQL Error", $this->error . "<hr />$sql");
             return false;
         }
         return new MySQLiRecord($result);
@@ -99,21 +120,24 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
         }
         return true;
     }
+
     /**
      * 返回上一个Insert语句的自增主键ID
-     * @return $ID
+     * @return int
      */
     function Insert_ID()
     {
         return $this->insert_id;
     }
 }
+
 class MySQLiRecord implements \Swoole\IDbRecord
 {
     /**
      * @var \mysqli_result
      */
     public $result;
+
     function __construct($result)
     {
         $this->result = $result;
@@ -127,12 +151,13 @@ class MySQLiRecord implements \Swoole\IDbRecord
     function fetchall()
     {
         $data = array();
-        while($record = $this->result->fetch_assoc())
+        while ($record = $this->result->fetch_assoc())
         {
             $data[] = $record;
         }
         return $data;
     }
+
     function free()
     {
         $this->result->free_result();

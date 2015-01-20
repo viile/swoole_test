@@ -185,7 +185,7 @@ class Tree
 		$this->remove_noise("'<\s*style[^>]*[^/]>(.*?)<\s*/\s*style\s*>'is");
 		$this->remove_noise("'<\s*style\s*>(.*?)<\s*/\s*style\s*>'is");
 		// strip out preformatted tags
-		$this->remove_noise("'<\s*(?:code)[^>]*>(.*?)<\s*/\s*(?:code)\s*>'is");
+	    //$this->remove_noise("'<\s*(?:code)[^>]*>(.*?)<\s*/\s*(?:code)\s*>'is");
 		// strip out server side scripts
 		$this->remove_noise("'(<\?)(.*?)(\?>)'s", true);
 		// strip smarty scripts

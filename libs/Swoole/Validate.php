@@ -21,8 +21,6 @@ class Validate
         'phone'=>'/^\d{3}-?\d{8}|\d{4}-?\d{7}$/',
     //域名
         'domain'=>'/@([0-9a-z-_]+.)+[0-9a-z-_]+$/i',
-    //IPv4
-        'ip'=>'/^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$/',
     //日期
         'date'=>'/^[1-9][0-9][0-9][0-9]-[0-9]{1,2}-[0-9]{1,2}$/',
     //日期时间
@@ -74,6 +72,25 @@ class Validate
         {
             return self::$ctype($input);
         }
+    }
+
+    /**
+     * 检查数组是否缺少某些Key
+     * @param array $array
+     * @param array $keys
+     *
+     * @return bool
+     */
+    static function checkLacks(array $array, array $keys)
+    {
+        foreach($keys as $k)
+        {
+            if (empty($array[$k]))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -131,7 +148,7 @@ class Validate
      * @param $str
      * @return false or $str
      */
-    static function word($str,$other='')
+    static function word($str, $other='')
     {
         $n = preg_match("/^([a-zA-Z_{$other}]*)$/",$str,$match);
         if($n===0) return false;
@@ -152,6 +169,21 @@ class Validate
             if ($ord > 127) return false;
         }
         return $value;
+    }
+
+    static function ip($value)
+    {
+        $arr = explode('.', $value);
+        if (count($arr) != 4) {
+            return false;
+        }
+        foreach ($arr as $n) {
+            $n = intval($n);
+            if ($n < 1 or $n > 255) {
+                return false;
+            }
+        }
+        return true;
     }
     /**
      * 检查值如果为空则设置为默认值

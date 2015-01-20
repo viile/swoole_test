@@ -13,7 +13,6 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
      * @var \swoole_server
      */
     protected $sw;
-    protected $swooleSetting;
     protected $pid_file;
 
     /**
@@ -22,7 +21,7 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
      * @param      $host
      * @param      $port
      * @param bool $ssl
-     * @return EventTCP|SelectTCP|Server
+     * @return Server
      */
     static function autoCreate($host, $port, $ssl = false)
     {
@@ -48,7 +47,7 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
         $this->port = $port;
         Swoole\Error::$stop = false;
         Swoole\JS::$return = true;
-        $this->swooleSetting = array(
+        $this->runtimeSetting = array(
             //'reactor_num' => 4,      //reactor thread num
             //'worker_num' => 4,       //worker process num
             'backlog' => 128,        //listen backlog
@@ -59,34 +58,53 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
     }
     function daemonize()
     {
-        $this->swooleSetting['daemonize'] = 1;
+        $this->runtimeSetting['daemonize'] = 1;
     }
 
     function onMasterStart($serv)
     {
         global $argv;
         Swoole\Console::setProcessName('php ' . $argv[0] . ': master -host=' . $this->host . ' -port=' . $this->port);
-        if (!empty($this->swooleSetting['pid_file']))
+        
+        if (!empty($this->runtimeSetting['pid_file']))
         {
             file_put_contents($this->pid_file,$serv->master_pid);
         }
     }
+    
     function onManagerStop()
     {
-        if (!empty($this->swooleSetting['pid_file']))
+        if (!empty($this->runtimeSetting['pid_file']))
         {
             unlink($this->pid_file);
+        }
+    }
+    
+    function onWorkerStart($serv, $worker_id)
+    {
+        global $argv;
+        if ($worker_id >= $serv->setting['worker_num'])
+        {
+            Swoole\Console::setProcessName('php ' . $argv[0] . ': task');
+        }
+        else
+        {
+            Swoole\Console::setProcessName('php ' . $argv[0] . ': worker');
+        }
+        if (method_exists($this->protocol, 'onStart'))
+        {
+            $this->protocol->onStart($serv, $worker_id);
         }
     }
 
     function run($setting = array())
     {
-        $this->swooleSetting = array_merge($this->swooleSetting, $setting);
-        if (!empty($this->swooleSetting['pid_file']))
+        $this->runtimeSetting = array_merge($this->runtimeSetting, $setting);
+        if (!empty($this->runtimeSetting['pid_file']))
         {
-            $this->pid_file = $this->swooleSetting['pid_file'];
+            $this->pid_file = $this->runtimeSetting['pid_file'];
         }
-        $this->sw->set($this->swooleSetting);
+        $this->sw->set($this->runtimeSetting);
         $version = explode('.', SWOOLE_VERSION);
         //1.7.0
         if ($version[1] >= 7)
@@ -98,7 +116,7 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
         }
         $this->sw->on('Start', array($this, 'onMasterStart'));
         $this->sw->on('ManagerStop', array($this, 'onManagerStop'));
-        $this->sw->on('WorkerStart', array($this->protocol, 'onStart'));
+        $this->sw->on('WorkerStart', array($this, 'onWorkerStart'));
         $this->sw->on('Connect', array($this->protocol, 'onConnect'));
         $this->sw->on('Receive', array($this->protocol, 'onReceive'));
         $this->sw->on('Close', array($this->protocol, 'onClose'));

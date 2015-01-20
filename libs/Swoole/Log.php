@@ -66,6 +66,4 @@ abstract class Log
         $level_str = self::$level_str[$level];
         return date(self::$date_format)."\t{$level_str}\t{$msg}\n";
     }
-
-    abstract function put($msg, $level = self::INFO);
 }

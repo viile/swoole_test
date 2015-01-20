@@ -21,6 +21,11 @@ class Controller
 {
     public $swoole;
     public $is_ajax = false;
+
+    /**
+     * 是否对GET/POST/REQUEST/COOKIE参数进行转意
+     * @var bool
+     */
     public $if_filter = true;
 
     protected $tpl_var = array();
@@ -66,6 +71,18 @@ class Controller
         $content = ob_get_contents();
         ob_end_clean();
         return $content;
+    }
+
+    function value($array, $key, $default = '')
+    {
+        if (isset($array[$key]))
+        {
+            return $array[$key];
+        }
+        else
+        {
+            return $default;
+        }
     }
 
     function message($code = 0, $msg = 'success')

@@ -123,12 +123,15 @@ class Database
 	 * @param $sql
      * @return \Swoole\Database\MySQLiRecord
 	 */
-	public function query($sql)
-	{
-		if($this->debug) echo "$sql<br />\n<hr />";
-		$this->read_times +=1;
-		return $this->_db->query($sql);
-	}
+    public function query($sql)
+    {
+        if ($this->debug)
+        {
+            echo "$sql<br />\n<hr />";
+        }
+        $this->read_times += 1;
+        return $this->_db->query($sql);
+    }
 	/**
 	 * 插入$data数据库的表$table，$data必须是键值对应的，$key是数据库的字段，$value是对应的值
 	 * @param $data

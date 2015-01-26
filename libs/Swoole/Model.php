@@ -333,6 +333,7 @@ class Model
         $this->_form_();
         return Form::checkInput($input,$this->_form,$error);
     }
+
 	function parseForm()
 	{
 
@@ -348,20 +349,36 @@ class Model
 class Record implements \ArrayAccess
 {
 	public $_data = array();
-	public $_change;
+
+    protected $_update = array();
+    protected $_change = 0;
+    protected $_save = false;
+
     /**
      * @var \Swoole\Database
      */
     public $db;
 
-	public $primary="id";
-	public $table="";
+    public $primary = "id";
+    public $table = "";
 
-	public $change=0;
-	public $_current_id = 0;
-	public $_currend_key;
 
-	function __construct($id, $db, $table, $primary, $where='', $select='*')
+    public $_current_id = 0;
+    public $_currend_key;
+
+    const STATE_EMPTY  = 0;
+    const STATE_INSERT = 1;
+    const STATE_UPDATE = 2;
+
+    /**
+     * @param        $id
+     * @param        $db \Swoole\Database
+     * @param        $table
+     * @param        $primary
+     * @param string $where
+     * @param string $select
+     */
+    function __construct($id, $db, $table, $primary, $where='', $select='*')
 	{
         $this->db = $db;
         $this->_current_id = $id;
@@ -378,10 +395,11 @@ class Record implements \ArrayAccess
             $this->_current_id = $this->_data[$this->primary];
             if (!empty($this->_data))
             {
-                $this->change = 1;
+                $this->_change = self::STATE_INSERT;
             }
         }
 	}
+
 	/**
 	 * 将关联数组压入object中，赋值给各个字段
 	 * @param $data
@@ -389,17 +407,18 @@ class Record implements \ArrayAccess
 	 */
 	function put($data)
 	{
-		if($this->change == 1)
-		{
-			$this->change = 2;
-			$this->_change = $data;
-		}
-		elseif($this->change==0)
-		{
-			$this->change = 1;
-			$this->_data=$data;
-		}
+        if ($this->_change == self::STATE_INSERT)
+        {
+            $this->_change = self::STATE_UPDATE;
+            $this->_update = $data;
+        }
+        elseif ($this->_change == self::STATE_EMPTY)
+        {
+            $this->_change = self::STATE_INSERT;
+            $this->_data = $data;
+        }
 	}
+
 	/**
 	 * 获取数据数组
 	 * @return unknown_type
@@ -409,26 +428,34 @@ class Record implements \ArrayAccess
 		return $this->_data;
 	}
 
-	function __get($property)
-	{
-		if(array_key_exists($property, $this->_data)) return $this->_data[$property];
-		else Error::pecho("Record object no property: $property");
-	}
+    function __get($property)
+    {
+        if (array_key_exists($property, $this->_data))
+        {
+            return $this->_data[$property];
+        }
+        else
+        {
+            Error::pecho("Record object no property: $property");
+            return null;
+        }
+    }
 
-	function __set($property, $value)
-	{
-		if($this->change==1 or $this->change==2)
-		{
-            $this->change = 2;
-            $this->_change[$property] = $value;
+    function __set($property, $value)
+    {
+        if ($this->_change == self::STATE_INSERT or $this->_change == self::STATE_UPDATE)
+        {
+            $this->_change = self::STATE_UPDATE;
+            $this->_update[$property] = $value;
             $this->_data[$property] = $value;
-		}
-		else
-		{
+        }
+        else
+        {
             $this->_data[$property] = $value;
-		}
-		return true;
-	}
+        }
+        $this->_save = true;
+    }
+
 	/**
 	 * 保存对象数据到数据库
 	 * 如果是空白的记录，保存则会Insert到数据库
@@ -437,7 +464,7 @@ class Record implements \ArrayAccess
 	 */
 	function save()
 	{
-        if ($this->change == 0 or $this->change == 1)
+        if ($this->_change == 0 or $this->_change == 1)
         {
             $ret = $this->db->insert($this->_data, $this->table);
             if ($ret === false)
@@ -445,23 +472,33 @@ class Record implements \ArrayAccess
                 return false;
             }
             //改变状态
-            $this->change = 1;
+            $this->_change = 1;
             $this->_current_id = $this->db->lastInsertId();
         }
-        elseif ($this->change == 2)
+        elseif ($this->_change == 2)
         {
-            $update = $this->_data;
+            $update = $this->_update;
             unset($update[$this->primary]);
-            return $this->db->update($this->_current_id, $this->_change, $this->table, $this->primary);
+            return $this->db->update($this->_current_id, $update, $this->table, $this->primary);
         }
         return true;
 	}
+
 	function update()
 	{
-		$update = $this->_data;
-		unset($update[$this->primary]);
-		$this->db->update($this->_current_id,$this->_change,$this->table,$this->primary);
+        $update = $this->_data;
+        unset($update[$this->primary]);
+        return $this->db->update($this->_current_id, $this->_update, $this->table, $this->primary);
 	}
+
+    function __destruct()
+    {
+        if ($this->_save)
+        {
+            $this->save();
+        }
+    }
+
 	/**
 	 * 删除数据库中的此条记录
 	 * @return unknown_type
@@ -471,25 +508,25 @@ class Record implements \ArrayAccess
 		$this->db->delete($this->_current_id,$this->table,$this->primary);
 	}
 
-	function offsetExists($keyname)
+	function offsetExists($key)
 	{
-		return array_key_exists($keyname,$this->_data);
+		return isset($this->_data[$key]);
 	}
 
-	function offsetGet($keyname)
+	function offsetGet($key)
 	{
-		return $this->_data[$keyname];
+		return $this->_data[$key];
 	}
 
-	function offsetSet($keyname,$value)
-	{
-		$this->_data[$keyname] = $value;
-	}
+    function offsetSet($key, $value)
+    {
+        $this->_data[$key] = $value;
+    }
 
-	function offsetUnset($keyname)
-	{
-		unset($this->_data[$keyname]);
-	}
+    function offsetUnset($key)
+    {
+        unset($this->_data[$key]);
+    }
 }
 /**
  * 数据结果集，由Record组成

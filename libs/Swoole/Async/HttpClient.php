@@ -12,7 +12,11 @@ class HttpClient
     public $uri;
     public $reqHeader;
 
+    /**
+     * @var \swoole_client
+     */
     protected $cli;
+
     protected $buffer = '';
     protected $nparse = 0;
     protected $isError = false;
@@ -152,7 +156,8 @@ class HttpClient
 
     function onConnect(\swoole_client $cli)
     {
-        echo "Connected\n";
+        //echo "Connected\n";
+
         $header = $this->method.' '.$this->uri['path'].' HTTP/1.1'. self::EOF;
         $header .= 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' . self::EOF;
         $header .= 'Accept-Encoding: gzip,deflate' . self::EOF;
@@ -168,7 +173,8 @@ class HttpClient
             }
         }
 
-        $this->errorLog(__LINE__, $header);
+        //$this->errorLog(__LINE__, $header);
+
         $body = '';
         if ($this->post_data)
         {
@@ -276,5 +282,10 @@ class HttpClient
         $this->post_data = http_build_query($data);
         $this->method = 'POST';
         $this->execute();
+    }
+
+    function close()
+    {
+        $this->cli->close();
     }
 }

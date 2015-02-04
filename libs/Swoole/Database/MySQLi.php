@@ -77,10 +77,12 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
         return $this->escape_string($value);
     }
 
-    function errorMessage($sql)
+    protected function errorMessage($sql)
     {
-        return
-            $this->error . "<hr />$sql<hr />MySQL Server: {$this->config['host']}:{$this->config['port']}";
+        $msg = $this->error . "<hr />$sql<hr />";
+        $msg .= "Server: {$this->config['host']}:{$this->config['port']}";
+        $msg .= "Errno: {$this->errno}";
+        return $msg;
     }
 
     /**

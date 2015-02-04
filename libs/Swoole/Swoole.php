@@ -409,26 +409,19 @@ class Swoole
 
         $method = $mvc['view'];
 
-        //设置头
-        if ($controller->is_ajax)
-        {
-            $this->http->header('Cache-Control', 'no-cache, must-revalidate');
-            $this->http->header('Last-Modified', gmdate('D, d M Y H:i:s').' GMT');
-            $this->http->header('Content-Type', 'application/json');
-        }
-
         //doAction
         $return = $controller->$method($param);
-
         //保存Session
         if (defined('SWOOLE_SERVER') and $this->session->open and $this->session->readonly === false)
         {
             $this->session->save();
         }
-
         //响应请求
-        if ($controller->is_ajax)
+        if (!empty($controller->is_ajax))
         {
+            $this->http->header('Cache-Control', 'no-cache, must-revalidate');
+            $this->http->header('Last-Modified', gmdate('D, d M Y H:i:s').' GMT');
+            $this->http->header('Content-Type', 'application/json');
             $return = json_encode($return);
         }
         if (defined('SWOOLE_SERVER')) return $return;

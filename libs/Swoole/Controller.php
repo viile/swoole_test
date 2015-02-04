@@ -87,7 +87,7 @@ class Controller
 
     function message($code = 0, $msg = 'success')
     {
-        $ret = array('code' => $code, 'msg' => $msg);
+        $ret = array('code' => $code, 'message' => $msg);
         return $this->is_ajax ? $ret : json_encode($ret);
     }
 

@@ -58,6 +58,12 @@ class MySQL implements \Swoole\IDatabase
         }
     }
 
+    function errorMessage($sql)
+    {
+        return
+            mysql_error($this->conn) . "<hr />$sql<hr />MySQL Server: {$this->config['host']}:{$this->config['port']}";
+    }
+
     /**
      * 执行一个SQL语句
      *
@@ -67,7 +73,6 @@ class MySQL implements \Swoole\IDatabase
      */
     function query($sql)
     {
-        mysql_real_escape_string($sql, $this->conn);
         $res = false;
 
         for ($i = 0; $i < 2; $i++)
@@ -83,7 +88,7 @@ class MySQL implements \Swoole\IDatabase
                         continue;
                     }
                 }
-                echo \Swoole\Error::info("SQL Error", mysql_error($this->conn) . "<hr />$sql");
+                echo \Swoole\Error::info("SQL Error", $this->errorMessage($sql));
 
                 return false;
             }
@@ -92,7 +97,7 @@ class MySQL implements \Swoole\IDatabase
 
         if (!$res)
         {
-            echo Swoole\Error::info("SQL Error", mysql_error($this->conn) . "<hr />$sql");
+            echo Swoole\Error::info("SQL Error", $this->errorMessage($sql));
 
             return false;
         }

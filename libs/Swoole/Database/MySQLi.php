@@ -37,10 +37,18 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
         {
             $db_config['host'] = 'p:' . $db_config['host'];
         }
+        if (isset($db_config['passwd']))
+        {
+            $db_config['password'] = $db_config['passwd'];
+        }
+        if (isset($db_config['dbname']))
+        {
+            $db_config['name'] = $db_config['dbname'];
+        }
         parent::connect(
             $db_config['host'],
             $db_config['user'],
-            $db_config['passwd'],
+            $db_config['password'],
             $db_config['name'],
             $db_config['port']
         );
@@ -69,6 +77,12 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
         return $this->escape_string($value);
     }
 
+    function errorMessage($sql)
+    {
+        return
+            $this->error . "<hr />$sql<hr />MySQL Server: {$this->config['host']}:{$this->config['port']}";
+    }
+
     /**
      * 执行一个SQL语句
      *
@@ -94,7 +108,7 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
                 }
                 else
                 {
-                    echo \Swoole\Error::info("SQL Error", $this->error . "<hr />$sql");
+                    echo \Swoole\Error::info("SQL Error", $this->errorMessage($sql));
                     return false;
                 }
             }
@@ -102,7 +116,7 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
         }
         if (!$result)
         {
-            echo \Swoole\Error::info("SQL Error", $this->error . "<hr />$sql");
+            echo \Swoole\Error::info("SQL Error", $this->errorMessage($sql));
             return false;
         }
         return new MySQLiRecord($result);

@@ -116,20 +116,20 @@ class Filter
      */
     public static function filter_array($array)
     {
-        if(!is_array($array))
+        if (!is_array($array))
         {
             return false;
         }
         $clean = array();
-        foreach($array as $key=>$string)
+        foreach ($array as $key => $string)
         {
-            if(is_array($string))
+            if (is_array($string))
             {
                 self::filter_array($string);
             }
             else
             {
-                if(self::$magic_quotes_gpc and DBCHARSET=='gbk')
+                if (self::$magic_quotes_gpc and DBCHARSET == 'gbk')
                 {
                     $string = stripslashes($string);
                 }
@@ -150,11 +150,20 @@ class Filter
      */
     public static function escape($string)
     {
-        if(is_numeric($string)) return $string;
-        $string = htmlspecialchars($string,ENT_QUOTES,\Swoole::$charset);
+        if (is_numeric($string))
+        {
+            return $string;
+        }
+        $string = htmlspecialchars($string, ENT_QUOTES, \Swoole::$charset);
 
-        if(\Swoole::$charset=='gbk') self::gbk_addslash($string);
-        else self::addslash($string);
+        if (\Swoole::$charset == 'gbk')
+        {
+            self::gbk_addslash($string);
+        }
+        else
+        {
+            self::addslash($string);
+        }
         return $string;
     }
     /**

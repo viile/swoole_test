@@ -48,7 +48,6 @@ class Upload
     /**
      * 产生缩略图
      */
-    public $thumb_prefix = 'thumb_';
     public $thumb_dir;
     public $thumb_width = 0; //如果为0的话不生成缩略图
     public $thumb_height;
@@ -205,17 +204,15 @@ class Upload
             //产生缩略图
             if ($this->thumb_width and in_array($filetype, array('gif', 'jpg', 'jpeg', 'bmp', 'png')))
             {
-                if (empty($this->thumb_dir))
-                {
-                    $this->thumb_dir = $path;
-                }
-                $thumb_file = $this->thumb_dir . '/' . $this->thumb_prefix . $filename;
+                $thumb_file = str_replace('.' . $filetype,
+                    '_' . $this->thumb_width . 'x' . $this->thumb_height . '.' . $filetype,
+                    $filename);
                 Image::thumbnail($save_filename,
-                    $thumb_file,
+                    $path . '/' . $thumb_file,
                     $this->thumb_width,
                     $this->thumb_height,
                     $this->thumb_qulitity);
-                $return['thumb'] = $thumb_file;
+                $return['thumb'] =  "{$this->base_url}/{$sub_dir}/{$thumb_file}";
             }
             //压缩图片
             if ($this->max_width and in_array($filetype, array('gif', 'jpg', 'jpeg', 'bmp', 'png')))

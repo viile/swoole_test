@@ -45,14 +45,14 @@ class Image
     }
     /**
      * 压缩图像尺寸
-     * @param $pic 源图像
-     * @param $dst_pic 目标图像
-     * @param $width 宽度
-     * @param $height 高度
-     * @param $qulitity 质量
+     * @param $pic      string 源图像
+     * @param $dst_pic  string 目标图像
+     * @param $width    int 宽度
+     * @param $height   int 高度
+     * @param $qulitity int 质量
      * @return unknown_type
      */
-    static function thumbnail($pic,$dst_pic,$max_width,$max_height=null,$qulitity=100, $copy=true)
+    static function thumbnail($pic, $dst_pic, $max_width, $max_height = null, $qulitity = 100, $copy = true)
     {
         $im = self::readfile($pic);
         $old_w = imagesx($im);

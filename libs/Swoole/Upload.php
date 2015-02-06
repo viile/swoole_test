@@ -26,6 +26,7 @@ class Upload
 
     //指定子目录
     public $sub_dir;
+
     //子目录生成方法，可以使用randomkey，或者date
     public $shard_type = 'date';
     //子目录生成参数
@@ -62,9 +63,14 @@ class Upload
      */
     public $error_code;
 
-    function __construct($base_dir)
+    function __construct($config)
     {
-        $this->base_dir = $base_dir;
+        if (empty($config['base_dir']) or empty($config['base_url']))
+        {
+            throw new \Exception(__CLASS__.' require base_dir and base_url.');
+        }
+        $this->base_dir = $config['base_dir'];
+        $this->base_url = $config['base_url'];
         $mimes = require LIBPATH . '/data/mimes.php';
         $this->mimes = $mimes;
     }
@@ -86,7 +92,7 @@ class Upload
 
     static function moveUploadFile($tmpfile, $newfile)
     {
-        if(!defined('SWOOLE_SERVER'))
+        if (!defined('SWOOLE_SERVER'))
         {
             return move_uploaded_file($tmpfile, $newfile);
         }
@@ -96,130 +102,148 @@ class Upload
         }
     }
 
-    function save($name, $filename=null, $allow=null)
+    function save($name, $filename = null, $allow = null)
     {
         //检查请求中是否存在上传的文件
         if (empty($_FILES[$name]['type']))
         {
             $this->error_msg = "No upload file '$name'!";
-    	    $this->error_code = 0;
-    	    return false;
+            $this->error_code = 0;
+            return false;
         }
-        //最终相对目录
-        $base_dir = empty($this->sub_dir) ? $this->sub_dir : $this->base_dir."/".$this->sub_dir;
-    	//切分目录
-    	if ($this->shard_type=='randomkey')
-    	{
-    	    if (empty($this->shard_argv))
+
+        //文件存储的路径
+        $base_dir = empty($this->sub_dir) ? $this->base_dir : $this->base_dir . "/" . $this->sub_dir;
+
+        //切分目录
+        if ($this->shard_type == 'randomkey')
+        {
+            if (empty($this->shard_argv))
             {
                 $this->shard_argv = 8;
             }
-    	    $up_dir = $base_dir."/".RandomKey::randmd5($this->shard_argv);
-    	}
-        elseif ($this->shard_type=='user')
-        {
-            $up_dir = $base_dir."/".$this->shard_argv;
+            $sub_dir = RandomKey::randmd5($this->shard_argv);
         }
-    	else
-    	{
-    	    if (empty($this->shard_argv))
+        elseif ($this->shard_type == 'user')
+        {
+            $sub_dir = $this->shard_argv;
+        }
+        else
+        {
+            if (empty($this->shard_argv))
             {
                 $this->shard_argv = 'Ym/d';
             }
-    	    $up_dir = $base_dir."/".date($this->shard_argv);
-    	}
-    	//上传的最终绝对路径，如果不存在则创建目录
-    	$path = WEBPATH.$up_dir;
-    	if (!is_dir($path))
+            $sub_dir = date($this->shard_argv);
+        }
+
+        //上传的最终绝对路径，如果不存在则创建目录
+        $path = $base_dir . $sub_dir;
+        if (!is_dir($path))
         {
-            if(mkdir($path, 0777, true)===false)
+            if (mkdir($path, 0777, true) === false)
             {
                 $this->error_msg = "mkdir path=$path fail.";
                 return false;
             }
         }
 
-    	//MIME格式
-    	$mime = $_FILES[$name]['type'];
-    	$filetype = $this->mime_type($mime);
-    	if($filetype==='bin') $filetype = self::file_ext($_FILES[$name]['name']);
-    	if($filetype===false)
-    	{
-    	    $this->error_msg = "File mime '$mime' unknown!";
-    	    $this->error_code = 1;
-    	    return false;
-    	}
-    	elseif(!in_array($filetype, $this->allow))
-    	{
+        //MIME格式
+        $mime = $_FILES[$name]['type'];
+        $filetype = $this->getMimeType($mime);
+        if ($filetype === 'bin')
+        {
+            $filetype = self::getFileExt($_FILES[$name]['name']);
+        }
+        if ($filetype === false)
+        {
+            $this->error_msg = "File mime '$mime' unknown!";
+            $this->error_code = 1;
+            return false;
+        }
+        elseif (!in_array($filetype, $this->allow))
+        {
             $this->error_msg = "File Type '$filetype' not allow upload!";
             $this->error_code = 2;
             return false;
-    	}
-
-    	//生成文件名
-        if ($filename === null)
-    	{
-    	    $filename= RandomKey::randtime();
-	        //如果已存在此文件，不断随机直到产生一个不存在的文件名
-	        while($this->exist_check and is_file($path.'/'.$filename.'.'.$filetype))
-	        {
-	            $filename = RandomKey::randtime();
-	        }
-    	}
-    	elseif ($this->overwrite===false and is_file($path.'/'.$filename.'.'.$filetype))
-    	{
-	        $this->error_msg = "File '$path/$filename.$filetype' existed!";
-			$this->error_code = 3;
-	        return false;
-    	}
-        if ($this->shard_type !='user')
-        {
-            $filename .= '.'.$filetype;
         }
 
-    	//检查文件大小
-    	$filesize = filesize($_FILES[$name]['tmp_name']);
-    	if ($this->max_size>0 and $filesize>$this->max_size)
-    	{
-    	    $this->error_msg = "File size go beyond the max_size!";
-    		$this->error_code = 4;
-    		return false;
-    	}
-    	$save_filename = $path."/".$filename;
+        //生成文件名
+        if ($filename === null)
+        {
+            $filename = RandomKey::randtime();
+            //如果已存在此文件，不断随机直到产生一个不存在的文件名
+            while ($this->exist_check and is_file($path . '/' . $filename . '.' . $filetype))
+            {
+                $filename = RandomKey::randtime();
+            }
+        }
+        elseif ($this->overwrite === false and is_file($path . '/' . $filename . '.' . $filetype))
+        {
+            $this->error_msg = "File '$path/$filename.$filetype' existed!";
+            $this->error_code = 3;
+            return false;
+        }
+        if ($this->shard_type != 'user')
+        {
+            $filename .= '.' . $filetype;
+        }
+
+        //检查文件大小
+        $filesize = filesize($_FILES[$name]['tmp_name']);
+        if ($this->max_size > 0 and $filesize > $this->max_size)
+        {
+            $this->error_msg = "File size go beyond the max_size!";
+            $this->error_code = 4;
+            return false;
+        }
+        $save_filename = $path . "/" . $filename;
+
     	//写入文件
-    	if(self::moveUploadFile($_FILES[$name]['tmp_name'], $save_filename))
-    	{
-    	    //产生缩略图
-    	    if ($this->thumb_width and in_array($filetype,array('gif','jpg','jpeg','bmp','png')))
-    	    {
-    	        if(empty($this->thumb_dir)) $this->thumb_dir = $up_dir;
-    	        $thumb_file = $this->thumb_dir.'/'.$this->thumb_prefix.$filename;
-    	        Image::thumbnail($save_filename,WEBPATH.$thumb_file,$this->thumb_width,$this->thumb_height,$this->thumb_qulitity);
-    	        $return['thumb'] = $thumb_file;
-    	    }
-    	    //压缩图片
-    	    if ($this->max_width and in_array($filetype,array('gif','jpg','jpeg','bmp','png')))
-    	    {
-    	        Image::thumbnail($save_filename,$save_filename,$this->max_width,$this->max_height,$this->max_qulitity);
-    	    }
-    		$return['name'] = "$up_dir/$filename";
-    		$return['size'] = $filesize;
-    		$return['type'] = $filetype;
-    		return $return;
-    	}
-    	else
-    	{
+        if (self::moveUploadFile($_FILES[$name]['tmp_name'], $save_filename))
+        {
+            //产生缩略图
+            if ($this->thumb_width and in_array($filetype, array('gif', 'jpg', 'jpeg', 'bmp', 'png')))
+            {
+                if (empty($this->thumb_dir))
+                {
+                    $this->thumb_dir = $path;
+                }
+                $thumb_file = $this->thumb_dir . '/' . $this->thumb_prefix . $filename;
+                Image::thumbnail($save_filename,
+                    $thumb_file,
+                    $this->thumb_width,
+                    $this->thumb_height,
+                    $this->thumb_qulitity);
+                $return['thumb'] = $thumb_file;
+            }
+            //压缩图片
+            if ($this->max_width and in_array($filetype, array('gif', 'jpg', 'jpeg', 'bmp', 'png')))
+            {
+                Image::thumbnail($save_filename,
+                    $save_filename,
+                    $this->max_width,
+                    $this->max_height,
+                    $this->max_qulitity);
+            }
+            $return['url'] = "{$this->base_url}/{$sub_dir}/{$filename}";
+            $return['size'] = $filesize;
+            $return['type'] = $filetype;
+            return $return;
+        }
+        else
+        {
             $this->error_msg = "move upload file fail. tmp_name={$_FILES[$name]['tmp_name']}|dest_name={$save_filename}";
-    		$this->error_code = 2;
-    		return false;
-    	}
+            $this->error_code = 2;
+            return false;
+        }
     }
     /**
      * 获取MIME对应的扩展名
      * @param $mime
      * @return bool
      */
-    public function mime_type($mime)
+    public function getMimeType($mime)
     {
     	if(isset($this->mimes[$mime])) return $this->mimes[$mime];
     	else return false;
@@ -229,7 +253,7 @@ class Upload
      * @param $file
      * @return string
      */
-    static public function file_ext($file)
+    static public function getFileExt($file)
     {
     	return strtolower(trim(substr(strrchr($file, '.'), 1)));
     }

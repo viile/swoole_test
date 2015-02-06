@@ -1,14 +1,10 @@
 <?php
-if (!empty(Swoole::$php->config['upload']['base_dir']))
+if (empty(Swoole::$php->config['upload']))
 {
-    $basedir = Swoole::$php->config['upload']['base_dir'];
-}
-elseif (defined('UPLOAD_DIR'))
-{
-    $basedir = UPLOAD_DIR;
+    $config = Swoole::$php->config['upload'];
 }
 else
 {
-    throw new Exception("require upload base_dir");
+    throw new Exception("require upload config");
 }
-$upload = new Swoole\Upload($basedir);
+$upload = new Swoole\Upload($config);

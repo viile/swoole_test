@@ -400,7 +400,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
     {
         $path = explode('/', trim($request->meta['path'], '/'));
         //扩展名
-        $request->ext_name = $ext_name = Swoole\Upload::file_ext($request->meta['path']);
+        $request->ext_name = $ext_name = Swoole\Upload::getFileExt($request->meta['path']);
         /* 检测是否拒绝访问 */
         if (isset($this->deny_dir[$path[0]]))
         {
@@ -410,7 +410,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         /* 是否静态目录 */
         elseif (isset($this->static_dir[$path[0]]) or isset($this->static_ext[$ext_name]))
         {
-            return $this->process_static($request, $response);
+            return $this->processStatic($request, $response);
         }
         return false;
     }
@@ -421,7 +421,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
      * @param $response
      * @return unknown_type
      */
-    function process_static($request, Swoole\Response $response)
+    function processStatic($request, Swoole\Response $response)
     {
         $path = $this->document_root . '/' . $request->meta['path'];
         if (is_file($path))
@@ -450,7 +450,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
                     $response->head['Expires'] = "max-age={$expire}";
                 }
             }
-            $ext_name = Swoole\Upload::file_ext($request->meta['path']);
+            $ext_name = Swoole\Upload::getFileExt($request->meta['path']);
             if($read_file)
             {
                 $response->head['Content-Type'] = $this->mime_types[$ext_name];
@@ -482,13 +482,13 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
             try
             {
                 include $path;
+                $response->body = ob_get_contents();
             }
             catch (\Exception $e)
             {
                 $response->setHttpStatus(404);
                 $response->body = $e->getMessage() . '!<br /><h1>' . self::SOFTWARE . '</h1>';
             }
-            $response->body = ob_get_contents();
             ob_end_clean();
         }
         else

@@ -77,6 +77,11 @@ abstract class WebSocket extends HttpServer
         return true;
     }
 
+    function onConnect($serv, $fd, $from_id)
+    {
+        $this->cleanBuffer($fd);
+    }
+
     /**
      * clean all connection
      */
@@ -111,6 +116,11 @@ abstract class WebSocket extends HttpServer
     function onExit($client_id)
     {
 
+    }
+
+    function onClose($serv, $client_id, $from_id)
+    {
+        $this->onExit($client_id);
     }
 
     /**

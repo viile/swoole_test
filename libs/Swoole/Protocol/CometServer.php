@@ -31,7 +31,10 @@ abstract class CometServer extends WebSocket
      */
     function onStart($serv, $worker_id = 0)
     {
-        $serv->addTimer(1000);
+        if ($worker_id < $serv->setting['worker_num'])
+        {
+            $serv->addTimer(1000);
+        }
         parent::onStart($serv, $worker_id);
     }
 
@@ -128,7 +131,7 @@ abstract class CometServer extends WebSocket
     function send($session_id, $data, $opcode = self::OPCODE_TEXT_FRAME, $end = true)
     {
         //WebSocket
-        if (isset($this->connections[$session_id]))
+        if (!$this->isCometClient($session_id))
         {
             return parent::send($session_id, $data, $opcode, $end);
         }

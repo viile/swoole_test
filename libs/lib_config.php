@@ -44,7 +44,7 @@ function model($model_name)
  * @param $table_name
  * @return Swoole\Model
  */
-function table($table_name)
+function table($table_name, $db_id = 'master')
 {
     global $php;
     if (isset($php->model->_models[$table_name]))
@@ -53,7 +53,7 @@ function table($table_name)
     }
     else
     {
-        $model = new Swoole\Model($php);
+        $model = new Swoole\Model($php, $db_id);
         $model->table = $table_name;
         $php->model->_models[$table_name] = $model;
         return $model;

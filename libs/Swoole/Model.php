@@ -36,16 +36,16 @@ class Model
 
 	public $if_cache = false;
 
-	function __construct($swoole)
+	function __construct(\Swoole $swoole, $db_key = 'master')
 	{
-		$this->db = $swoole->db;
+		$this->db = $swoole->db($db_key);
 		$this->dbs = new \Swoole\SelectDB($swoole->db);
 		$this->swoole = $swoole;
 	}
 	/**
 	 * 按ID切分表
 	 * @param $id
-	 * @return unknown_type
+	 * @return null
 	 */
     function shard_table($id)
     {

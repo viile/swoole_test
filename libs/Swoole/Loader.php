@@ -15,15 +15,16 @@ class Loader
 	 */
 	protected static $namespaces;
 	static $swoole;
+    static $_objects;
 
-	function __construct($swoole)
-	{
-		self::$swoole = $swoole;
-		self::$_objects = array(
-				'model'=>new \ArrayObject,
-				'lib'=>new \ArrayObject,
-				'object'=>new \ArrayObject);
-	}
+    function __construct($swoole)
+    {
+        self::$swoole = $swoole;
+        self::$_objects = array(
+            'model'  => new \ArrayObject,
+            'object' => new \ArrayObject
+        );
+    }
 
     /**
      * for composer

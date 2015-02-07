@@ -14,10 +14,8 @@ class Loader
 	 * 命名空间的路径
 	 */
 	protected static $namespaces;
-	
 	static $swoole;
-	static $_objects;
-	
+
 	function __construct($swoole)
 	{
 		self::$swoole = $swoole;
@@ -40,8 +38,8 @@ class Loader
 	 * @param $model_name string 模型名称
 	 * @return $model_object 模型对象
 	 */
-	static function loadModel($model_name)
-	{
+    static function loadModel($model_name)
+    {
         if (isset(self::$_objects['model'][$model_name]))
         {
             return self::$_objects['model'][$model_name];
@@ -57,27 +55,7 @@ class Loader
             self::$_objects['model'][$model_name] = new $model_name(self::$swoole);
             return self::$_objects['model'][$model_name];
         }
-	}
-
-	/**
-	 * 加载接口模块
-	 * @param $lib_name
-	 * @return mixed
-	 */
-	static function loadLib($lib_name, $key = 'master')
-	{
-        if (isset(self::$_objects['lib'][$lib_name]))
-        {
-            return self::$_objects['lib'][$lib_name];
-        }
-        else
-        {
-            require LIBPATH . '/factory/' . $lib_name . '.php';
-            $lib_object = $$lib_name;
-            self::$_objects['lib'][$lib_name] = $lib_object;
-            return $lib_object;
-        }
-	}
+    }
 
 	/**
 	 * 自动载入类
@@ -91,6 +69,7 @@ class Loader
             include self::$namespaces[$root[0]].'/'.str_replace('\\', '/', $root[1]).'.php';
 		}
 	}
+
 	/**
 	 * 设置根命名空间
 	 * @param $root

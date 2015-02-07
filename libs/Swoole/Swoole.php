@@ -3,24 +3,30 @@
 require_once __DIR__ . '/Loader.php';
 require_once __DIR__ . '/ModelLoader.php';
 require_once __DIR__ . '/PluginLoader.php';
+
 /**
  * Swoole系统核心类，外部使用全局变量$php引用
  * Swoole框架系统的核心类，提供一个swoole对象引用树和基础的调用功能
- * @package SwooleSystem
- * @author Tianfeng.Han
+ *
+ * @package    SwooleSystem
+ * @author     Tianfeng.Han
  * @subpackage base
- * @property \Swoole\Database $db
+ * @property \Swoole\Database    $db
  * @property \Swoole\IFace\Cache $cache
- * @property \Swoole\Upload $upload
- * @property \Swoole\Event $event
- * @property \Swoole\Session $session
- * @property \Swoole\Template $tpl
- * @property \redis  $redis
- * @property \MongoClient $mongo
- * @property \Swoole\Config $config
- * @property \Swoole\Http\PWS $http
- * @property \Swoole\Log $log
- * @property \Swoole\Auth $user
+ * @property \Swoole\Upload      $upload
+ * @property \Swoole\Event       $event
+ * @property \Swoole\Session     $session
+ * @property \Swoole\Template    $tpl
+ * @property \redis              $redis
+ * @property \MongoClient        $mongo
+ * @property \Swoole\Config      $config
+ * @property \Swoole\Http\PWS    $http
+ * @property \Swoole\Log         $log
+ * @property \Swoole\Auth        $user
+ *             @method db
+ *             @method mongo
+ *             @method redis
+ *             @method cache
  */
 class Swoole
 {
@@ -235,16 +241,6 @@ class Swoole
         $this->env['runtime'] = array();
         $this->callHook(self::HOOK_CLEAN);
     }
-    /**
-     * 加载一个模块，并返回
-     * @param $lib
-     * @return object $lib
-     */
-    function load($lib)
-    {
-    	$this->$lib = $this->load->loadLib($lib);
-    	return $this->$lib;
-    }
 
     /**
      * 增加钩子函数
@@ -254,16 +250,6 @@ class Swoole
     function addHook($type, $func)
     {
         $this->hooks[$type][] = $func;
-    }
-
-    /**
-     * 自动导入模块
-     * @return None
-     */
-    function autoload()
-    {
-        //$this->autoload_libs = array_flip(func_get_args());
-        //历史遗留
     }
 
     function __get($lib_name)
@@ -276,7 +262,7 @@ class Swoole
     }
 
     /**
-     * 加载接口模块
+     * 加载内置的Swoole模块
      * @param $module
      * @param $key
      * @return mixed

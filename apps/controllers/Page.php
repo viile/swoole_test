@@ -149,4 +149,30 @@ class Page extends Swoole\Controller
         var_dump($pager->render());
     }
 
+    function upload()
+    {
+        if ($_FILES)
+        {
+            //需要生成缩略图
+            $this->upload->thumb_width = 136; //缩略图宽度
+            $this->upload->thumb_height = 136; //缩略图高度
+            $this->upload->thumb_qulitity = 100; //缩略图质量
+
+            //自动压缩图片
+            $this->upload->max_width = 600; //约定图片的最大宽度
+            $this->upload->max_height = 600; //约定图片的最大高度
+            $this->upload->max_qulitity = 90; //图片压缩的质量
+
+            $up_pic = $this->upload->save('Filedata');
+            if (empty($up_pic))
+            {
+                echo '上传失败，请重新上传！ Error:' . $this->upload->error_msg;
+            }
+            echo json_encode($up_pic);
+        }
+        else
+        {
+            echo "Bad Request\n";
+        }
+    }
 }

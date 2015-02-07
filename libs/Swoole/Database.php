@@ -33,11 +33,12 @@ interface IDbRecord
 	function fetch();
 	function fetchall();
 }
+
 /**
  * Database类，处理数据库连接和基本的SQL组合
  * 提供4种接口，query  insert update delete
  * @author Administrator
- *
+ * @method connect
  */
 class Database
 {
@@ -55,22 +56,22 @@ class Database
 	const TYPE_PDO     = 3;
 	const TYPE_AdoDB   = 4;
 
-	function __construct($db_config)
-	{
-		switch($db_config['type'])
-		{
-			case self::TYPE_MYSQL:
-				$this->_db = new Database\MySQL($db_config);
-				break;
-			case self::TYPE_MYSQLi:
-				$this->_db = new Database\MySQLi($db_config);
-				break;
-			default:
-				$this->_db = new Database\PdoDB($db_config);
-				break;
-		}
-		$this->db_apt = new \Swoole\SelectDB($this);
-	}
+    function __construct($db_config)
+    {
+        switch ($db_config['type'])
+        {
+            case self::TYPE_MYSQL:
+                $this->_db = new Database\MySQL($db_config);
+                break;
+            case self::TYPE_MYSQLi:
+                $this->_db = new Database\MySQLi($db_config);
+                break;
+            default:
+                $this->_db = new Database\PdoDB($db_config);
+                break;
+        }
+        $this->db_apt = new \Swoole\SelectDB($this);
+    }
 	/**
 	 * 初始化参数
 	 * @return unknown_type

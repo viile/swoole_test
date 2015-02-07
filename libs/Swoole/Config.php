@@ -2,15 +2,17 @@
 namespace Swoole;
 class Config extends \ArrayObject
 {
-	private $config_path;
-	private $config;
-	static $debug = false;
+    protected $config_path;
+    public $dir_num = 0;
+    static $debug = false;
+    static $active = false;
 
     function setPath($dir)
     {
         $this->config_path[] = $dir;
+        self::$active = true;
     }
-	
+
 	function offsetGet($index)
 	{
 		if(!isset($this->config[$index]))
@@ -19,7 +21,7 @@ class Config extends \ArrayObject
 		}
 		return isset($this->config[$index])?$this->config[$index]:false;
 	}
-	
+
 	function load($index)
 	{
         foreach ($this->config_path as $path)
@@ -43,17 +45,17 @@ class Config extends \ArrayObject
             }
         }
 	}
-	
+
 	function offsetSet($index, $newval)
 	{
         $this->config[$index] = $newval;
 	}
-	
+
 	function offsetUnset($index)
 	{
         unset($this->config[$index]);
 	}
-	
+
 	function offsetExists($index)
 	{
 		return isset($this->config[$index]);

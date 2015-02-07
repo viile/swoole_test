@@ -58,29 +58,35 @@ class Image
         $old_w = imagesx($im);
         $old_h = imagesy($im);
 
-        if($max_height==null) $max_height=$max_width;
+        if ($max_height == null)
+        {
+            $max_height = $max_width;
+        }
 
-        if($old_w>$max_width or $old_h>$max_height)
+        if ($old_w > $max_width or $old_h > $max_height)
         {
 
             $w_h = $old_w / $old_h;
             $h_w = $old_h / $old_w;
-            if($w_h>$h_w)
+            if ($w_h > $h_w)
             {
                 $width = $max_width;
-                $height = $width*$h_w;
+                $height = $width * $h_w;
             }
             else
             {
                 $height = $max_height;
-                $width = $height*$w_h;
+                $width = $height * $w_h;
             }
             $newim = imagecreatetruecolor($width, $height);
-            imagecopyresampled($newim, $im, 0, 0, 0, 0, $width,$height,$old_w,$old_h);
+            imagecopyresampled($newim, $im, 0, 0, 0, 0, $width, $height, $old_w, $old_h);
             imagejpeg($newim, $dst_pic, $qulitity);
             imagedestroy($im);
         }
-        elseif($pic!=$dst_pic and $copy) copy($pic, $dst_pic);
+        elseif ($pic != $dst_pic and $copy)
+        {
+            copy($pic, $dst_pic);
+        }
     }
     /**
      * 读取图像

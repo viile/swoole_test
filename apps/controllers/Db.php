@@ -15,7 +15,16 @@ class Db extends Swoole\Controller
 
     function tables()
     {
+        /**
+         * master database
+         */
         $tables = $this->db->query("show tables")->fetchall();
+        var_dump($tables);
+
+        /**
+         * other
+         */
+        $tables = $this->db("huya")->query("show tables")->fetchall();
         var_dump($tables);
     }
 

@@ -16,6 +16,10 @@ namespace Swoole;
  * @property \Swoole\Http\PWS $http
  * @property \Swoole\Log $log
  * @property \Swoole\Auth $user
+ * @method db
+ * @method mongo
+ * @method redis
+ * @method cache
  */
 class Controller
 {
@@ -113,17 +117,19 @@ class Controller
         extract($this->tpl_var);
         include $this->template_dir.$tpl_file;
     }
+
     /**
      * 显示运行时间和内存占用
-     * @return unknown_type
+     *
+     * @return string
      */
     protected function showTime()
     {
         $runtime = $this->swoole->runtime();
         // 显示运行时间
-        $showTime = '执行时间: '.$runtime['time'];
+        $showTime = '执行时间: ' . $runtime['time'];
         // 显示内存占用
-        $showTime.= ' | 内存占用:'.$runtime['memory'];
+        $showTime .= ' | 内存占用:' . $runtime['memory'];
         return $showTime;
     }
     /**
@@ -188,6 +194,11 @@ HTMLS;
     function __get($key)
     {
         return $this->swoole->$key;
+    }
+
+    function __call($func, $param)
+    {
+        return call_user_func_array(array($this->swoole, $func), $param);
     }
 
     function __destruct()

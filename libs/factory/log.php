@@ -7,3 +7,4 @@ if (empty($conf['type']))
 }
 $class = "Swoole\\Log\\{$conf['type']}";
 $log = new $class($conf);
+return $log;

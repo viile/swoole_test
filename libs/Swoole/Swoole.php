@@ -34,21 +34,23 @@ class Swoole
     public $protocol;
     public $request;
 
+    public $config;
+
     /**
      * @var Swoole\Response
      */
     public $response;
     static public $app_path;
+
     /**
      * 可使用的组件
      */
-    static $autoload_libs = array(
+    static $modules = array(
 		'redis' => true,  //redis
         'mongo' => true,  //mongodb
     	'db' => true,  //数据库
     	'tpl' => true, //模板系统
     	'cache' => true, //缓存
-    	'config' => true, //缓存
     	'event' => true, //异步事件
     	'log' => true, //日志
     	'kdb' => true, //key-value数据库
@@ -56,6 +58,17 @@ class Swoole
     	'user' => true,   //用户验证组件
         'session' => true, //session
         'http' => true, //http
+    );
+
+    /**
+     * 允许多实例的模块
+     * @var array
+     */
+    static $multi_instance = array(
+        'cache' => true,
+        'db' => true,
+        'mongo' => true,
+        'redis' => true,
     );
 
     static $charset = 'utf-8';
@@ -69,6 +82,17 @@ class Swoole
      */
     static public $php;
     public $pagecache;
+
+    /**
+     * 对象池
+     * @var array
+     */
+    protected $objects = array();
+
+    /**
+     * 传给factory
+     */
+    public $factory_key;
 
     /**
      * 发生错误时的回调函数
@@ -118,6 +142,8 @@ class Swoole
 
         $this->load = new Swoole\Loader($this);
         $this->model = new Swoole\ModelLoader($this);
+        $this->config = new Swoole\Config;
+        $this->config->setPath(self::$app_path . '/configs');
 
         //路由钩子，URLRewrite
         $this->addHook(Swoole::HOOK_ROUTE, 'swoole_urlrouter_rewrite');
@@ -242,11 +268,46 @@ class Swoole
 
     function __get($lib_name)
     {
-        if (isset(self::$autoload_libs[$lib_name]) and empty($this->$lib_name))
+        if (isset(self::$modules[$lib_name]) and empty($this->$lib_name))
         {
-            $this->$lib_name = $this->load->loadLib($lib_name);
+            $this->$lib_name = $this->loadModule($lib_name);
         }
         return $this->$lib_name;
+    }
+
+    /**
+     * 加载接口模块
+     * @param $module
+     * @param $key
+     * @return mixed
+     */
+    protected function loadModule($module, $key = 'master')
+    {
+        $object_id = $module . '_' . $key;
+        if (empty($this->objects[$object_id]))
+        {
+            $this->factory_key = $key;
+            $object = require LIBPATH . '/factory/' . $module . '.php';
+            $this->objects[$object_id] = $object;
+        }
+        return $this->objects[$object_id];
+    }
+
+    function __call($func, $param)
+    {
+        //swoole built-in module
+        if (isset(self::$multi_instance[$func]))
+        {
+            if (empty($param[0]) or !is_string($param[0]))
+            {
+                throw new Exception("module name cannot be null.");
+            }
+            return $this->loadModule($func, $param[0]);
+        }
+        else
+        {
+            throw new Exception("call an undefine method[$func].");
+        }
     }
 
     /**
@@ -440,60 +501,6 @@ class Swoole
                 runkit_import($controller_file, RUNKIT_IMPORT_CLASS_METHODS|RUNKIT_IMPORT_OVERRIDE);
                 $this->env['controllers'][$mvc['controller']]['time'] = time();
             }
-        }
-    }
-
-    function runAjax()
-    {
-        if(!preg_match('/^[a-z0-9_]+$/i',$_GET['method'])) return false;
-        $method = 'ajax_'.$_GET['method'];
-
-        if(!function_exists($method))
-        {
-            echo 'Error: Function not found!';
-            exit;
-        }
-        header('Cache-Control: no-cache, must-revalidate');
-        header('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT');
-        header('Content-type: application/json');
-
-        $data = call_user_func($method);
-        if(DBCHARSET!='utf8')
-        {
-            $data = Swoole_tools::array_iconv(DBCHARSET , 'utf-8' , $data);
-        }
-        echo json_encode($data);
-    }
-
-    function runView($pagecache=false)
-    {
-        if($pagecache)
-        {
-            //echo '启用缓存';
-            $cache = new Swoole_pageCache(3600);
-            if($cache->isCached())
-            {
-                //echo '调用缓存';
-                $cache->load();
-            }
-            else
-            {
-                //echo '没有缓存，正在建立缓存';
-                $view = isset($_GET['view'])?$_GET['view']:'index';
-                if(!preg_match('/^[a-z0-9_]+$/i',$view)) return false;
-                foreach($_GET as $key=>$param)
-                $this->tpl->assign($key,$param);
-                $cache->create($this->tpl->fetch($view.'.html'));
-                $this->tpl->display($view.'.html');
-            }
-        }
-        else
-        {
-            //echo '不启用缓存';
-            $view = isset($_GET['view'])?$_GET['view']:'index';
-            foreach($_GET as $key=>$param)
-            $this->tpl->assign($key,$param);
-            $this->tpl->display($view.'.html');
         }
     }
 }

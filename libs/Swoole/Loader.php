@@ -42,16 +42,21 @@ class Loader
 	 */
 	static function loadModel($model_name)
 	{
-		if(isset(self::$_objects['model'][$model_name]))
-			return self::$_objects['model'][$model_name];
-		else
-		{
-			$model_file = APPSPATH.'/models/'.$model_name.'.model.php';
-			if(!file_exists($model_file)) Error::info('MVC错误',"不存在的模型, <b>$model_name</b>");
-			require($model_file);
-			self::$_objects['model'][$model_name] = new $model_name(self::$swoole);
-			return self::$_objects['model'][$model_name];
-		}
+        if (isset(self::$_objects['model'][$model_name]))
+        {
+            return self::$_objects['model'][$model_name];
+        }
+        else
+        {
+            $model_file = APPSPATH . '/models/' . $model_name . '.model.php';
+            if (!file_exists($model_file))
+            {
+                Error::info('MVC错误', "不存在的模型, <b>$model_name</b>");
+            }
+            require($model_file);
+            self::$_objects['model'][$model_name] = new $model_name(self::$swoole);
+            return self::$_objects['model'][$model_name];
+        }
 	}
 
 	/**
@@ -59,7 +64,7 @@ class Loader
 	 * @param $lib_name
 	 * @return mixed
 	 */
-	static function loadLib($lib_name)
+	static function loadLib($lib_name, $key = 'master')
 	{
         if (isset(self::$_objects['lib'][$lib_name]))
         {
@@ -67,7 +72,7 @@ class Loader
         }
         else
         {
-            require(LIBPATH . '/factory/' . $lib_name . '.php');
+            require LIBPATH . '/factory/' . $lib_name . '.php';
             $lib_object = $$lib_name;
             self::$_objects['lib'][$lib_name] = $lib_object;
             return $lib_object;

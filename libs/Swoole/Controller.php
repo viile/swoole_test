@@ -108,7 +108,7 @@ class Controller
     {
         if (empty($tpl_file))
         {
-            $tpl_file = $this->swoole->env['mvc']['controller'].'/'.$this->swoole->env['mvc']['view'].'.php';
+            $tpl_file = strtolower($this->swoole->env['mvc']['controller']).'/'.strtolower($this->swoole->env['mvc']['view']).'.php';
         }
         if (!is_file($this->template_dir.$tpl_file))
         {

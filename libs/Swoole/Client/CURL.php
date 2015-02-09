@@ -226,7 +226,7 @@ class CURL
      * @return string data
      * @access public
      */
-    function get($url, $ip=null, $timeout=5)
+    function get($url, $ip = null, $timeout = 5)
     {
         // set url to post to
         curl_setopt($this->ch, CURLOPT_URL, $url);

@@ -53,7 +53,10 @@ class WebSocket
      */
     function __destruct()
     {
-        $this->disconnect();
+        if ($this->connected)
+        {
+            $this->disconnect();
+        }
     }
 
     /**
@@ -90,19 +93,20 @@ class WebSocket
     function recv()
     {
         $data = $this->socket->recv();
-        if($data === false) {
+        if ($data === false)
+        {
             echo "Error: {$this->socket->errMsg}";
             return false;
         }
         $this->buffer .= $data;
         $recv_data = $this->parseData($this->buffer);
-        if($recv_data) 
-		{
+        if ($recv_data)
+        {
             $this->buffer = '';
             return $recv_data;
-        } 
-		else 
-		{
+        }
+        else
+        {
             return false;
         }
     }

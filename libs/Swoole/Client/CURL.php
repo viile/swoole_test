@@ -14,6 +14,8 @@ class CURL
     protected $ch;
     protected $userAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:28.0) Gecko/20100101 Firefox/28.0";
     protected $reqHeader = array();
+
+    public $info;
     public $url;
 
     /**
@@ -197,14 +199,15 @@ class CURL
     {
         //and finally send curl request
         $result = curl_exec($this->ch);
-        if ($ret = curl_getinfo($this->ch))
+        $this->info = curl_getinfo($this->ch);
+        if ($this->info)
         {
-            $this->httpCode = $ret['http_code'];
+            $this->httpCode = $this->info['http_code'];
         }
         if (curl_errno($this->ch))
         {
             $this->errCode = curl_errno($this->ch);
-            $this->errMsg = curl_error($this->ch).'['.$this->errCode.']';
+            $this->errMsg = curl_error($this->ch) . '[' . $this->errCode . ']';
             if ($this->debug)
             {
                 \Swoole::$php->log->warn($this->errMsg);

@@ -390,7 +390,6 @@ class Swoole
     /**
      * 运行MVC处理模型
      * @param $url_processor
-     * @return None
      */
     function runMVC()
     {
@@ -446,14 +445,13 @@ class Swoole
             $this->reloadController($mvc, $controller_path);
         }
         $controller = new $controller_class($this);
-        if (!is_callable(array($controller, $mvc['view'])))
+        if (!method_exists($controller, $mvc['view']))
         {
             $this->http->status(404);
             return Swoole\Error::info('MVC Error!'.$mvc['view'],"View <b>{$mvc['controller']}->{$mvc['view']}</b> Not Found!");
         }
-        if(empty($mvc['param'])) $param = null;
-        else $param = $mvc['param'];
 
+        $param = empty($mvc['param']) ? null : $mvc['param'];
         $method = $mvc['view'];
 
         //doAction
@@ -467,12 +465,18 @@ class Swoole
         if (!empty($controller->is_ajax))
         {
             $this->http->header('Cache-Control', 'no-cache, must-revalidate');
-            $this->http->header('Last-Modified', gmdate('D, d M Y H:i:s').' GMT');
+            $this->http->header('Last-Modified', gmdate('D, d M Y H:i:s') . ' GMT');
             $this->http->header('Content-Type', 'application/json');
             $return = json_encode($return);
         }
-        if (defined('SWOOLE_SERVER')) return $return;
-        else echo $return;
+        if (defined('SWOOLE_SERVER'))
+        {
+            return $return;
+        }
+        else
+        {
+            echo $return;
+        }
     }
 
     function reloadController($mvc, $controller_file)

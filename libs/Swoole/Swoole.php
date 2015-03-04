@@ -313,7 +313,7 @@ class Swoole
             return false;
         }
 
-        $uri = trim($_SERVER['REQUEST_URI'], '/');
+        $uri = trim(strstr($_SERVER['REQUEST_URI'], '?', true), '/');
         $mvc = array();
 
         //URL Router
@@ -538,7 +538,6 @@ function swoole_urlrouter_mvc(&$uri)
     {
         $array['view'] = $_GET["v"];
     }
-
     if (empty($uri) or substr($uri, -8) == 'index.php')
     {
         return $array;

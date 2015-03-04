@@ -7,4 +7,8 @@ if (empty($conf['type']))
 }
 $class = "Swoole\\Log\\{$conf['type']}";
 $log = new $class($conf);
+if (!empty($conf['level']))
+{
+    $log->setLevel($conf['level']);
+}
 return $log;

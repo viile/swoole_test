@@ -23,6 +23,9 @@ namespace Swoole;
  */
 class Controller
 {
+    /**
+     * @var \Swoole
+     */
     public $swoole;
     public $is_ajax = false;
 

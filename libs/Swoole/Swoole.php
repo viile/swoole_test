@@ -313,7 +313,13 @@ class Swoole
             return false;
         }
 
-        $uri = trim(strstr($_SERVER['REQUEST_URI'], '?', true), '/');
+        $uri = strstr($_SERVER['REQUEST_URI'], '?', true);
+        if ($uri === false)
+        {
+            $uri = $_SERVER['REQUEST_URI'];
+        }
+        $uri = trim($uri, '/');
+
         $mvc = array();
 
         //URL Router

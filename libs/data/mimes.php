@@ -16,5 +16,7 @@ $mimes = array(
     'application/x-shockwave-flash' => 'swf',
     'application/x-zip-compressed' => 'zip',
     'application/gzip' => 'gzip',
+    'application/x-woff' => 'woff',
+    'image/svg+xml' => 'svg',
 );
 return $mimes;

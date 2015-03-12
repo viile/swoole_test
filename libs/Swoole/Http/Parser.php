@@ -95,7 +95,7 @@ class Parser
         }
         else
         {
-            if (substr($request['Content-Type'], 0, 33) == 'application/x-www-form-urlencoded')
+            if (substr($request->head['Content-Type'], 0, 33) == 'application/x-www-form-urlencoded')
             {
                 parse_str($request->body, $request->post);
             }

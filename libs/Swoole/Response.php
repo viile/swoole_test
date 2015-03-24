@@ -148,3 +148,8 @@ class Response
         $this->head['Pragma'] = 'no-cache';
     }
 }
+
+class ResponseException extends \Exception
+{
+    
+}

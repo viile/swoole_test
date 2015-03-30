@@ -33,9 +33,9 @@ class PdoDB extends \PDO
         $this->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
 	}
 
-    function quote($str)
+    function quote($str, $paramtype = NULL)
     {
-        return trim(parent::quote($str), '\'');
+        return trim(parent::quote($str, $paramtype), '\'');
     }
 
 	/**

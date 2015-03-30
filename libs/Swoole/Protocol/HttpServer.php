@@ -486,7 +486,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
             }
             catch (\Exception $e)
             {
-                $response->setHttpStatus(404);
+                $response->setHttpStatus(500);
                 $response->body = $e->getMessage() . '!<br /><h1>' . self::SOFTWARE . '</h1>';
             }
             ob_end_clean();

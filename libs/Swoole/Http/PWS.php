@@ -1,6 +1,8 @@
 <?php
 namespace Swoole\Http;
 
+use Swoole;
+
 /**
  * Class Http_LAMP
  * @package Swoole
@@ -33,6 +35,6 @@ class PWS implements \Swoole\IFace\Http
     {
         \Swoole::$php->request->finish = 1;
         if($content) \Swoole::$php->response->body = $content;
-        throw new \Exception;
+        throw new Swoole\RespException;
     }
 }

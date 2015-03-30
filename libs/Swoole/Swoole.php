@@ -372,19 +372,30 @@ class Swoole
         //将对象赋值到控制器
         $php->request = $request;
         $php->response = $response;
-
+        
         try
         {
-            ob_start();
-            /*---------------------处理MVC----------------------*/
-            $response->body = $php->runMVC();
-            $response->body .= ob_get_contents();
-            ob_end_clean();
+            try
+            {
+                ob_start();
+                /*---------------------处理MVC----------------------*/
+                $response->body = $php->runMVC();
+                $response->body .= ob_get_contents();
+                ob_end_clean();
+            }
+            catch(Swoole\ResponseException $e)
+            {
+                if ($request->finish != 1)
+                {
+                    $this->server->httpError(500, $response, $e->getMessage());
+                }
+            }
         }
-        catch(\Exception $e)
+        catch (\Exception $e)
         {
-            if ($request->finish != 1) $this->server->httpError(404, $response, $e->getMessage());
+            $this->server->httpError(500, $response, $e->getMessage()."<hr />".$e->getTraceAsString());
         }
+        
         //重定向
         if (isset($response->head['Location']))
         {

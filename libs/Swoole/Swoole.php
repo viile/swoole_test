@@ -393,7 +393,7 @@ class Swoole
         }
         catch (\Exception $e)
         {
-            $this->server->httpError(500, $response, $e->getMessage()."<hr />".$e->getTraceAsString());
+            $this->server->httpError(500, $response, $e->getMessage()."<hr />".nl2br($e->getTraceAsString()));
         }
         
         //重定向

@@ -10,6 +10,11 @@ class Http extends Swoole\Controller
         $this->http->finish("<h1>exit</h1>");
     }
 
+    function except()
+    {
+        throw new \Exception("except");
+    }
+
     function header()
     {
         //发送Http状态码，如500, 404等等

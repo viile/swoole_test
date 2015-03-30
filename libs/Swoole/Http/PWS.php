@@ -35,6 +35,6 @@ class PWS implements \Swoole\IFace\Http
     {
         \Swoole::$php->request->finish = 1;
         if($content) \Swoole::$php->response->body = $content;
-        throw new Swoole\RespException;
+        throw new Swoole\ResponseException;
     }
 }

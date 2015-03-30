@@ -80,11 +80,11 @@ class Controller
         return $content;
     }
 
-    function value($array, $key, $default = '')
+    function value($array, $key, $default = '', $intval = false)
     {
         if (isset($array[$key]))
         {
-            return $array[$key];
+            return $intval ? intval($array[$key]) : $array[$key];
         }
         else
         {

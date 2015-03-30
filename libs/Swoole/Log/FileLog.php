@@ -17,6 +17,7 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
             $file = $conf;
             $conf = array('file' => $file);
         }
+
         if (isset($conf['file']))
         {
             $this->log_file = $conf['file'];

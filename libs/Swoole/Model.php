@@ -56,12 +56,14 @@ class Model
 	 * 获取主键$primary_key为$object_id的一条记录对象(Record Object)
 	 * 如果参数为空的话，则返回一条空白的Record，可以赋值，产生一条新的记录
 	 * @param $object_id
+	 * @param $where
 	 * @return Record Object
 	 */
-	public final function get($object_id=0,$where='')
+	public final function get($object_id = 0, $where = '')
 	{
-		return new Record($object_id,$this->db,$this->table,$this->primary,$where,$this->select);
+		return new Record($object_id, $this->db, $this->table, $this->primary, $where, $this->select);
 	}
+
 	/**
 	 * 获取表的一段数据，查询的参数由$params指定
 	 * @param $params
@@ -70,14 +72,21 @@ class Model
 	 */
 	public final function gets($params, &$pager=null)
 	{
-	    if(empty($params)) return false;
+		if (empty($params))
+		{
+			return false;
+		}
+
 		$selectdb = new SelectDB($this->db);
 		$selectdb->from($this->table);
 		$selectdb->primary = $this->primary;
 		$selectdb->select($this->select);
-		if(!isset($params['order'])) $params['order'] = "`{$this->table}`.{$this->primary} desc";
+		if (!isset($params['order']))
+		{
+			$params['order'] = "`{$this->table}`.{$this->primary} desc";
+		}
 		$selectdb->put($params);
-		if(isset($params['page']))
+		if (isset($params['page']))
 		{
 			$selectdb->paging();
 			$pager = $selectdb->pager;
@@ -87,11 +96,14 @@ class Model
 	/**
 	 * 插入一条新的记录到表
 	 * @param $data Array 必须是键值（表的字段对应值）对应
-	 * @return None
+	 * @return int
 	 */
 	public final function put($data)
 	{
-		if(empty($data) or !is_array($data)) return false;
+		if (empty($data) or !is_array($data))
+		{
+			return false;
+		}
 		$this->db->insert($data, $this->table);
 		return $this->db->lastInsertId();
 	}
@@ -109,16 +121,16 @@ class Model
 	}
 	/**
 	 * 更新一组数据
-	 * @param $data 更新的数据
-	 * @param $params update的参数列表
-	 * @return true
+	 * @param array $data 更新的数据
+	 * @param array $params update的参数列表
+	 * @return bool
+	 * @throws \Exception
 	 */
-	public final function sets($data,$params)
+	public final function sets($data, $params)
 	{
-		if(empty($params))
+		if (empty($params))
 		{
 			throw new \Exception("Model sets params is empty!");
-			return false;
 		}
 		$selectdb = new SelectDB($this->db);
 		$selectdb->from($this->table);
@@ -126,6 +138,7 @@ class Model
 		$selectdb->update($data);
 		return true;
 	}
+
 	/**
 	 * 删除一条数据主键为$id的记录，
 	 * @param $id

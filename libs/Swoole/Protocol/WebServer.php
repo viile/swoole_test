@@ -86,6 +86,10 @@ abstract class WebServer extends Base
         if (!empty($config['server']['gzip_open']) and function_exists('gzdeflate'))
         {
             $this->gzip = true;
+            if (empty($config['server']['gzip_level']))
+            {
+                $config['server']['gzip_level'] = 1;
+            }
         }
         //过期控制
         if (!empty($config['server']['expire_open']))

@@ -253,32 +253,44 @@ class Form
 	}
 	/**
 	 * 多选按钮
-	 * $name  此radio 的 name 标签
-	 * $array 要制作radio 的数
-	 * $default 如果要设定默认选择哪个数据 就在此填入默认的数据的值
-	 * $self 设置为ture，option的值等于$value
-	 * $attrArray html的属性 例如  class="x1"
+	 * @param string $name  此radio 的 name 标签
+	 * @param array $option 要制作radio 的数
+	 * @param string $default 如果要设定默认选择哪个数据 就在此填入默认的数据的值
+	 * @param bool $self 设置为ture，option的值等于$value
+	 * @param array $attrArray html的属性 例如  class="x1"
+	 * @param string $label_class
+	 * @return string
 	 */
-	static function checkbox($name,$option,$default=null,$self = false,$attrArray=null,$label_class='')
+	static function checkbox($name, $option, $default = null, $self = false, $attrArray = null, $label_class = '')
 	{
 		$htmlStr = "";
 		$attrStr = self::input_attr($attrArray);
-		$default = array_flip(explode(self::$checkbox_value_split,$default));
+		$default = array_flip(explode(self::$checkbox_value_split, $default));
 
-		foreach($option as $key => $value)
+		foreach ($option as $key => $value)
 		{
-			if($self) $key=$value;
-			if(isset($default[$key]))
+			if ($self)
 			{
-				$htmlStr .= "<label class='$label_class'><input type=\"checkbox\" name=\"{$name}[]\" id=\"{$name}_$key\" value=\"$key\" checked=\"checked\" {$attrStr} />".$value.'</label>';
+				$key = $value;
+			}
+			if (isset($default[$key]))
+			{
+				$htmlStr
+					.=
+					"<label class='$label_class'><input type=\"checkbox\" name=\"{$name}[]\" id=\"{$name}_$key\" value=\"$key\" checked=\"checked\" {$attrStr} />"
+					. $value . '</label>';
 			}
 			else
 			{
-				$htmlStr .= "<label class='$label_class'><input type=\"checkbox\" name=\"{$name}[]\" id=\"{$name}_$key\" value=\"$key\"  {$attrStr} />".$value.'</label>';
+				$htmlStr
+					.=
+					"<label class='$label_class'><input type=\"checkbox\" name=\"{$name}[]\" id=\"{$name}_$key\" value=\"$key\"  {$attrStr} />"
+					. $value . '</label>';
 			}
 		}
 		return $htmlStr;
 	}
+
     /**
      * 文件上传表单
      * @param $name 表单名称

@@ -78,7 +78,7 @@ class CURL
      * @param string pass
      * @access public
      */
-    function set_credentials($username,$password)
+    function setCredentials($username,$password)
     {
         curl_setopt($this->ch, CURLOPT_USERPWD, "$username:$password");
     }
@@ -119,7 +119,7 @@ class CURL
      * @param string proxy
      * @access public
      */
-    function set_proxy($proxy)
+    function setProxy($proxy)
     {
         curl_setopt($this->ch, CURLOPT_PROXY, $proxy);
     }
@@ -127,7 +127,7 @@ class CURL
      * 设置SSL模式
      * @return unknown_type
      */
-    function set_ssl()
+    function setSsl()
     {
     	curl_setopt ( $this->_ch, CURLOPT_SSL_VERIFYPEER, false );
     }

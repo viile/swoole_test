@@ -23,10 +23,12 @@ require_once __DIR__ . '/PluginLoader.php';
  * @property \Swoole\Http\PWS    $http
  * @property \Swoole\Log         $log
  * @property \Swoole\Auth        $user
- *             @method db
- *             @method mongo
- *             @method redis
- *             @method cache
+ * @property \Swoole\URL         $url
+ *             @method \Swoole\Databasedb
+ *             @method \MongoClient mongo
+ *             @method \redis redis
+ *             @method \Swoole\IFace\Cache cache
+ *  @method \Swoole\URL url
  */
 class Swoole
 {
@@ -64,6 +66,7 @@ class Swoole
     	'user' => true,   //用户验证组件
         'session' => true, //session
         'http' => true, //http
+        'url' => true, //urllib
     );
 
     /**
@@ -75,6 +78,7 @@ class Swoole
         'db' => true,
         'mongo' => true,
         'redis' => true,
+        'url' => true,
     );
 
     static $charset = 'utf-8';

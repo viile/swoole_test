@@ -60,6 +60,16 @@ class Tool
     }
 
     /**
+     * 获取字符串最后一位
+     * @param $string
+     * @return mixed
+     */
+    static function endchar($string)
+    {
+        return $string[strlen($string) - 1];
+    }
+
+    /**
      * 解析URI
      * @param $url
      * @return unknown_type
@@ -147,12 +157,17 @@ class Tool
     /**
      * 合并URL字串，parse_query的反向函数
      * @param $urls
-     * @return unknown_type
+     * @return string
      */
     static function combine_query($urls)
     {
-        foreach ($urls as $k => $v) {
-            if (!empty($k)) $url[] = $k . self::$url_key_join . urlencode($v);
+        $url = array();
+        foreach ($urls as $k => $v)
+        {
+            if (!empty($k))
+            {
+                $url[] = $k . self::$url_key_join . urlencode($v);
+            }
         }
         return implode(self::$url_param_join, $url);
     }
@@ -162,7 +177,7 @@ class Tool
      * @param $key
      * @param $value
      * @param $ignore
-     * @return unknown_type
+     * @return string
      */
     static function url_merge($key, $value, $ignore = null, $urls = null)
     {
@@ -170,20 +185,30 @@ class Tool
         if ($urls === null) $urls = $_GET;
 
         $urls = array_merge($urls, array_combine(explode(',', $key), explode(',', $value)));
-        if ($ignore !== null) {
+        if ($ignore !== null)
+        {
             $ignores = explode(',', $ignore);
-            foreach ($ignores as $ig) unset($urls[$ig]);
+            foreach ($ignores as $ig)
+            {
+                unset($urls[$ig]);
+            }
         }
         if (self::$url_prefix == '')
         {
             $qm = strpos($_SERVER['REQUEST_URI'], '?');
-            if($qm !== false) {
-                $prefix = substr($_SERVER['REQUEST_URI'], 0, $qm+1);
-            } else {
+            if ($qm !== false)
+            {
+                $prefix = substr($_SERVER['REQUEST_URI'], 0, $qm + 1);
+            }
+            else
+            {
                 $prefix = $_SERVER['REQUEST_URI'] . '?';
             }
         }
-        else $prefix = self::$url_prefix;
+        else
+        {
+            $prefix = self::$url_prefix;
+        }
         return $prefix . self::combine_query($urls) . self::$url_add_end;
     }
 
@@ -258,13 +283,19 @@ class Tool
         //判断的时候，为避免出现1和true的疑惑，或是判断语句始终为真的问题，这里统一处理成字符串形式
         $birth_month = strval($birth_month);
         $constellation_name = array('水瓶座', '双鱼座', '白羊座', '金牛座', '双子座', '巨蟹座', '狮子座', '处女座', '天秤座', '天蝎座', '射手座', '摩羯座');
-        if ($birth_date <= 22) {
-            if ('1' !== $birth_month) {
+        if ($birth_date <= 22)
+        {
+            if ('1' !== $birth_month)
+            {
                 $constellation = $constellation_name[$birth_month - 2];
-            } else {
+            }
+            else
+            {
                 $constellation = $constellation_name[11];
             }
-        } else {
+        }
+        else
+        {
             $constellation = $constellation_name[$birth_month - 1];
         }
         return $constellation;
@@ -279,8 +310,14 @@ class Tool
     static function get_animal($birth_year, $format = '1')
     {
         //1900年是子鼠年
-        if ($format == '2') $animal = array('子鼠', '丑牛', '寅虎', '卯兔', '辰龙', '巳蛇', '午马', '未羊', '申猴', '酉鸡', '戌狗', '亥猪');
-        elseif ($format == '1') $animal = array('鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪');
+        if ($format == '2')
+        {
+            $animal = array('子鼠', '丑牛', '寅虎', '卯兔', '辰龙', '巳蛇', '午马', '未羊', '申猴', '酉鸡', '戌狗', '亥猪');
+        }
+        elseif ($format == '1')
+        {
+            $animal = array('鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪');
+        }
         $my_animal = ($birth_year - 1900) % 12;
         return $animal[$my_animal];
     }
@@ -305,9 +342,12 @@ class Tool
         $birth_date_num = date('z', mktime(0, 0, 0, $birth_month, $birth_date, $birth_year));
         $difference = $now_date_num - $birth_date_num;
 
-        if ($difference > 0) {
+        if ($difference > 0)
+        {
             $full_age = $now_year - $birth_year;
-        } else {
+        }
+        else
+        {
             $full_age = $now_year - $birth_year - 1;
         }
         $now_age = $full_age + 1;
@@ -321,9 +361,12 @@ class Tool
     static function sendUDP($server_ip, $server_port, $data, $timeout = 30)
     {
         $client = stream_socket_client("udp://$server_ip:$server_port", $errno, $errstr, $timeout);
-        if (!$client) {
+        if (!$client)
+        {
             echo "ERROR: $errno - $errstr<br />\n";
-        } else {
+        }
+        else
+        {
             fwrite($client, $data);
             fclose($client);
         }

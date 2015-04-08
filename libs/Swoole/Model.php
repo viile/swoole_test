@@ -363,6 +363,8 @@ class Record implements \ArrayAccess
 {
 	public $_data = array();
 
+	protected $_cache = false;
+	protected $_cache_lifetime;
     protected $_update = array();
     protected $_change = 0;
     protected $_save = false;
@@ -383,28 +385,52 @@ class Record implements \ArrayAccess
     const STATE_INSERT = 1;
     const STATE_UPDATE = 2;
 
+	const CACHE_KEY_PREFIX = 'swoole_record_';
+
     /**
-     * @param        $id
-     * @param        $db \Swoole\Database
-     * @param        $table
-     * @param        $primary
-     * @param string $where
-     * @param string $select
-     */
-    function __construct($id, $db, $table, $primary, $where='', $select='*')
+	 * @param        $id
+	 * @param        $db \Swoole\Database
+	 * @param        $table
+	 * @param        $primary
+	 * @param string $where
+	 * @param string $select
+	 * @param bool   $cache
+	 */
+    function __construct($id, $db, $table, $primary, $where = '', $select = '*', $cache = false)
 	{
-        $this->db = $db;
-        $this->_current_id = $id;
-        $this->table = $table;
-        $this->primary = $primary;
+		$this->db = $db;
+		$this->_current_id = $id;
+		$this->table = $table;
+		$this->primary = $primary;
+		$this->_cache = $cache;
+
         if (empty($where))
         {
             $where = $primary;
         }
+
         if (!empty($this->_current_id))
         {
-            $res = $this->db->query("select $select from " . $this->table . ' where ' . $where . "='$id' limit 1");
+			if ($this->_cache)
+			{
+				$cache_key = self::CACHE_KEY_PREFIX.$table.'_'.$this->_current_id;
+				$_cache_data = \Swoole::$php->cache->get($cache_key);
+				if ($_cache_data)
+				{
+					$this->_data = $_cache_data;
+					goto fetch_finish;
+				}
+			}
+
+			$res = $this->db->query("select {$select} from {$this->table} where {$where} ='{$id}' limit 1");
             $this->_data = $res->fetch();
+
+			if ($this->_cache && $this->_data)
+			{
+				\Swoole::$php->cache->set($cache_key, $this->_data, $this->_cache_lifetime);
+			}
+
+			fetch_finish:
             $this->_current_id = $this->_data[$this->primary];
             if (!empty($this->_data))
             {

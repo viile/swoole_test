@@ -395,6 +395,21 @@ class Tool
             return true;
         }
     }
-}
 
-?>
+    static function fileAppend($log, $file = '')
+    {
+        if (empty($file))
+        {
+            $file = '/tmp/swoole.log';
+        }
+        if (!is_string($log))
+        {
+            $log = var_export($log, true);
+        }
+        if (self::endchar($log) !== "\n")
+        {
+            $log .= "\n";
+        }
+        file_put_contents($file, $log, FILE_APPEND);
+    }
+}

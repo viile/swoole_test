@@ -24,11 +24,11 @@ require_once __DIR__ . '/PluginLoader.php';
  * @property \Swoole\Log         $log
  * @property \Swoole\Auth        $user
  * @property \Swoole\URL         $url
- *             @method \Swoole\Databasedb
- *             @method \MongoClient mongo
- *             @method \redis redis
- *             @method \Swoole\IFace\Cache cache
- *  @method \Swoole\URL url
+ * @method \Swoole\Database      db
+ * @method \MongoClient          mongo
+ * @method \redis                redis
+ * @method \Swoole\IFace\Cache   cache
+ * @method \Swoole\URL           url
  */
 class Swoole
 {

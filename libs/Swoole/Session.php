@@ -50,7 +50,7 @@ class Session
             $this->readonly = $readonly;
             $this->open = true;
             $sessid = Cookie::get(self::$cookie_key);
-            if(empty($sessid))
+            if (empty($sessid))
             {
                 $sessid = RandomKey::randmd5(40);
                 Cookie::set(self::$cookie_key, $sessid, self::$cache_life);
@@ -59,12 +59,34 @@ class Session
         }
     }
 
+    /**
+     * 获取SessionID
+     * @return string
+     */
+    function getId()
+    {
+        if ($this->use_php_session)
+        {
+            return session_id();
+        }
+        else
+        {
+            return $this->sessID;
+        }
+    }
+
     public function load($sessId)
     {
         $this->sessID = $sessId;
         $data = $this->get($sessId);
-        if($data) return unserialize($data);
-        else return array();
+        if ($data)
+        {
+            return unserialize($data);
+        }
+        else
+        {
+            return array();
+        }
     }
 
     public function save()

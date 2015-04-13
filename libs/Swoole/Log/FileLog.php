@@ -9,6 +9,7 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
 {
     protected $log_file;
     protected $fp;
+    protected $count = 0;
 
 	function __construct($conf)
     {
@@ -27,6 +28,18 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
             throw new \Exception(__CLASS__.": require \$conf[file]");
         }
 
+        //自动创建目录
+        $dir = dirname($this->log_file);
+        if (!is_dir($dir))
+        {
+            mkdir($dir, 0777, true);
+        }
+
+        if (!empty($conf['date']))
+        {
+
+        }
+
         $this->fp = fopen($this->log_file, 'a+');
         if (!$this->fp)
         {
@@ -42,7 +55,10 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
 	 */
     function put($msg, $level = self::INFO)
     {
-    	$msg = $this->format($msg, $level);
-        if ($msg) fputs($this->fp, $msg);
+        $msg = $this->format($msg, $level);
+        if ($msg)
+        {
+            fputs($this->fp, $msg);
+        }
     }
 }

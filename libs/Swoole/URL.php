@@ -46,17 +46,6 @@ class URL
     {
         $url = $this->config['url'];
 
-        if (!empty($this->config['cache']))
-        {
-            if (empty($cache_id)) $cache_id = md5($url);
-            $cache_key = self::CACHE_KEY_PREFIX.$cache_id;
-            $result = \Swoole::$php->cache->get($cache_key);
-            if ($result)
-            {
-                return $result;
-            }
-        }
-
         if ($params)
         {
             if (Tool::endchar($url) == '&')
@@ -66,6 +55,17 @@ class URL
             else
             {
                 $url .= '?' . http_build_query($params);
+            }
+        }
+
+        if (!empty($this->config['cache']))
+        {
+            if (empty($cache_id)) $cache_id = md5($url);
+            $cache_key = self::CACHE_KEY_PREFIX.$cache_id;
+            $result = \Swoole::$php->cache->get($cache_key);
+            if ($result)
+            {
+                return $result;
             }
         }
 

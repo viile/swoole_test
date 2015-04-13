@@ -27,6 +27,11 @@ class SelectDB
     public $union = '';
     public $for_update = '';
 
+    /**
+     * @var \Swoole\RecordSet
+     */
+    protected $result;
+
     //Union联合查询
     private $if_union = false;
     private $union_select = '';
@@ -45,8 +50,8 @@ class SelectDB
     public $pager = null;
 
     public $auto_cache = false;
-    public $cache_life = 600;
-    public $cache_prefix = 'selectdb';
+    public $cache_lifetime;
+    public $cache_prefix = 'swoole_selectdb_';
 
     public $RecordSet;
 
@@ -360,6 +365,15 @@ class SelectDB
     }
 
     /**
+     * 启用缓存
+     * @param int $lifetime
+     */
+    function cache($lifetime = 300)
+    {
+        $this->cache_lifetime = $lifetime;
+    }
+
+    /**
      * 产生分页
      * @return null
      */
@@ -453,7 +467,7 @@ class SelectDB
         } else {
             $this->sql = $sql;
         }
-        $this->res = $this->db->query($this->sql);
+        $this->result = $this->db->query($this->sql);
         $this->is_execute++;
     }
 
@@ -556,14 +570,14 @@ class SelectDB
             if(empty($data))
             {
                 if($this->is_execute==0) $this->exeucte();
-                $record = $this->res->fetch();
+                $record = $this->result->fetch();
                 $php->cache->set($cache_key,$record,$this->cache_life);
             }
         }
         else
         {
             if($this->is_execute==0) $this->exeucte();
-            $record = $this->res->fetch();
+            $record = $this->result->fetch();
         }
         if($field==='') return $record;
         return $record[$field];
@@ -571,28 +585,36 @@ class SelectDB
     /**
      * 获取所有记录
      * @param $cache_id
-     * @return unknown_type
+     * @return array | bool
      */
-    function getall($cache_id='')
+    function getall($cache_id = '')
     {
-        if($this->auto_cache or !empty($cache_id))
+        if ($this->cache_lifetime)
         {
-            $cache_key = empty($cache_id)?$this->cache_prefix.'_all_'.md5($this->sql):$this->cache_prefix.'_all_'.$cache_id;
-            global $php;
-            $data = $php->cache->get($cache_key);
-            if(empty($data))
+            $cache_key = empty($cache_id) ? $this->cache_prefix . '_all_' . md5($this->sql) : $this->cache_prefix . '_all_' . $cache_id;
+            $data = \Swoole::$php->cache->get($cache_key);
+            if (empty($data))
             {
-                if($this->is_execute==0) $this->exeucte();
-                $data = $this->res->fetchall();
-                $php->cache->set($cache_key,$data,$this->cache_life);
+                if ($this->is_execute == 0)
+                {
+                    $this->exeucte();
+                }
+                $data = $this->result->fetchall();
+                \Swoole::$php->cache->set($cache_key, $data, $this->cache_lifetime);
                 return $data;
             }
-            else return $data;
+            else
+            {
+                return $data;
+            }
         }
         else
         {
-            if($this->is_execute==0) $this->exeucte();
-            return $this->res->fetchall();
+            if ($this->is_execute == 0)
+            {
+                $this->exeucte();
+            }
+            return $this->result->fetchall();
         }
     }
 

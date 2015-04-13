@@ -209,42 +209,49 @@ class Model
 	 * 获取一个数据列表，功能类似于gets，此方法仅用于SiaoCMS，不作为同样类库的方法
 	 * @param $params
 	 * @param $get
-	 * @return unknown_type
+	 * @return array
 	 */
 	function getList(&$params,$get='data')
 	{
 		$selectdb = new SelectDB($this->db);
 		$selectdb->from($this->table);
 		$selectdb->select($this->select);
-		$selectdb->limit(isset($params['row'])?$params['row']:10);
+		$selectdb->limit(isset($params['row']) ? $params['row'] : 10);
 		unset($params['row']);
-		$selectdb->order(isset($params['order'])?$params['order']:$this->primary.' desc');
+		$selectdb->order(isset($params['order']) ? $params['order'] : $this->primary . ' desc');
 		unset($params['order']);
 
-		if(isset($params['typeid']))
+		if (isset($params['typeid']))
 		{
-			$selectdb->where($this->foreignkey.'='.$params['typeid']);
+			$selectdb->where($this->foreignkey . '=' . $params['typeid']);
 			unset($params['typeid']);
 		}
 		$selectdb->put($params);
-		if(array_key_exists('page',$params))
+		if (array_key_exists('page', $params))
 		{
 			$selectdb->paging();
 			global $php;
 			$php->env['page'] = $params['page'];
-			$php->env['start'] = 10*intval($params['page']/10);
-			if($selectdb->pages>10 and $params['page']< $php->env['start'])
-            {
-                $php->env['more'] = 1;
-            }
-			$php->env['end'] = $selectdb->pages-$php->env['start'];
+			$php->env['start'] = 10 * intval($params['page'] / 10);
+			if ($selectdb->pages > 10 and $params['page'] < $php->env['start'])
+			{
+				$php->env['more'] = 1;
+			}
+			$php->env['end'] = $selectdb->pages - $php->env['start'];
 			$php->env['pages'] = $selectdb->pages;
 			$php->env['pagesize'] = $selectdb->page_size;
 			$php->env['num'] = $selectdb->num;
 		}
-		if($get==='data') return $selectdb->getall();
-		elseif($get==='sql') return $selectdb->getsql();
+		if ($get === 'data')
+		{
+			return $selectdb->getall();
+		}
+		elseif ($get === 'sql')
+		{
+			return $selectdb->getsql();
+		}
 	}
+
 	/**
 	 * 获取一个键值对应的结构，键为表记录主键的值，值为记录数据或者其中一个字段的值
 	 * @param $gets
@@ -260,9 +267,9 @@ class Model
 	        if(empty($field)) $new[$li[$this->primary]] = $li;
 	        else $new[$li[$this->primary]] = $li[$field];
 	    }
-	    unset($list);
 	    return $new;
 	}
+
 	/**
 	 * 获取一个2层的树状结构
 	 * @param $gets
@@ -272,15 +279,20 @@ class Model
 	 */
 	function getTree($gets,$category='fid',$order='id desc')
 	{
-	    $gets['order'] = $category.','.$order;
-	    $list = $this->gets($gets);
-	    foreach($list as $li)
-	    {
-	        if($li[$category]==0) $new[$li[$this->primary]] = $li;
-	        else $new[$li[$category]]['child'][$li[$this->primary]] = $li;
-	    }
-	    unset($list);
-	    return $new;
+		$gets['order'] = $category . ',' . $order;
+		$list = $this->gets($gets);
+		foreach ($list as $li)
+		{
+			if ($li[$category] == 0)
+			{
+				$new[$li[$this->primary]] = $li;
+			}
+			else
+			{
+				$new[$li[$category]]['child'][$li[$this->primary]] = $li;
+			}
+		}
+		return $new;
 	}
 	/**
 	 * 检测是否存在数据，实际可以用count代替，0为false，>0为true
@@ -301,37 +313,54 @@ class Model
 	{
 		return $this->db->query('describe '.$this->table)->fetchall();
 	}
-    /**
-     * 自动生成表单
-     * @param $set_id
-     * @return unknown_type
-     */
-	function getForm($set_id=0)
-	{
-	    $this->_form_();
-	    //传入ID，修改表单
-	    if($set_id)
-	    {
-	        $data = $this->get((int)$set_id)->get();
-	        foreach($this->_form as $k=>&$f) $f['value'] = $data[$k];
-            if(method_exists($this,"_set_")) $this->_set_();
 
-            if($this->_form_secret) Form::secret(get_class($this).'_set');
-	    }
-	    //增加表单
-	    elseif(method_exists($this,"_add_"))
-	    {
-	        $this->_add_();
-	        if($this->_form_secret) Form::secret(get_class($this).'_add');
-	    }
-        return Form::autoform($this->_form);
+	/**
+	 * 自动生成表单
+	 *
+	 * @param $set_id
+	 *
+	 * @return unknown_type
+	 */
+	function getForm($set_id = 0)
+	{
+		$this->_form_();
+		//传入ID，修改表单
+		if ($set_id)
+		{
+			$data = $this->get((int)$set_id)->get();
+			foreach ($this->_form as $k => &$f)
+			{
+				$f['value'] = $data[$k];
+			}
+			if (method_exists($this, "_set_"))
+			{
+				$this->_set_();
+			}
+
+			if ($this->_form_secret)
+			{
+				Form::secret(get_class($this) . '_set');
+			}
+		}
+		//增加表单
+		elseif (method_exists($this, "_add_"))
+		{
+			$this->_add_();
+			if ($this->_form_secret)
+			{
+				Form::secret(get_class($this) . '_add');
+			}
+		}
+		return Form::autoform($this->_form);
 	}
+
 	/**
 	 *
-	 * @param 出错时设置$error
+	 * @param  string $error 出错时设置
+	 *
 	 * @return true or false
 	 */
-    function checkForm($input,$method,&$error)
+	function checkForm($input, $method, &$error)
     {
         if($this->_form_secret)
         {

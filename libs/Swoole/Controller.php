@@ -2,34 +2,9 @@
 namespace Swoole;
 /**
  * Controller的基类，控制器基类
- *
-*@package Swoole\System
- * @subpackage MVC
- * @property \Swoole\Database    $db
- * @property \Swoole\IFace\Cache $cache
- * @property \Swoole\Upload      $upload
- * @property \Swoole\Event       $event
- * @property \Swoole\Session     $session
- * @property \Swoole\Template    $tpl
- * @property \redis              $redis
- * @property \MongoClient        $mongo
- * @property \Swoole\Config      $config
- * @property \Swoole\Http\PWS    $http
- * @property \Swoole\Log         $log
- * @property \Swoole\Auth        $user
- * @property \Swoole\URL         $url
- * @method \Swoole\Database      db
- * @method \MongoClient          mongo
- * @method \redis                redis
- * @method \Swoole\IFace\Cache   cache
- * @method \Swoole\URL           url
  */
-class Controller
+class Controller extends Ojbect
 {
-    /**
-     * @var \Swoole
-     */
-    public $swoole;
     public $is_ajax = false;
 
     /**
@@ -195,16 +170,6 @@ HTMLS;
         }
          $html .= "</div></fieldset></div>";
          return $html;
-    }
-
-    function __get($key)
-    {
-        return $this->swoole->$key;
-    }
-
-    function __call($func, $param)
-    {
-        return call_user_func_array(array($this->swoole, $func), $param);
     }
 
     function __destruct()

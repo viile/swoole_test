@@ -70,8 +70,6 @@ function session($readonly = false)
 
 /**
  * 调试数据，终止程序的运行
- * @param $var
- * @return unknown_type
  */
 function debug()
 {
@@ -85,57 +83,31 @@ function debug()
  * 引发一个错误
  * @param $error_id
  * @param $stop
- * @return unknown_type
  */
-function error($error_id,$stop=true)
+function error($error_id, $stop = true)
 {
     global $php;
     $error = new \Swoole\Error($error_id);
-    if(isset($php->error_call[$error_id]))
+    if (isset($php->error_call[$error_id]))
     {
-        call_user_func($php->error_call[$error_id],$error);
+        call_user_func($php->error_call[$error_id], $error);
     }
-    elseif($stop) exit($error);
-    else echo $error;
-}
-
-function url_process_default()
-{
-    $array = array('controller'=>'page', 'view'=>'index');
-    if(!empty($_GET["c"])) $array['controller']=$_GET["c"];
-    if(!empty($_GET["v"])) $array['view']=$_GET["v"];
-
-    $uri = parse_url($_SERVER['REQUEST_URI']);
-    if(empty($uri['path']) or $uri['path']=='/' or $uri['path']=='/index.php')
+    elseif ($stop)
     {
-        return $array;
+        exit($error);
     }
-    $request = explode('/', trim($uri['path'], '/'), 3);
-    if(count($request) < 2)
-    {
-        return $array;
-    }
-    $array['controller']=$request[0];
-    $array['view']=$request[1];
-    if(is_numeric($request[2])) $_GET['id'] = $request[2];
     else
     {
-        Swoole\Tool::$url_key_join = '-';
-        Swoole\Tool::$url_param_join = '-';
-        Swoole\Tool::$url_add_end = '.html';
-        Swoole\Tool::$url_prefix = "/{$request[0]}/$request[1]/";
-        Swoole\Tool::url_parse_into($request[2],$_GET);
+        echo $error;
     }
-    return $array;
 }
+
 /**
  * 错误信息输出处理
  */
 function swoole_error_handler($errno, $errstr, $errfile, $errline)
 {
-    $level = 'Error';
     $info = '';
-
     switch ($errno)
     {
         case E_USER_ERROR:
@@ -159,4 +131,3 @@ function swoole_error_handler($errno, $errstr, $errfile, $errline)
     $info .= '<b>Code:</b> '.$errno."<br />\n";
     echo Swoole\Error::info($title, $info);
 }
-

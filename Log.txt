@@ -1,0 +1,4 @@
+2015-04-17
+
+add redis pconnect, auth and timeout. 
+path: /libs/factory/redis.php

@@ -7,4 +7,3 @@ $field_types['path'] = array('name' => '路径', 'fieldtype' => 'varchar');
 $field_types['url'] = array('name' => '地址', 'fieldtype' => 'varchar');
 $field_types['radio'] = array('name' => '单选', 'fieldtype' => 'varchar');
 $field_types['checkbox'] = array('name' => '复选', 'fieldtype' => 'varchar');
-$field_types['foreign'] = '';

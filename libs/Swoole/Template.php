@@ -1,13 +1,15 @@
 <?php
 namespace Swoole;
+
 require(LIBPATH . "/module/smarty/Smarty.class.php");
+
 /**
  * Smarty模板系统封装类
  * 提供模板引擎类，可以访问到MVC结构，增加了pagecache静态页面缓存的功能
- * @author Tianfeng.Han
- * @package SwooleSystem
- * @subpackage template
  *
+ * @author     Tianfeng.Han
+ * @package    SwooleSystem
+ * @subpackage template
  */
 class Template extends \Smarty
 {
@@ -22,26 +24,41 @@ class Template extends \Smarty
 		$this->left_delimiter = "{{";
 		$this->right_delimiter = "}}";
 	}
+
 	function __init()
 	{
-	    $this->clear_all_assign();
+		$this->clear_all_assign();
 	}
+
 	function set_template_dir($dir)
 	{
-		$this->template_dir = WEBPATH.'/'.$dir;
+		$this->template_dir = WEBPATH . '/' . $dir;
 	}
-	function set_cache($time=3600)
+
+	function set_cache($time = 3600)
 	{
-        $this->caching = 1;
-        $this->cache_lifetime = $time;
+		$this->caching = 1;
+		$this->cache_lifetime = $time;
 	}
+
+	/**
+	 * 缓存当前页面
+	 * @return bool
+	 */
 	function pagecache()
 	{
-		$pagecache = new \Swoole_pageCache($this->cache_life);
-		if($pagecache->isCached()) $pagecache->load();
-		else return false;
+		$pagecache = new PageCache($this->cache_life);
+		if ($pagecache->isCached())
+		{
+			$pagecache->load();
+		}
+		else
+		{
+			return false;
+		}
 		return true;
 	}
+
 	/**
 	 * 传引用到模板中
 	 * @param $key
@@ -52,20 +69,27 @@ class Template extends \Smarty
 	{
 	    $this->_tpl_vars[$key] = &$value;
 	}
-	function display($template= null,$cache_id= null,$complile_id= null)
+
+	function display($template = null, $cache_id = null, $complile_id = null)
 	{
-		if($template==null)
+		if ($template == null)
 		{
 			global $php;
-			$template = $php->env['mvc']['controller'].'_'.$php->env['mvc']['view'].'.html';
+			$template = $php->env['mvc']['controller'] . '_' . $php->env['mvc']['view'] . '.html';
 		}
-		if($this->if_pagecache)
+		if ($this->if_pagecache)
 		{
-			$pagecache = new \Swoole_pageCache($this->cache_life);
-			if(!$pagecache->isCached()) $pagecache->create(parent::fetch($template,$cache_id,$complile_id));
+			$pagecache = new PageCache($this->cache_life);
+			if (!$pagecache->isCached())
+			{
+				$pagecache->create(parent::fetch($template, $cache_id, $complile_id));
+			}
 			$pagecache->load();
 		}
-		else parent::display($template,$cache_id,$complile_id);
+		else
+		{
+			parent::display($template, $cache_id, $complile_id);
+		}
 	}
 
 	/**
@@ -74,16 +98,19 @@ class Template extends \Smarty
 	 * @param $filename
 	 * @return unknown_type
 	 */
-	function outhtml($template,$filename,$path='')
+	function outhtml($template, $filename, $path = '')
 	{
-		if($path=='')
+		if ($path == '')
 		{
 			$path = dirname($filename);
 			$filename = basename($filename);
 		}
-		if(!is_dir($path)) mkdir($path,0777,true);
+		if (!is_dir($path))
+		{
+			mkdir($path, 0777, true);
+		}
 		$content = $this->fetch($template);
-		file_put_contents($path.'/'.$filename,$content);
+		file_put_contents($path . '/' . $filename, $content);
 		return true;
 	}
 

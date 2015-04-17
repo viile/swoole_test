@@ -149,14 +149,3 @@ function create_require_dir()
      */
     if(!is_dir(WEBPATH.'/swoole_plugin')) mkdir(WEBPATH.'/swoole_plugin',0755);
 }
-function url_route_default($url_path)
-{
-    $mvc = array('controller'=>'page','view'=>'index');
-    if(!empty($url_path))
-    {
-        $request = explode('/',$url_path,2);
-        $mvc['controller']=$request[0];
-        $mvc['view']=$request[0];
-    }
-    return $mvc;
-}

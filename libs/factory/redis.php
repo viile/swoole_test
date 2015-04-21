@@ -24,8 +24,25 @@ if (empty($config["port"]))
     $config["port"] = 6379;
 }
 
+if (empty($config["pconnect"]))
+{
+    $config["pconnect"] = false;
+}
+
 $redis = new Redis();
-$redis->connect($config["host"], $config["port"]);
+if($config['pconnect'])
+{
+    $redis->pconnect($config["host"], $config["port"], $config["timeout"]);
+}
+else
+{
+    $redis->connect($config["host"], $config["port"], $config["timeout"]);
+}
+
+if (!empty($config['password']))
+{
+    $redis->auth($config['password']);
+}
 
 if (!empty($config['database']))
 {

@@ -1,5 +1,6 @@
 <?php
 namespace Swoole\Cache;
+
 /**
  * APC缓存，安装APC加速器后可以使用
  * 警告：apc缓存不适用于分布式环境

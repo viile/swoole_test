@@ -59,6 +59,16 @@ class Session
         }
     }
 
+    function setId($session_id)
+    {
+        $this->sessID = $session_id;
+        if ($this->use_php_session)
+        {
+            session_id($session_id);
+            session_start();
+        }
+    }
+
     /**
      * 获取SessionID
      * @return string

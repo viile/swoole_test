@@ -624,20 +624,41 @@ class SelectDB
      */
     public function count()
     {
-        $sql
-            = "select count({$this->count_fields}) as c from {$this->table} {$this->join} {$this->where} {$this->union} {$this->group}";
-        if ($this->if_union) {
+        $sql = "select count({$this->count_fields}) as c from {$this->table} {$this->join} {$this->where} {$this->union} {$this->group}";
+
+        if ($this->cache_lifetime)
+        {
+            $cache_key = empty($cache_id) ? $this->cache_prefix . '_count_' . md5($this->sql) : $this->cache_prefix . '_count_' . $cache_id;
+            $data = \Swoole::$php->cache->get($cache_key);
+            if ($data)
+            {
+                return $data;
+            }
+        }
+
+        if ($this->if_union)
+        {
             $sql = str_replace('{#union_select#}', "count({$this->count_fields}) as c", $sql);
             $c = $this->db->query($sql)->fetchall();
             $cc = 0;
-            foreach ($c as $_c) {
+            foreach ($c as $_c)
+            {
                 $cc += $_c['c'];
             }
-            return intval($cc);
-        } else {
-            $c = $this->db->query($sql)->fetch();
-            return intval($c['c']);
+            $count =  intval($cc);
         }
+        else
+        {
+
+            $c = $this->db->query($sql)->fetch();
+            $count = intval($c['c']);
+        }
+
+        if ($this->cache_lifetime and $count !== false)
+        {
+            \Swoole::$php->cache->set($cache_key, $count, $this->cache_lifetime);
+        }
+        return $count;
     }
 
     /**

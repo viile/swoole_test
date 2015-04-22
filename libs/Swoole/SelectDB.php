@@ -419,14 +419,28 @@ class SelectDB
      * @param $ifreturn
      * @return string | null
      */
-    function getsql($ifreturn=true)
+    function getsql($ifreturn = true)
     {
-        $this->sql
-            = "select {$this->select} from {$this->table} {$this->join} {$this->use_index} {$this->where} {$this->union} {$this->group} {$this->having} {$this->order} {$this->limit} {$this->for_update}";
-        if ($this->if_union) {
+        $this->sql = "select {$this->select} from {$this->table}";
+        $this->sql .= implode(' ',
+            array(
+                $this->join,
+                $this->use_index,
+                $this->where,
+                $this->union,
+                $this->group,
+                $this->having,
+                $this->order,
+                $this->limit,
+                $this->for_update,
+            ));
+
+        if ($this->if_union)
+        {
             $this->sql = str_replace('{#union_select#}', $this->union_select, $this->sql);
         }
-        if ($ifreturn) {
+        if ($ifreturn)
+        {
             return $this->sql;
         }
     }
@@ -460,11 +474,14 @@ class SelectDB
      * @param $sql
      * @return null
      */
-    function exeucte($sql='')
+    function exeucte($sql = '')
     {
-        if ($sql == '') {
+        if ($sql == '')
+        {
             $this->getsql(false);
-        } else {
+        }
+        else
+        {
             $this->sql = $sql;
         }
         $this->result = $this->db->query($this->sql);
@@ -559,24 +576,30 @@ class SelectDB
      * @param $cache_id
      * @return unknown_type
      */
-    function getone($field='',$cache_id='')
+    function getone($field = '')
     {
         $this->limit('1');
-        if($this->auto_cache or !empty($cache_id))
+        if ($this->auto_cache or !empty($cache_id))
         {
             $cache_key = empty($cache_id)?$this->cache_prefix.'_one_'.md5($this->sql):$this->cache_prefix.'_all_'.$cache_id;
             global $php;
             $record = $php->cache->get($cache_key);
-            if(empty($data))
+            if (empty($data))
             {
-                if($this->is_execute==0) $this->exeucte();
+                if ($this->is_execute == 0)
+                {
+                    $this->exeucte();
+                }
                 $record = $this->result->fetch();
-                $php->cache->set($cache_key,$record,$this->cache_life);
+                $php->cache->set($cache_key, $record, $this->cache_life);
             }
         }
         else
         {
-            if($this->is_execute==0) $this->exeucte();
+            if ($this->is_execute == 0)
+            {
+                $this->exeucte();
+            }
             $record = $this->result->fetch();
         }
         if($field==='') return $record;
@@ -584,14 +607,14 @@ class SelectDB
     }
     /**
      * 获取所有记录
-     * @param $cache_id
      * @return array | bool
      */
-    function getall($cache_id = '')
+    function getall()
     {
         if ($this->cache_lifetime)
         {
-            $cache_key = empty($cache_id) ? $this->cache_prefix . '_all_' . md5($this->sql) : $this->cache_prefix . '_all_' . $cache_id;
+            $this->getsql(false);
+            $cache_key = $this->cache_prefix . '_all_' . md5($this->sql);
             $data = \Swoole::$php->cache->get($cache_key);
             if (empty($data))
             {
@@ -628,7 +651,8 @@ class SelectDB
 
         if ($this->cache_lifetime)
         {
-            $cache_key = empty($cache_id) ? $this->cache_prefix . '_count_' . md5($this->sql) : $this->cache_prefix . '_count_' . $cache_id;
+            $this->getsql(false);
+            $cache_key = $this->cache_prefix . '_count_' . md5($this->sql);
             $data = \Swoole::$php->cache->get($cache_key);
             if ($data)
             {

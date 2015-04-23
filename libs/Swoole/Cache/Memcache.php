@@ -21,6 +21,7 @@ class Memcache implements \Swoole\IFace\Cache
         if (empty($config['use_memcached']))
         {
             $this->cache = new \Memcache;
+            $this->set_flags = MEMCACHE_COMPRESSED;
         }
         else
         {
@@ -28,9 +29,9 @@ class Memcache implements \Swoole\IFace\Cache
             $this->memcached = true;
         }
 
-        if (!$this->memcached && isset($config['compress']) and $config['compress'])
+        if (isset($config['compress']) and $config['compress']===false)
         {
-            $this->set_flags = MEMCACHE_COMPRESSED;
+            $this->set_flags = 0;
         }
 
         if (empty($config['servers']))

@@ -14,7 +14,7 @@ class Memcache implements \Swoole\IFace\Cache
     protected $memcached = false;
     protected $cache;
     //启用压缩
-    protected $set_flags = MEMCACHE_COMPRESSED;
+    protected $set_flags = 0;
 
     function __construct($config)
     {
@@ -28,9 +28,9 @@ class Memcache implements \Swoole\IFace\Cache
             $this->memcached = true;
         }
 
-        if (isset($config['compress']) and $config['compress']===false)
+        if (!$this->memcached && isset($config['compress']) and $config['compress'])
         {
-            $this->set_flags = 0;
+            $this->set_flags = MEMCACHE_COMPRESSED;
         }
 
         if (empty($config['servers']))

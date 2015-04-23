@@ -55,7 +55,6 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
         if (mysqli_connect_errno())
         {
             trigger_error("Mysqli connect failed: " . mysqli_connect_error());
-
             return false;
         }
         if (!empty($db_config['charset']))
@@ -77,10 +76,16 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
         return $this->escape_string($value);
     }
 
+    /**
+     * SQL错误信息
+     * @param $sql
+     * @return string
+     */
     protected function errorMessage($sql)
     {
         $msg = $this->error . "<hr />$sql<hr />";
-        $msg .= "Server: {$this->config['host']}:{$this->config['port']}";
+        $msg .= "Server: {$this->config['host']}:{$this->config['port']}. <br/>";
+        $msg .= "Message: {$this->error} <br/>";
         $msg .= "Errno: {$this->errno}";
         return $msg;
     }

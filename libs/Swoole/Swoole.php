@@ -125,7 +125,6 @@ class Swoole
     private function __construct()
     {
         if (!defined('DEBUG')) define('DEBUG', 'on');
-        if (DEBUG == 'off') \error_reporting(0);
 
         $this->env['sapi_name'] = php_sapi_name();
         if ($this->env['sapi_name'] != 'cli')

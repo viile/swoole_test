@@ -138,8 +138,7 @@ class Model
 		$selectdb = new SelectDB($this->db);
 		$selectdb->from($this->table);
 		$selectdb->put($params);
-		$selectdb->update($data);
-		return true;
+		return $selectdb->update($data);
 	}
 
 	/**
@@ -393,8 +392,7 @@ class Model
  */
 class Record implements \ArrayAccess
 {
-	public $_data = array();
-
+	protected $_data = array();
     protected $_update = array();
     protected $_change = 0;
     protected $_save = false;
@@ -439,14 +437,23 @@ class Record implements \ArrayAccess
 
         if (!empty($this->_current_id))
         {
-			$res = $this->db->query("select {$select} from {$this->table} where {$where} ='{$id}' limit 1");
-            $this->_data = $res->fetch();
-            $this->_current_id = $this->_data[$this->primary];
-            if (!empty($this->_data))
-            {
-                $this->_change = self::STATE_INSERT;
-            }
+			$res = $this->db->query("select {$select} from {$this->table} where {$where} ='{$id}' limit 1")->fetch();
+			if (!empty($res))
+			{
+				$this->_data = $res;
+				$this->_current_id = $this->_data[$this->primary];
+				$this->_change = self::STATE_INSERT;
+			}
         }
+	}
+
+	/**
+	 * 是否存在
+	 * @return bool
+	 */
+	function exist()
+	{
+		return !empty($this->_data);
 	}
 
 	/**
@@ -470,25 +477,31 @@ class Record implements \ArrayAccess
 
 	/**
 	 * 获取数据数组
-	 * @return unknown_type
+	 * @return mixed
 	 */
 	function get()
 	{
 		return $this->_data;
 	}
 
-    function __get($property)
-    {
-        if (array_key_exists($property, $this->_data))
-        {
-            return $this->_data[$property];
-        }
-        else
-        {
-            Error::pecho("Record object no property: $property");
-            return null;
-        }
-    }
+	/**
+	 * 获取属性
+	 * @param $property
+	 *
+	 * @return null
+	 */
+	function __get($property)
+	{
+		if (isset($this->_data[$property]))
+		{
+			return $this->_data[$property];
+		}
+		else
+		{
+			Error::pecho("Record object no property: $property");
+			return null;
+		}
+	}
 
     function __set($property, $value)
     {

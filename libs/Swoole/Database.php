@@ -97,28 +97,31 @@ class Database
 	}
 	/**
 	 * 启动事务处理
-	 * @return unknown_type
+	 * @return bool
 	 */
 	function start()
 	{
-		$this->_db->query('START TRANSACTION');
+		return $this->query('START TRANSACTION');
 	}
+
 	/**
 	 * 提交事务处理
-	 * @return unknown_type
+	 * @return bool
 	 */
 	function commit()
 	{
-		$this->_db->query('COMMIT');
+		return $this->query('COMMIT');
 	}
+
 	/**
 	 * 事务回滚
-	 * @return unknown_type
+	 * @return bool
 	 */
 	function rollback()
 	{
-		$this->_db->query('ROLLBACK');
+		$this->query('ROLLBACK');
 	}
+
 	/**
 	 * 执行一条SQL语句
 	 * @param $sql

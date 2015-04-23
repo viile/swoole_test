@@ -65,7 +65,6 @@ class Session
         if ($this->use_php_session)
         {
             session_id($session_id);
-            session_start();
         }
     }
 

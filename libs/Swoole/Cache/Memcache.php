@@ -14,13 +14,14 @@ class Memcache implements \Swoole\IFace\Cache
     protected $memcached = false;
     protected $cache;
     //启用压缩
-    protected $set_flags = MEMCACHE_COMPRESSED;
+    protected $set_flags = 0;
 
     function __construct($config)
     {
         if (empty($config['use_memcached']))
         {
             $this->cache = new \Memcache;
+            $this->set_flags = MEMCACHE_COMPRESSED;
         }
         else
         {

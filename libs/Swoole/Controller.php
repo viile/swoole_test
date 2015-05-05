@@ -70,6 +70,29 @@ class Controller extends Ojbect
         }
     }
 
+    /**
+     * 输出JSON字串
+     * @param string $data
+     * @param int    $code
+     * @param string $message
+     *
+     * @return string
+     */
+    function json($data = '', $code = 0, $message = '')
+    {
+        $json = array('code' => $code, 'message' => $message, 'data' => $data);
+        if (!empty($_REQUEST['jsonp']))
+        {
+            $this->http->header('Content-type', 'application/x-javascript');
+            return $_REQUEST['jsonp'] . "(" . json_encode($json) . ");";
+        }
+        else
+        {
+            $this->http->header('Content-type', 'application/json');
+            return json_encode($json);
+        }
+    }
+
     function message($code = 0, $msg = 'success')
     {
         $ret = array('code' => $code, 'message' => $msg);

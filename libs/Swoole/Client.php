@@ -34,18 +34,41 @@ class Client
 	 */
 	static function getIP()
 	{
-        if (getenv("HTTP_CLIENT_IP") && strcasecmp(getenv("HTTP_CLIENT_IP"), "unknown"))
-            $ip = getenv("HTTP_CLIENT_IP");
-        else if (getenv("HTTP_X_FORWARDED_FOR") && strcasecmp(getenv("HTTP_X_FORWARDED_FOR"), "unknown"))
-            $ip = getenv("HTTP_X_FORWARDED_FOR");
-        else if (getenv("REMOTE_ADDR") && strcasecmp(getenv("REMOTE_ADDR"), "unknown"))
-            $ip = getenv("REMOTE_ADDR");
-        else if (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] && strcasecmp($_SERVER['REMOTE_ADDR'], "unknown"))
-            $ip = $_SERVER['REMOTE_ADDR'];
-        else
-            $ip = "unknown";
-        return $ip;
+		if (getenv("HTTP_CLIENT_IP") and strcasecmp(getenv("HTTP_CLIENT_IP"), "unknown"))
+		{
+			$ip = getenv("HTTP_CLIENT_IP");
+		}
+		else
+		{
+			if (getenv("HTTP_X_FORWARDED_FOR") and strcasecmp(getenv("HTTP_X_FORWARDED_FOR"), "unknown"))
+			{
+				$ip = getenv("HTTP_X_FORWARDED_FOR");
+			}
+			else
+			{
+				if (getenv("REMOTE_ADDR") and strcasecmp(getenv("REMOTE_ADDR"), "unknown"))
+				{
+					$ip = getenv("REMOTE_ADDR");
+				}
+				else
+				{
+					if (isset($_SERVER['REMOTE_ADDR']) and $_SERVER['REMOTE_ADDR']
+						and strcasecmp($_SERVER['REMOTE_ADDR'],
+							"unknown")
+					)
+					{
+						$ip = $_SERVER['REMOTE_ADDR'];
+					}
+					else
+					{
+						$ip = "unknown";
+					}
+				}
+			}
+		}
+		return $ip;
 	}
+
 	/**
 	 * 获取客户端浏览器信息
 	 * @return unknown_type
@@ -75,19 +98,19 @@ class Client
 	{
 		$os="";
 		$Agent = $_SERVER["HTTP_USER_AGENT"];
-		if (eregi('win',$Agent) && strpos($Agent, '95')) $os="Windows 95";
-		elseif (eregi('win 9x',$Agent) && strpos($Agent, '4.90')) $os="Windows ME";
-		elseif (eregi('win',$Agent) && ereg('98',$Agent)) $os="Windows 98";
-		elseif (eregi('win',$Agent) && eregi('nt 5.0',$Agent)) $os="Windows 2000";
-		elseif (eregi('win',$Agent) && eregi('nt 5.1',$Agent)) $os="Windows XP";
-		elseif (eregi('win',$Agent) && eregi('nt 5.2',$Agent)) $os="Windows 2003";
-		elseif (eregi('win',$Agent) && eregi('nt',$Agent)) $os="Windows NT";
-		elseif (eregi('win',$Agent) && ereg('32',$Agent)) $os="Windows 32";
+		if (eregi('win',$Agent) and strpos($Agent, '95')) $os="Windows 95";
+		elseif (eregi('win 9x',$Agent) and strpos($Agent, '4.90')) $os="Windows ME";
+		elseif (eregi('win',$Agent) and ereg('98',$Agent)) $os="Windows 98";
+		elseif (eregi('win',$Agent) and eregi('nt 5.0',$Agent)) $os="Windows 2000";
+		elseif (eregi('win',$Agent) and eregi('nt 5.1',$Agent)) $os="Windows XP";
+		elseif (eregi('win',$Agent) and eregi('nt 5.2',$Agent)) $os="Windows 2003";
+		elseif (eregi('win',$Agent) and eregi('nt',$Agent)) $os="Windows NT";
+		elseif (eregi('win',$Agent) and ereg('32',$Agent)) $os="Windows 32";
 		elseif (eregi('linux',$Agent)) $os="Linux";
 		elseif (eregi('unix',$Agent)) $os="Unix";
-		elseif (eregi('sun',$Agent) && eregi('os',$Agent)) $os="SunOS";
-		elseif (eregi('ibm',$Agent) && eregi('os',$Agent)) $os="IBM OS/2";
-		elseif (eregi('Mac',$Agent) && eregi('PC',$Agent)) $os="Macintosh";
+		elseif (eregi('sun',$Agent) and eregi('os',$Agent)) $os="SunOS";
+		elseif (eregi('ibm',$Agent) and eregi('os',$Agent)) $os="IBM OS/2";
+		elseif (eregi('Mac',$Agent) and eregi('PC',$Agent)) $os="Macintosh";
 		elseif (eregi('PowerPC',$Agent)) $os="PowerPC";
 		elseif (eregi('AIX',$Agent)) $os="AIX";
 		elseif (eregi('HPUX',$Agent)) $os="HPUX";

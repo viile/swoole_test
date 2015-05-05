@@ -7,7 +7,7 @@ use Swoole;
  * Class Http_LAMP
  * @package Swoole
  */
-class ExtServer implements \Swoole\IFace\Http
+class ExtServer implements Swoole\IFace\Http
 {
     /**
      * @var \swoole_http_request
@@ -61,6 +61,11 @@ class ExtServer implements \Swoole\IFace\Http
         $this->finish = true;
         $this->response->write($content);
         throw new Swoole\ResponseException;
+    }
+
+    function setcookie($name, $value = null, $expire = null, $path = '/', $domain = null, $secure = null, $httponly = null)
+    {
+        $this->response->cookie($name, $value, $expire, $path, $domain, $secure, $httponly);
     }
 
     function setGlobal()
@@ -136,5 +141,69 @@ class ExtServer implements \Swoole\IFace\Http
         }
         $resp->header('Content-Type', $mime_type);
         $resp->end(file_get_contents($this->document_root . $req->server['request_uri']));
+    }
+
+    function onRequest(\swoole_http_request $req, \swoole_http_response $resp)
+    {
+        if ($this->document_root and is_file($this->document_root . $req->server['request_uri']))
+        {
+            $this->doStatic($req, $resp);
+            return;
+        }
+
+        $this->request = $req;
+        $this->response = $resp;
+        $this->setGlobal();
+
+        $php = Swoole::getInstance();
+        try
+        {
+            try
+            {
+                ob_start();
+                /*---------------------处理MVC----------------------*/
+                $body = $php->runMVC();
+                $echo_output = ob_get_contents();
+                if ($echo_output)
+                {
+                    $resp->write($echo_output);
+                }
+                if ($body)
+                {
+                    $resp->write($body);
+                }
+                ob_end_clean();
+                $resp->end();
+            }
+            catch (Swoole\ResponseException $e)
+            {
+                if ($this->finish != 1)
+                {
+                    $resp->status(500);
+                    $resp->end($e->getMessage());
+                }
+            }
+        }
+        catch (\Exception $e)
+        {
+            $resp->status(500);
+            $resp->end($e->getMessage() . "<hr />" . nl2br($e->getTraceAsString()));
+        }
+    }
+
+    function __clean()
+    {
+        $php = Swoole::getInstance();
+        //模板初始化
+        if (!empty($php->tpl))
+        {
+            $php->tpl->clear_all_assign();
+        }
+        //还原session
+        if (!empty($php->session))
+        {
+            $php->session->open = false;
+            $php->session->readonly = false;
+        }
     }
 }

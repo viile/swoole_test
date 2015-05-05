@@ -431,63 +431,15 @@ class Swoole
 
     function runHttpServer($host = '0.0.0.0', $port = 9501, $config = array())
     {
-        define('SWOOLE_HTTP_SERVER', true);
-        $this->ext_http_server = $this->loadModule('http');
+        define('SWOOLE_SERVER', true);
+        $this->ext_http_server = $this->http = new Swoole\Http\ExtServer();
         $server = new swoole_http_server($host, $port);
         $server->set($config);
         if (!empty($config['document_root']))
         {
             $this->ext_http_server->document_root = trim($config['document_root']);
         }
-
-        $server->on('Request', function(swoole_http_request $req, swoole_http_response $resp) {
-
-            $http = $this->ext_http_server;
-            if ($http->document_root and is_file($http->document_root . $req->server['request_uri']))
-            {
-                $http->doStatic($req, $resp);
-                return;
-            }
-
-            $http->request = $req;
-            $http->response = $resp;
-            $http->setGlobal();
-
-            $php = Swoole::getInstance();
-            try
-            {
-                try
-                {
-                    ob_start();
-                    /*---------------------处理MVC----------------------*/
-                    $body = $php->runMVC();
-                    $echo_output = ob_get_contents();
-                    if ($echo_output)
-                    {
-                        $resp->write($echo_output);
-                    }
-                    if ($body)
-                    {
-                        $resp->write($body);
-                    }
-                    ob_end_clean();
-                    $resp->end();
-                }
-                catch (Swoole\ResponseException $e)
-                {
-                    if ($http->finish != 1)
-                    {
-                        $resp->status(500);
-                        $resp->end($e->getMessage());
-                    }
-                }
-            }
-            catch (\Exception $e)
-            {
-                $resp->status(500);
-                $resp->end( $e->getMessage()."<hr />".nl2br($e->getTraceAsString()));
-            }
-        });
+        $server->on('Request', [$this->http, 'onRequest']);
         $server->start();
     }
 

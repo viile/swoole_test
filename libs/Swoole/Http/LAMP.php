@@ -28,4 +28,9 @@ class LAMP implements \Swoole\IFace\Http
     {
         exit($content);
     }
+
+    function setcookie($name, $value = null, $expire = null, $path = '/', $domain = null, $secure = null, $httponly = null)
+    {
+        setcookie($name, $value, $expire, $path, $domain, $secure, $httponly);
+    }
 }

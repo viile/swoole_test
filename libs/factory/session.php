@@ -1,5 +1,5 @@
 <?php
-if (!empty(Swoole::$php->config['session']['use_swoole_sesion']) or defined('SWOOLE_SERVER'))
+if (!empty(Swoole::$php->config['session']['use_swoole_session']) or defined('SWOOLE_SERVER'))
 {
     if (empty(Swoole::$php->config['cache']['session']))
     {

@@ -16,16 +16,24 @@ class Cookie
 
     static function set($key, $value, $expire = 0)
 	{
-	    if($expire!=0) $expire=time()+$expire;
-		if(defined('SWOOLE_SERVER'))
+		if ($expire != 0)
 		{
-		    global $php;
-		    $php->response->setcookie($key,$value,$expire,Cookie::$path,Cookie::$domain,Cookie::$secure,Cookie::$httponly);
+			$expire = time() + $expire;
 		}
-        else
-        {
-            setcookie($key, $value, $expire, Cookie::$path, Cookie::$domain, Cookie::$secure, Cookie::$httponly);
-        }
+		if (defined('SWOOLE_SERVER'))
+		{
+			\Swoole::$php->http->setcookie($key,
+				$value,
+				$expire,
+				Cookie::$path,
+				Cookie::$domain,
+				Cookie::$secure,
+				Cookie::$httponly);
+		}
+		else
+		{
+			setcookie($key, $value, $expire, Cookie::$path, Cookie::$domain, Cookie::$secure, Cookie::$httponly);
+		}
     }
 
     static function delete($key)

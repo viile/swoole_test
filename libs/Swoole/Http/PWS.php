@@ -37,4 +37,9 @@ class PWS implements \Swoole\IFace\Http
         if($content) \Swoole::$php->response->body = $content;
         throw new Swoole\ResponseException;
     }
+
+    function setcookie($name, $value = null, $expire = null, $path = '/', $domain = null, $secure = null, $httponly = null)
+    {
+        \Swoole::$php->response->setcookie($name, $value, $expire, $path, $domain, $secure, $httponly);
+    }
 }

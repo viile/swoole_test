@@ -10,7 +10,7 @@ namespace Swoole;
 class Upload
 {
     public $mimes;
-    public $max_size=0;
+    public $max_size = 0;
     public $allow = array('jpg', 'gif', 'png'); //允许上传的类型
     public $name_type = ''; //md5,
 
@@ -242,9 +242,16 @@ class Upload
      */
     public function getMimeType($mime)
     {
-    	if(isset($this->mimes[$mime])) return $this->mimes[$mime];
-    	else return false;
+        if (isset($this->mimes[$mime]))
+        {
+            return $this->mimes[$mime];
+        }
+        else
+        {
+            return false;
+        }
     }
+
     /**
      * 根据文件名获取扩展名
      * @param $file

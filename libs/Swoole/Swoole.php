@@ -49,6 +49,12 @@ class Swoole
      */
     public $response;
     static public $app_path;
+    static public $controller_path = '';
+
+    /**
+     * @var Swoole\Http\ExtServer
+     */
+    protected $ext_http_server;
 
     /**
      * 可使用的组件
@@ -359,6 +365,22 @@ class Swoole
         }
     }
 
+    /**
+     * 设置应用程序路径
+     * @param $dir
+     */
+    static function setControllerPath($dir)
+    {
+        if (is_dir($dir))
+        {
+            self::$controller_path = $dir;
+        }
+        else
+        {
+            \Swoole\Error::info("fatal error", "controller_path[$dir] is not exists.");
+        }
+    }
+
     function handlerServer(Swoole\Request $request)
     {
         $response = new Swoole\Response();
@@ -407,6 +429,68 @@ class Swoole
         return $response;
     }
 
+    function runHttpServer($host = '0.0.0.0', $port = 9501, $config = array())
+    {
+        define('SWOOLE_HTTP_SERVER', true);
+        $this->ext_http_server = $this->loadModule('http');
+        $server = new swoole_http_server($host, $port);
+        $server->set($config);
+        if (!empty($config['document_root']))
+        {
+            $this->ext_http_server->document_root = trim($config['document_root']);
+        }
+
+        $server->on('Request', function(swoole_http_request $req, swoole_http_response $resp) {
+
+            $http = $this->ext_http_server;
+            if ($http->document_root and is_file($http->document_root . $req->server['request_uri']))
+            {
+                $http->doStatic($req, $resp);
+                return;
+            }
+
+            $http->request = $req;
+            $http->response = $resp;
+            $http->setGlobal();
+
+            $php = Swoole::getInstance();
+            try
+            {
+                try
+                {
+                    ob_start();
+                    /*---------------------处理MVC----------------------*/
+                    $body = $php->runMVC();
+                    $echo_output = ob_get_contents();
+                    if ($echo_output)
+                    {
+                        $resp->write($echo_output);
+                    }
+                    if ($body)
+                    {
+                        $resp->write($body);
+                    }
+                    ob_end_clean();
+                    $resp->end();
+                }
+                catch (Swoole\ResponseException $e)
+                {
+                    if ($http->finish != 1)
+                    {
+                        $resp->status(500);
+                        $resp->end($e->getMessage());
+                    }
+                }
+            }
+            catch (\Exception $e)
+            {
+                $resp->status(500);
+                $resp->end( $e->getMessage()."<hr />".nl2br($e->getTraceAsString()));
+            }
+        });
+        $server->start();
+    }
+
     /**
      * 运行MVC处理模型
      * @param $url_processor
@@ -438,7 +522,14 @@ class Swoole
 
         //使用命名空间，文件名必须大写
         $controller_class = '\\App\\Controller\\'.ucwords($mvc['controller']);
-        $controller_path = self::$app_path.'/controllers/'.ucwords($mvc['controller']).'.php';
+        if (self::$controller_path)
+        {
+            $controller_path = self::$controller_path . '/' . ucwords($mvc['controller']) . '.php';
+        }
+        else
+        {
+            $controller_path = self::$app_path . '/controllers/' . ucwords($mvc['controller']) . '.php';
+        }
 
         if (class_exists($controller_class, false))
         {

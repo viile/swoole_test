@@ -11,7 +11,8 @@ class Session
 {
     // 类成员属性定义
     static $cache_prefix = "phpsess_";
-    static $cache_life = 86400000;
+    static $cookie_lifetime = 86400000;
+    static $cache_lifetime = 0;
 
     public $sessID;
     public $readonly; //是否为只读，只读不需要保存
@@ -53,7 +54,7 @@ class Session
             if (empty($sessid))
             {
                 $sessid = RandomKey::randmd5(40);
-                Cookie::set(self::$cookie_key, $sessid, self::$cache_life);
+                Cookie::set(self::$cookie_key, $sessid, self::$cookie_lifetime);
             }
             $_SESSION = $this->load($sessid);
         }
@@ -129,11 +130,18 @@ class Session
      */
     public function get($sessId)
     {
-        $session = $this->cache->get(self::$cache_prefix.$sessId);
+        $session = $this->cache->get(self::$cache_prefix . $sessId);
         //先读数据，如果没有，就初始化一个
-        if(!empty($session)) return $session;
-        else return array();
+        if (!empty($session))
+        {
+            return $session;
+        }
+        else
+        {
+            return array();
+        }
     }
+
     /**
      * 设置Session的值
      * @param   String  $wSessId
@@ -142,8 +150,8 @@ class Session
      */
     public function set($sessId, $session='')
     {
-        $key = self::$cache_prefix.$sessId;
-        $ret = $this->cache->set($key, $session, self::$cache_life);
+        $key = self::$cache_prefix . $sessId;
+        $ret = $this->cache->set($key, $session, self::$cache_lifetime);
         return $ret;
     }
     /**

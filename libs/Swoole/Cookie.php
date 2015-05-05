@@ -8,10 +8,16 @@ class Cookie
 	public static $secure = false;
 	public static $httponly = false;
 
-	static function get($key,$default = null)
+	static function get($key, $default = null)
 	{
-		if(!isset($_COOKIE[$key])) return $default;
-		else return $_COOKIE[$key];
+		if (!isset($_COOKIE[$key]))
+		{
+			return $default;
+		}
+		else
+		{
+			return $_COOKIE[$key];
+		}
 	}
 
     static function set($key, $value, $expire = 0)

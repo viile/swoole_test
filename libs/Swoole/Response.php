@@ -75,10 +75,31 @@ class Response
      */
     function setcookie($name, $value = null, $expire = null, $path = '/', $domain = null, $secure = null, $httponly = null)
     {
-        if($value==null) $value='deleted';
-        $cookie = "$name=$value; expires=Tue, ".date("D, d-M-Y H:i:s T",$expire)."; path=$path";
-        if($domain) $cookie.="; domain=$domain";
-        if($httponly) $cookie.='; httponly';
+        if ($value == null)
+        {
+            $value = 'deleted';
+        }
+        $cookie = "$name=$value";
+        if ($expire)
+        {
+            $cookie .= "; expires=" . date("D, d-M-Y H:i:s T", $expire);
+        }
+        if ($path)
+        {
+            $cookie .= "; path=$path";
+        }
+        if ($secure)
+        {
+            $cookie .= "; secure";
+        }
+        if ($domain)
+        {
+            $cookie .= "; domain=$domain";
+        }
+        if ($httponly)
+        {
+            $cookie .= '; httponly';
+        }
         $this->cookie[] = $cookie;
     }
 

@@ -9,24 +9,27 @@ namespace Swoole;
  */
 class Model
 {
-	public $_data=array(); //数据库字段的具体值
+	public $_data = array(); //数据库字段的具体值
     /**
      * @var IDatabase
      */
     public $db;
 	public $swoole;
 
-	public $primary="id";
-	public $foreignkey='catid';
+	public $primary = "id";
+	public $foreignkey = 'catid';
 
 	public $_struct;
 	public $_form;
 	public $_form_secret = true;
 
-	public $table="";
+	public $table = "";
+	protected $_table_before_shard;
+
 	/**
 	 * 表切片参数
-	 * @var unknown_type
+	 *
+	 * @var int
 	 */
 	public $tablesize = 1000000;
 	public $fields;
@@ -42,16 +45,24 @@ class Model
 		$this->dbs = new \Swoole\SelectDB($swoole->db);
 		$this->swoole = $swoole;
 	}
+
 	/**
 	 * 按ID切分表
+	 *
 	 * @param $id
+	 *
 	 * @return null
 	 */
-    function shard_table($id)
-    {
-        $table_id = intval($id/$this->tablesize);
-        $this->table = $this->table.'_'.$table_id;
-    }
+	function shard_table($id)
+	{
+		if (empty($this->_table_before_shard))
+		{
+			$this->_table_before_shard = $this->table;
+		}
+		$table_id = intval($id / $this->tablesize);
+		$this->table = $this->_table_before_shard . '_' . $table_id;
+	}
+
 	/**
 	 * 获取主键$primary_key为$object_id的一条记录对象(Record Object)
 	 * 如果参数为空的话，则返回一条空白的Record，可以赋值，产生一条新的记录
@@ -296,10 +307,11 @@ class Model
 		}
 		return $new;
 	}
+
 	/**
 	 * 检测是否存在数据，实际可以用count代替，0为false，>0为true
 	 * @param $gets
-	 * @return unknown_type
+	 * @return bool
 	 */
 	function exists($gets)
 	{
@@ -307,9 +319,10 @@ class Model
 	    if($c>0) return true;
 	    else return false;
 	}
+
 	/**
 	 * 获取表的字段描述
-	 * @return $fields
+	 * @return array
 	 */
 	function desc()
 	{

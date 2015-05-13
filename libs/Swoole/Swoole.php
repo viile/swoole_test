@@ -439,7 +439,7 @@ class Swoole
         {
             $this->ext_http_server->document_root = trim($config['document_root']);
         }
-        $server->on('Request', [$this->http, 'onRequest']);
+        $server->on('Request', array($this->http, 'onRequest'));
         $server->start();
     }
 

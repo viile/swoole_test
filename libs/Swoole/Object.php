@@ -25,7 +25,7 @@ namespace Swoole;
  *          @method IFace\Cache  cache
  *          @method URL          url
  */
-class Ojbect
+class Object
 {
     /**
      * @var \Swoole

@@ -3,7 +3,7 @@ namespace Swoole;
 /**
  * Controller的基类，控制器基类
  */
-class Controller extends Ojbect
+class Controller extends Object
 {
     public $is_ajax = false;
 

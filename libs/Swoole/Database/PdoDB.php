@@ -55,6 +55,80 @@ class PdoDB extends \PDO
         );
         return $res;
 	}
+
+    /**
+     * 执行一个参数化SQL语句,并返回一行结果
+     * @param string $sql 执行的SQL语句
+     * @param  mixed $_     [optional]
+     * @return mixed
+     */
+    public final function queryLine($sql, $_)
+    {
+        $params = func_get_args();
+        if ($this->debug)
+        {
+            var_dump($params);
+        }
+        array_shift($params);
+        $stm = $this->prepare($sql);
+        if ($stm->execute($params))
+        {
+            $ret = $stm->fetch();
+            $stm->closeCursor();
+            return $ret;
+        } else {
+            \Swoole\Error::info("SQL Error", implode(", ", $this->errorInfo()) . "<hr />$sql");
+        }
+    }
+
+    /**
+     * 执行一个参数化SQL语句,并返回所有结果
+     * @param string $sql 执行的SQL语句
+     * @param  mixed $_     [optional]
+     * @return mixed
+     */
+    public final function queryAll($sql, $_)
+    {
+        $params = func_get_args();
+        if ($this->debug)
+        {
+            var_dump($params);
+        }
+        array_shift($params);
+        $stm = $this->prepare($sql);
+        if ($stm->execute($params))
+        {
+            $ret = $stm->fetchAll();
+            $stm->closeCursor();
+            return $ret;
+        } else {
+            \Swoole\Error::info("SQL Error", implode(", ", $this->errorInfo()) . "<hr />$sql");
+        }
+    }
+
+    /**
+     * 执行一个参数化SQL语句
+     * @param string $sql 执行的SQL语句
+     * @param  mixed $_     [optional]
+     * @return int          last insert id
+     */
+    public final function exec($sql, $_)
+    {
+        $params = func_get_args();
+        if ($this->debug)
+        {
+            var_dump($params);
+        }
+        array_shift($params);
+        $stm = $this->prepare($sql);
+        if ($stm->execute($params))
+        {
+            return $this->lastInsertId();
+        } else {
+            \Swoole\Error::info("SQL Error", implode(", ", $this->errorInfo()) . "<hr />$sql");
+        }
+    }
+
 	/**
 	 * 关闭连接，释放资源
 	 * @return null

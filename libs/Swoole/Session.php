@@ -14,10 +14,16 @@ class Session
     static $cookie_lifetime = 86400000;
     static $cache_lifetime = 0;
 
+    /**
+     * 是否启动
+     * @var bool
+     */
+    public $isStart;
     public $sessID;
     public $readonly; //是否为只读，只读不需要保存
     public $open;
     protected $cache;
+
 
     /**
      * 使用PHP内建的SESSION
@@ -42,6 +48,7 @@ class Session
 
     public function start($readonly = false)
     {
+        $this->isStart = true;
         if ($this->use_php_session)
         {
             session_start();

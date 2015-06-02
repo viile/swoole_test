@@ -9,10 +9,10 @@ namespace Swoole;
  */
 class Auth
 {
-    public $table = '';
     public $select = '*';
     public $db = '';
     public $user;
+    public $profile;
     public $is_login = true;
     public $dict;
 
@@ -27,13 +27,22 @@ class Auth
     static $cookie_life = 2592000;
     static $session_destroy = false;
 
-    function __construct($db,$table='')
+    protected $config;
+    protected $login_table = '';
+    protected $profile_table = '';
+
+    function __construct($config)
     {
-        if($table=='') $this->table = TABLE_PREFIX.'_user';
-        else $this->table = $table;
-        $this->db = $db;
-        $_SESSION[self::$session_prefix.'save_key'] = array();
+        $this->config = $config;
+        if (empty($config['login_table']))
+        {
+            throw new \Exception(__CLASS__.' request login_table config.');
+        }
+        $this->login_table = $config['login_table'];
+        $this->db = \Swoole::$php->db;
+        $_SESSION[self::$session_prefix . 'save_key'] = array();
     }
+
     function saveUserinfo($key='userinfo')
     {
         $_SESSION[self::$session_prefix.$key] = $this->user;
@@ -47,92 +56,80 @@ class Auth
     function updateStatus($set=null)
     {
         if(empty($set)) $set = array(self::$lastlogin=>date('Y-m-d H:i:s'),self::$lastip=>Swoole_client::getIP());
-        $this->db->update($this->user['id'],$set,$this->table);
+        $this->db->update($this->user['id'],$set,$this->login_table);
     }
     function setSession($key)
     {
         $_SESSION[$key] = $this->user[$key];
         $_SESSION[self::$session_prefix.'save_key'][] = self::$session_prefix.$key;
     }
-    /**
-     * 加载用户数组字典（用户注册表）
-     * @return unknown_type
-     */
-    function loadDict($table)
-    {
-        if(!is_object($this->dict))
-        {
-            global $php;
-            $dbc = new Swoole\Cache\DBCache($table);
-            $dbc->shard_id = $this->getUid();
-            $this->dict = $dbc;
-        }
-    }
-    /**
-     * 获取一个数据列表
-     * @param $keys
-     * @return unknown_type
-     */
-    function gets($keys)
-    {
-        return $this->dict->gets($keys);
-    }
-    /**
-     * 获取一个值
-     * @param $key
-     * @return unknown_type
-     */
-    function get($key)
-    {
-        return $this->dict->get($key);
-    }
+
     /**
      * 获取登录用户的UID
-     * @return unknown_type
+     * @return int
      */
-    static function getUid()
+    function getUid()
     {
         return $_SESSION[self::$session_prefix.'user_id'];
     }
+
     /**
      * 获取登录用户的信息
      * @return unknown_type
      */
-    static function getUinfo($key='userinfo')
+    function getUserInfo($key='userinfo')
     {
-        return $_SESSION[self::$session_prefix.$key];
+        return $this->user;
     }
     /**
      * 登录
      * @param $username
      * @param $password
-     * @param $auto
-     * @param $save 保存用户登录信息
-     * @return unknown_type
+     * @param bool $auto_login 是否自动登录
+     * @param bool $save 保存用户登录信息
+     * @return bool
      */
-    function login($username,$password,$auto,$save=false)
+    function login($username, $password, $auto_login = false)
     {
-        Cookie::set(self::$session_prefix.'username',$username,time() + self::$cookie_life,'/');
-        $this->user = $this->db->query('select '.$this->select.' from '.$this->table." where ".self::$username."='$username'")->fetch();
-        if(empty($this->user)) return false;
-        elseif($this->user[self::$password]==$password)
+        Cookie::set(self::$session_prefix . 'username', $username, time() + self::$cookie_life, '/');
+        $this->user = $this->db->query('select ' . $this->select . ' from ' . $this->login_table . " where " . self::$username . "='$username' limit 1")->fetch();
+        if (empty($this->user))
         {
-            $_SESSION[self::$session_prefix.'isLogin']=true;
-            $_SESSION[self::$session_prefix.'user_id']=$this->user['id'];
-            if($auto==1) $this->autoLogin();
-            return true;
+            return false;
+        }
+        else
+        {
+            $pwd_hash = self::mkpasswd($username, $password);
+            if ($this->user[self::$password] == $pwd_hash)
+            {
+                $_SESSION[self::$session_prefix . 'isLogin'] = true;
+                $_SESSION[self::$session_prefix . 'user_id'] = $this->user['id'];
+                if ($auto_login)
+                {
+                    $this->autoLogin();
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
+
     /**
      * 检查是否登录
-     * @return unknown_type
+     * @return bool
      */
     function isLogin()
     {
-        if(isset($_SESSION[self::$session_prefix.'isLogin']) and $_SESSION[self::$session_prefix.'isLogin']==1) return true;
-        elseif(isset($_COOKIE[self::$session_prefix.'autologin']) and isset($_COOKIE[self::$session_prefix.'username']) and isset($_COOKIE[self::$session_prefix.'password']))
+        if (isset($_SESSION[self::$session_prefix . 'isLogin']) and $_SESSION[self::$session_prefix . 'isLogin'] == 1)
         {
-            return $this->login($_COOKIE[self::$session_prefix.'username'],$_COOKIE[self::$session_prefix.'password'],$auto=1);
+            return true;
+        }
+        elseif (isset($_COOKIE[self::$session_prefix . 'autologin']) and isset($_COOKIE[self::$session_prefix . 'username']) and isset($_COOKIE[self::$session_prefix . 'password']))
+        {
+            return $this->login($_COOKIE[self::$session_prefix . 'username'], $_COOKIE[self::$session_prefix . 'password'], $auto = 1);
         }
         return false;
     }
@@ -143,16 +140,23 @@ class Auth
      */
     function autoLogin()
     {
-        Cookie::set(self::$session_prefix.'autologin',1,time() + self::$cookie_life,'/');
-        Cookie::set(self::$session_prefix.'username',$this->user['username'],time() + self::$cookie_life,'/');
-        Cookie::set(self::$session_prefix.'password',$this->user['password'],time() + self::$cookie_life,'/');
+        Cookie::set(self::$session_prefix . 'autologin', 1, time() + self::$cookie_life, '/');
+        Cookie::set(self::$session_prefix . 'username', $this->user['username'], time() + self::$cookie_life, '/');
+        Cookie::set(self::$session_prefix . 'password', $this->user['password'], time() + self::$cookie_life, '/');
     }
     /**
      * 注销登录
-     * @return unknown_type
+     * @return bool
      */
-    static function logout()
+    function logout()
     {
+        /**
+         * 启动Session
+         */
+        if (!\Swoole::$php->session->isStart)
+        {
+            \Swoole::$php->session->start();
+        }
         /**
          * 如果设置为true，退出登录时，销毁所有Session
          */
@@ -161,40 +165,63 @@ class Auth
             $_SESSION = array();
             return true;
         }
-        unset($_SESSION[self::$session_prefix.'isLogin']);
-        unset($_SESSION[self::$session_prefix.'user_id']);
+        unset($_SESSION[self::$session_prefix . 'isLogin']);
+        unset($_SESSION[self::$session_prefix . 'user_id']);
 
-        if(!empty($_SESSION[self::$session_prefix.'save_key'])) foreach($_SESSION[self::$session_prefix.'save_key'] as $sk) unset($_SESSION[$sk]);
-        unset($_SESSION[self::$session_prefix.'save_key']);
-        if(isset($_COOKIE[self::$session_prefix.'password'])) Cookie::set(self::$session_prefix.'password','',0,'/');
-
+        if (!empty($_SESSION[self::$session_prefix . 'save_key']))
+        {
+            foreach ($_SESSION[self::$session_prefix . 'save_key'] as $sk)
+            {
+                unset($_SESSION[$sk]);
+            }
+        }
+        unset($_SESSION[self::$session_prefix . 'save_key']);
+        if (isset($_COOKIE[self::$session_prefix . 'password']))
+        {
+            Cookie::set(self::$session_prefix . 'password', '', 0, '/');
+        }
+        return true;
     }
+
     /**
      * 产生一个密码串，连接用户名和密码，并使用sha1产生散列
      * @param $username
      * @param $password
-     * @return $password_string 密码的散列
+     * @return string
      */
-    public static function mkpasswd($username,$password)
+    public static function mkpasswd($username, $password)
     {
         //sha1 用户名+密码
-        if(self::$password_hash=='sha1') return sha1($username.$password);
+        if (self::$password_hash == 'sha1')
+        {
+            return sha1($username . $password);
+        }
         //md5 用户名+密码
-        elseif(self::$password_hash=='md5') return md5($username.$password);
-        elseif(self::$password_hash=='sha1_single') return sha1($password);
-        elseif(self::$password_hash=='md5_single') return md5($password);
+        elseif (self::$password_hash == 'md5')
+        {
+            return md5($username . $password);
+        }
+        elseif (self::$password_hash == 'sha1_single')
+        {
+            return sha1($password);
+        }
+        elseif (self::$password_hash == 'md5_single')
+        {
+            return md5($password);
+        }
+        return false;
     }
+
     /**
      * 验证登录
-     * @return unknown_type
+     * @return bool
      */
     public static function login_require()
     {
-        $check = false;
-        if (isset($_SESSION[self::$session_prefix.'isLogin']) and $_SESSION[self::$session_prefix.'isLogin']=='1') $check=true;
-        if (!$check)
+        $user = \Swoole::$php->user;
+        if (!$user->isLogin())
         {
-            \Swoole::$php->http->redirect(self::$login_url.'refer='.urlencode($_SERVER["REQUEST_URI"]));
+            \Swoole::$php->http->redirect($user->config['login_url'].'?refer='.urlencode($_SERVER["REQUEST_URI"]));
             return false;
         }
         return true;

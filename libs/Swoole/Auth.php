@@ -16,9 +16,14 @@ class Auth
     public $is_login = true;
     public $dict;
 
+    public $errCode;
+    public $errMessage;
+
     static $login_url = '/login.php?';
     static $username = 'username';
     static $password = 'password';
+    static $userid = 'id';
+
     static $lastlogin = 'lastlogin';
     static $lastip = 'lastip';
     static $session_prefix = '';
@@ -144,6 +149,41 @@ class Auth
         Cookie::set(self::$session_prefix . 'username', $this->user['username'], time() + self::$cookie_life, '/');
         Cookie::set(self::$session_prefix . 'password', $this->user['password'], time() + self::$cookie_life, '/');
     }
+
+    /**
+     * 修改密码
+     * @param $uid
+     * @param $old_pwd
+     * @param $new_pwd
+     * @return bool
+     * @throws \Exception
+     */
+    function changePassword($uid, $old_pwd, $new_pwd)
+    {
+        $table = table($this->login_table);
+        $table->primary = self::$userid;
+        $_res = $table->gets(array('select' => self::$username . ',' . self::$password, 'limit' => 1, self::$userid => $uid));
+        if (count($_res) < 1)
+        {
+            $this->errMessage = '用户不存在';
+            $this->errCode = 1;
+            return false;
+        }
+
+        $user = $_res[0];
+        if ($user[self::$password] != self::mkpasswd($user[self::$username], $old_pwd))
+        {
+            $this->errMessage = '原密码不正确';
+            $this->errCode = 2;
+            return false;
+        }
+        else
+        {
+            $table->set($uid, array(self::$password => self::mkpasswd($user[self::$username], $new_pwd)), self::$userid);
+            return true;
+        }
+    }
+
     /**
      * 注销登录
      * @return bool

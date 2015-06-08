@@ -87,6 +87,8 @@ class Swoole
         'url' => true,
     );
 
+    static $default_controller = array('controller' => 'page', 'view' => 'index');
+
     static $charset = 'utf-8';
     static $debug = false;
 
@@ -591,7 +593,7 @@ function swoole_urlrouter_rewrite(&$uri)
 
 function swoole_urlrouter_mvc(&$uri)
 {
-    $array = array('controller'=>'page', 'view'=>'index');
+    $array = Swoole::$default_controller;
     if (!empty($_GET["c"]))
     {
         $array['controller'] = $_GET["c"];

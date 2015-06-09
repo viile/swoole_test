@@ -766,6 +766,12 @@ class FtpServer extends Base
         {
             return $cdir;
         }
+        
+        if($cdir[0] != '/')
+        {
+            $cdir = $old_dir.'/'.$cdir ;
+        }
+        
         $this->debug("CHDIR: $old_dir -> $cdir");
         $this->users[$user]['pwd'] = $cdir;
         $abs_dir = realpath($this->getAbsDir($user));

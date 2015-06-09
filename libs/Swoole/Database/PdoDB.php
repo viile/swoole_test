@@ -76,8 +76,11 @@ class PdoDB extends \PDO
             $ret = $stm->fetch();
             $stm->closeCursor();
             return $ret;
-        } else {
+        }
+        else
+        {
             \Swoole\Error::info("SQL Error", implode(", ", $this->errorInfo()) . "<hr />$sql");
+            return false;
         }
     }
 
@@ -101,8 +104,11 @@ class PdoDB extends \PDO
             $ret = $stm->fetchAll();
             $stm->closeCursor();
             return $ret;
-        } else {
+        }
+        else
+        {
             \Swoole\Error::info("SQL Error", implode(", ", $this->errorInfo()) . "<hr />$sql");
+            return false;
         }
     }
 
@@ -112,7 +118,7 @@ class PdoDB extends \PDO
      * @param  mixed $_     [optional]
      * @return int          last insert id
      */
-    public final function exec($sql, $_)
+    public final function execute($sql, $_)
     {
         $params = func_get_args();
         if ($this->debug)
@@ -124,8 +130,11 @@ class PdoDB extends \PDO
         if ($stm->execute($params))
         {
             return $this->lastInsertId();
-        } else {
+        }
+        else
+        {
             \Swoole\Error::info("SQL Error", implode(", ", $this->errorInfo()) . "<hr />$sql");
+            return false;
         }
     }
 

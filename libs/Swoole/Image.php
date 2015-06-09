@@ -331,39 +331,41 @@ class Image
         unset( $ground_info );
         imagedestroy ( $ground_im );
     }
+
     /**
      * 生成验证码使用GD
      * @param $img_width
      * @param $img_height
-     * @return unknown_type
+     * @return null
      */
-    static function verifycode_gd($img_width=80, $img_height=30)
+    static function verifycode_gd($img_width = 80, $img_height = 30)
     {
         $authnum = '';
         srand(microtime() * 100000);
-        for($Tmpa=0;$Tmpa<4;$Tmpa++)
+        for ($Tmpa = 0; $Tmpa < 4; $Tmpa++)
         {
-            $authnum.=dechex(rand(0,15));
+            $authnum .= dechex(rand(0, 15));
         }
         $authnum = strtoupper($authnum);
         $_SESSION['authcode'] = $authnum;
 
-        $aimg = imageCreate($img_width,$img_height);       //生成图片
-        ImageColorAllocate($aimg, 255,255,255);            //图片底色，ImageColorAllocate第1次定义颜色PHP就认为是底色了
+        $aimg = imageCreate($img_width, $img_height);       //生成图片
+        ImageColorAllocate($aimg, 255, 255, 255);            //图片底色，ImageColorAllocate第1次定义颜色PHP就认为是底色了
 
         //下面该生成雪花背景了，其实就是在图片上生成一些符号
-        for($i=1; $i<=128; $i++)
+        for ($i = 1; $i <= 128; $i++)
         {
-            imageString($aimg,1,mt_rand(1,$img_width),mt_rand(1,$img_height),"*",imageColorAllocate($aimg,mt_rand(200,255),mt_rand(200,255),mt_rand(200,255)));
+            imageString($aimg, 1, mt_rand(1, $img_width), mt_rand(1, $img_height), "*", imageColorAllocate($aimg, mt_rand(200, 255), mt_rand(200, 255), mt_rand(200, 255)));
             //其实也不是雪花，就是生成＊号而已。为了使它们看起来"杂乱无章、5颜6色"，就得在1个1个生成它们的时候，让它们的位置、颜色，甚至大小都用随机数，rand()或mt_rand都可以完成。
         }
-        for($i=0;$i<strlen($_SESSION['authcode']);$i++)
+        for ($i = 0; $i < strlen($_SESSION['authcode']); $i++)
         {
-            imageString($aimg, mt_rand(8,12),$i*$img_width/4+mt_rand(1,8),mt_rand(1,$img_height/4), $_SESSION['authcode'][$i],imageColorAllocate($aimg,mt_rand(0,100),mt_rand(0,150),mt_rand(0,200)));
+            imageString($aimg, mt_rand(8, 12), $i * $img_width / 4 + mt_rand(1, 8), mt_rand(1, $img_height / 4), $_SESSION['authcode'][$i], imageColorAllocate($aimg, mt_rand(0, 100), mt_rand(0, 150), mt_rand(0, 200)));
         }
         ImagePng($aimg);                      //生成png格式
         ImageDestroy($aimg);
     }
+
     static function verifycode_im()
     {
         if(empty($_SESSION)) session_start();

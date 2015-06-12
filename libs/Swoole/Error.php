@@ -1,5 +1,6 @@
 <?php
 namespace Swoole;
+
 /**
  * Swoole错误类
  * 错误输出、数据调试、中断程序运行
@@ -31,21 +32,21 @@ class Error extends \Exception
 	 */
 	function __construct($error)
 	{
-	    if(is_numeric($error))
-	    {
-    	    if(empty($this->error_id))
-    		{
-    			include LIBPATH . '/data/text/error_code.php';
-    			//错误ID
-    			$this->error_id = (int)$error;
-    			//错误信息
-    			if(!isset(self::$error_code[$this->error_id]))
-    			{
-    			    $this->error_msg = self::$error_code[$this->error_id];
-    			    parent::__construct($this->error_msg,$error);
-    			}
-    		}
-	    }
+        if (is_numeric($error))
+        {
+            if (empty($this->error_id))
+            {
+                include LIBPATH . '/data/text/error_code.php';
+                //错误ID
+                $this->error_id = (int)$error;
+                //错误信息
+                if (!isset(self::$error_code[$this->error_id]))
+                {
+                    $this->error_msg = self::$error_code[$this->error_id];
+                    parent::__construct($this->error_msg, $error);
+                }
+            }
+        }
 	    else
 	    {
 	        $this->error_id = 0;
@@ -70,13 +71,17 @@ class Error extends \Exception
 	 * @param $content
 	 * @return string
 	 */
-	static function info($msg,$content)
+    static function info($msg, $content)
 	{
-	    if(!defined('DEBUG') or DEBUG=='off') return false;
+        if (!defined('DEBUG') or DEBUG == 'off')
+        {
+            return false;
+        }
         $info = '';
 
-        if(self::$echo_html)
-		$info .= <<<HTMLS
+        if (self::$echo_html)
+        {
+            $info .= <<<HTMLS
 <html>
 <head>
 <title>$msg</title>
@@ -112,28 +117,48 @@ margin: 			0 0 4px 0;
 		<h1>$msg</h1>
 		<p>$content</p><pre>
 HTMLS;
+        }
         else
         {
             $info .= "$msg: $content\n";
         }
+
         $trace = debug_backtrace();
-        $info .= str_repeat('-', 100)."\n";
-        foreach($trace as $k=>$t)
+        $info .= str_repeat('-', 100) . "\n";
+        foreach ($trace as $k => $t)
         {
-            if(empty($t['line'])) $t['line'] = 0;
-            if(empty($t['class'])) $t['class'] = '';
-            if(empty($t['type'])) $t['type'] = '';
-            if(empty($t['file'])) $t['file'] = 'unknow';
+            if (empty($t['line']))
+            {
+                $t['line'] = 0;
+            }
+            if (empty($t['class']))
+            {
+                $t['class'] = '';
+            }
+            if (empty($t['type']))
+            {
+                $t['type'] = '';
+            }
+            if (empty($t['file']))
+            {
+                $t['file'] = 'unknow';
+            }
             $info .= "#$k line:{$t['line']} call:{$t['class']}{$t['type']}{$t['function']}\tfile:{$t['file']}\n";
         }
-        $info .= str_repeat('-', 100)."\n";
-        if(self::$echo_html)
+        $info .= str_repeat('-', 100) . "\n";
+        if (self::$echo_html)
         {
             $info .= '</pre></div></body></html>';
         }
-		if(!defined('SWOOLE_SERVER') and self::$stop) exit($info);
-		else return $info;
-	}
+        if (!defined('SWOOLE_SERVER') and self::$stop)
+        {
+            exit($info);
+        }
+        else
+        {
+            return $info;
+        }
+    }
 	static function warn($title,$content)
 	{
 		echo '<b>Warning </b>:'.$title."<br/> \n";

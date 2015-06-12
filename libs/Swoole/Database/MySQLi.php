@@ -1,6 +1,6 @@
 <?php
 namespace Swoole\Database;
-
+use Swoole;
 /**
  * MySQL数据库封装类
  *
@@ -115,7 +115,8 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
                 }
                 else
                 {
-                    echo \Swoole\Error::info("SQL Error", $this->errorMessage($sql));
+                    trigger_error(__CLASS__ . " SQL Error", $this->errorMessage($sql), E_WARNING);
+                    echo Swoole\Error::info("SQL Error", $this->errorMessage($sql));
                     return false;
                 }
             }

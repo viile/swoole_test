@@ -69,6 +69,10 @@ class Upload
             throw new \Exception(__CLASS__.' require base_dir and base_url.');
         }
         $this->base_dir = $config['base_dir'];
+        if (Tool::endchar($this->base_dir) != '/')
+        {
+            $this->base_dir .= '/';
+        }
         $this->base_url = $config['base_url'];
         $mimes = require LIBPATH . '/data/mimes.php';
         $this->mimes = $mimes;
@@ -112,7 +116,7 @@ class Upload
         }
 
         //文件存储的路径
-        $base_dir = empty($this->sub_dir) ? $this->base_dir : $this->base_dir . "/" . $this->sub_dir;
+        $base_dir = empty($this->sub_dir) ? $this->base_dir : $this->base_dir . $this->sub_dir . '/';
 
         //切分目录
         if ($this->shard_type == 'randomkey')

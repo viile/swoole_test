@@ -216,7 +216,7 @@ class Upload
                     $this->thumb_width,
                     $this->thumb_height,
                     $this->thumb_qulitity);
-                $return['thumb'] =  "{$this->base_url}/{$sub_dir}/{$thumb_file}";
+                $return['thumb'] =  "{$this->base_url}/{$this->sub_dir}/{$sub_dir}/{$thumb_file}";
             }
             //压缩图片
             if ($this->max_width and in_array($filetype, array('gif', 'jpg', 'jpeg', 'bmp', 'png')))
@@ -227,7 +227,7 @@ class Upload
                     $this->max_height,
                     $this->max_qulitity);
             }
-            $return['url'] = "{$this->base_url}/{$sub_dir}/{$filename}";
+            $return['url'] = "{$this->base_url}/{$this->sub_dir}/{$sub_dir}/{$filename}";
             $return['size'] = $filesize;
             $return['type'] = $filetype;
             return $return;

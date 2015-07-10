@@ -45,6 +45,6 @@ class Cookie
     static function delete($key)
 	{
 		unset($_COOKIE[$key]);
-		self::set($key, null);
+		self::set($key, '');
 	}
 }

@@ -73,10 +73,12 @@ function session($readonly = false)
  */
 function debug()
 {
-    echo '<pre>';
     $vars = func_get_args();
-    foreach($vars as $var) var_dump($var);
-    echo '</pre>';
+    foreach ($vars as $var)
+    {
+        highlight_string("<?php\n" . var_export($var, true));
+    }
+    echo '<hr />';
     exit;
 }
 /**

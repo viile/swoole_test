@@ -99,7 +99,7 @@ class Tool
             $lastModifiedSince = strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']);
             if ($lastModifiedSince and $requestTime <= ($lastModifiedSince + $expire))
             {
-                header('HTTP/1.1 304 Not Modified');
+                \Swoole::$php->http->status(404);
             }
             $result = false;
         }
@@ -113,7 +113,7 @@ class Tool
 
         foreach ($headers as $key => $value)
         {
-            header("{$key}: {$value}");
+            \Swoole::$php->http->header($key, $value);
         }
         return $result;
     }
@@ -128,27 +128,58 @@ class Tool
         $seconds = time();
 
         $time = date('Y', $seconds) - date('Y', $timestamp);
-        if ($time > 0) {
-            if ($time == 1) return '去年';
-            else return $time . '年前';
+        if ($time > 0)
+        {
+            if ($time == 1)
+            {
+                return '去年';
+            }
+            else
+            {
+                return $time . '年前';
+            }
         }
 
         $time = date('m', $seconds) - date('m', $timestamp);
-        if ($time > 0) {
-            if ($time == 1) return '上月';
-            else return $time . '个月前';
+        if ($time > 0)
+        {
+            if ($time == 1)
+            {
+                return '上月';
+            }
+            else
+            {
+                return $time . '个月前';
+            }
         }
         $time = date('d', $seconds) - date('d', $timestamp);
-        if ($time > 0) {
-            if ($time == 1) return '昨天';
-            elseif ($time == 2) return '前天'; else return $time . '天前';
+        if ($time > 0)
+        {
+            if ($time == 1)
+            {
+                return '昨天';
+            }
+            elseif ($time == 2)
+            {
+                return '前天';
+            }
+            else
+            {
+                return $time . '天前';
+            }
         }
 
         $time = date('H', $seconds) - date('H', $timestamp);
-        if ($time >= 1) return $time . '小时前';
+        if ($time >= 1)
+        {
+            return $time . '小时前';
+        }
 
         $time = date('i', $seconds) - date('i', $timestamp);
-        if ($time >= 1) return $time . '分钟前';
+        if ($time >= 1)
+        {
+            return $time . '分钟前';
+        }
 
         $time = date('s', $seconds) - date('s', $timestamp);
         return $time . '秒前';

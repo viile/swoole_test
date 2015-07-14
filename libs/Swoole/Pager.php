@@ -47,22 +47,30 @@ class Pager
 	 */
 	function __construct($array)
 	{
-        //debug($array);
-        if (is_array($array)) {
-            if (!isset($array['total'])) Error::info(__FUNCTION__, 'need a param of total');
+        if (is_array($array))
+        {
+            if (!isset($array['total']))
+            {
+                Error::info(__FUNCTION__, 'need a param of total');
+            }
+
             $total = intval($array['total']);
             $perpage = isset($array['perpage']) ? intval($array['perpage']) : 10;
             $nowindex = isset($array['nowindex']) ? intval($array['nowindex']) : '';
             $url = isset($array['url']) ? $array['url'] : '';
-        } else {
+        }
+        else
+        {
             $total = $array;
             $perpage = 10;
             $nowindex = '';
             $url = '';
         }
-        if (!empty($array['page_name'])) {
+        if (!empty($array['page_name']))
+        {
             $this->set('page_name', $array['page_name']); //设置pagename
         }
+
         $this->pagesize = $perpage;
         $this->_set_nowindex($nowindex); //设置当前页
         $this->totalpage = ceil($total / $perpage);
@@ -136,58 +144,47 @@ class Pager
 	 *
 	 * @return string
 	 */
-	function last_page()
-	{
-		$style = @$this->span_class['last'];
-		if($this->page==$this->totalpage){
-			return '<span class="'.$style.'">'.$this->last_page.'</span>';
-		}
-		return $this->totalpage?$this->_get_link($this->_get_url($this->totalpage),$this->last_page,$style):'<span>'.$this->last_page.'</span>';
-	}
+    function last_page()
+    {
+        $style = @$this->span_class['last'];
+        if ($this->page == $this->totalpage)
+        {
+            return '<span class="' . $style . '">' . $this->last_page . '</span>';
+        }
+        return $this->totalpage ? $this->_get_link($this->_get_url($this->totalpage), $this->last_page, $style) : '<span>' . $this->last_page . '</span>';
+    }
 
 	function nowbar()
 	{
 		$style = $this->style;
-
-		$plus=ceil($this->pagebarnum/2);
-		if($this->pagebarnum-$plus+$this->page>$this->totalpage)
-			$plus=($this->pagebarnum-$this->totalpage+$this->page);
-		$begin=$this->page-$plus+1;
-		$begin=($begin>=1)?$begin:1;
-		$return='';
-		for($i=$begin;$i<$begin+$this->pagebarnum;$i++)
-		{
-			if($i<=$this->totalpage){
-				if($i!=$this->page)
-					$return.=$this->_get_text($this->_get_link($this->_get_url($i),$i,$style));
-				else
-					$return.=$this->_get_text('<span class="current">'.$i.'</span>');
-			}else{
-				break;
-			}
-			$return.="\n";
-		}
+        $plus = ceil($this->pagebarnum / 2);
+        if ($this->pagebarnum - $plus + $this->page > $this->totalpage)
+        {
+            $plus = ($this->pagebarnum - $this->totalpage + $this->page);
+        }
+        $begin = $this->page - $plus + 1;
+        $begin = ($begin >= 1) ? $begin : 1;
+        $return = '';
+        for ($i = $begin; $i < $begin + $this->pagebarnum; $i++)
+        {
+            if ($i <= $this->totalpage)
+            {
+                if ($i != $this->page)
+                {
+                    $return .= $this->_get_text($this->_get_link($this->_get_url($i), $i, $style));
+                }
+                else
+                {
+                    $return .= $this->_get_text('<span class="current">' . $i . '</span>');
+                }
+            }
+            else
+            {
+                break;
+            }
+            $return .= "\n";
+        }
 		unset($begin);
-		return $return;
-	}
-	/**
-	 * 获取显示跳转按钮的代码
-	 *
-	 * @return string
-	 */
-	function select()
-	{
-		$return='<select name="PB_Page_Select">';
-		for($i=1;$i<=$this->totalpage;$i++)
-		{
-			if($i==$this->page){
-				$return.='<option value="'.$i.'" selected>'.$i.'</option>';
-			}else{
-				$return.='<option value="'.$i.'">'.$i.'</option>';
-			}
-		}
-		unset($i);
-		$return.='</select>';
 		return $return;
 	}
 
@@ -200,6 +197,7 @@ class Pager
 	{
 		return $this->offset;
 	}
+
 	function set_pagesize()
 	{
 		$str = '<div class="pagesize"><span>每页显示：</span>';
@@ -217,35 +215,35 @@ class Pager
 	 */
 	function render($mode=null)
 	{
-		$pager_html = "<div class='pager'>";
-		if($mode===null)
-		{
-			if(in_array('first',$this->span_open))
-			{
-				$pager_html.=$this->first_page();
-			}
-			if(in_array('previous',$this->span_open))
-			{
-				$pager_html.=$this->pre_page();
-			}
-			$pager_html.=$this->nowbar();
-			if(in_array('next',$this->span_open))
-			{
-				$pager_html.=$this->next_page();
-			}
-			if(in_array('last',$this->span_open))
-			{
+        $pager_html = "<div class='pager'>";
+        if ($mode === null)
+        {
+            if (in_array('first', $this->span_open))
+            {
+                $pager_html .= $this->first_page();
+            }
+            if (in_array('previous', $this->span_open))
+            {
+                $pager_html .= $this->pre_page();
+            }
+            $pager_html .= $this->nowbar();
+            if (in_array('next', $this->span_open))
+            {
+                $pager_html .= $this->next_page();
+            }
+            if (in_array('last', $this->span_open))
+            {
 				$pager_html.=$this->last_page();
 			}
-			if(in_array('pagesize',$this->span_open))
-			{
-				$pager_html.=$this->set_pagesize();
-			}
-			$pager_html.='</div>';
-			return $pager_html;
-		}
-		$pager_html.='</div>';
-		return $pager_html;
+            if (in_array('pagesize', $this->span_open))
+            {
+                $pager_html .= $this->set_pagesize();
+            }
+            $pager_html .= '</div>';
+            return $pager_html;
+        }
+        $pager_html .= '</div>';
+        return $pager_html;
 	}
 	/*----------------private function (私有方法)-----------------------------------------------------------*/
 	/**
@@ -274,11 +272,18 @@ class Pager
 	 * @param int $pageno
 	 * @return string $url
 	 */
-	function _get_url($pageno=1)
-	{
-		if(empty($this->page_tpl)) return Tool::url_merge('page',$pageno,'mvc,q');
-		else return sprintf($this->page_tpl,$pageno);
-	}
+    function _get_url($pageno = 1)
+    {
+        if (empty($this->page_tpl))
+        {
+            return Tool::url_merge('page', $pageno, 'mvc,q');
+        }
+        else
+        {
+            return sprintf($this->page_tpl, $pageno);
+        }
+    }
+
 	/**
 	 * 获取分页显示文字，比如说默认情况下_get_text('<a href="">1</a>')将返回[<a href="">1</a>]
 	 *

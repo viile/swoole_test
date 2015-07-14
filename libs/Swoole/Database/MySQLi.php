@@ -144,6 +144,15 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
     }
 
     /**
+     * 获取错误码
+     * @return int
+     */
+    function errno()
+    {
+        return $this->errno;
+    }
+
+    /**
      * 返回上一个Insert语句的自增主键ID
      * @return int
      */

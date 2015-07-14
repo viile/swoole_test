@@ -77,8 +77,8 @@ function debug()
     foreach ($vars as $var)
     {
         highlight_string("<?php\n" . var_export($var, true));
+        echo '<hr />';
     }
-    echo '<hr />';
     exit;
 }
 /**

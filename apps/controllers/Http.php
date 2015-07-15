@@ -22,4 +22,9 @@ class Http extends Swoole\Controller
         //使用此函数代替PHP的header函数
         $this->http->header('Location', 'http://www.baidu.com/');
     }
+
+    function cookie()
+    {
+        $this->http->setcookie("swoole", "framework", time() + 3600, '/', 'framework.com');
+    }
 }

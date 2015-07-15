@@ -5,9 +5,15 @@
  * @author 韩天峰
  */
 define("LIBPATH", __DIR__);
-if(PHP_OS=='WINNT') define("NL","\r\n");
-else define("NL","\n");
-define("BL","<br />".NL);
+if (PHP_OS == 'WINNT')
+{
+    define("NL", "\r\n");
+}
+else
+{
+    define("NL", "\n");
+}
+define("BL", "<br />" . NL);
 
 require_once __DIR__ . '/Swoole/Swoole.php';
 require_once __DIR__ . '/Swoole/Loader.php';
@@ -76,8 +82,15 @@ function debug()
     $vars = func_get_args();
     foreach ($vars as $var)
     {
-        highlight_string("<?php\n" . var_export($var, true));
-        echo '<hr />';
+        if (php_sapi_name() == 'cli')
+        {
+            var_export($var);
+        }
+        else
+        {
+            highlight_string("<?php\n" . var_export($var, true));
+            echo '<hr />';
+        }
     }
     exit;
 }

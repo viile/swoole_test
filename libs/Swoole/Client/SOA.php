@@ -10,16 +10,47 @@ class SOA
     protected $timeout = 0.5;
     protected $packet_maxlen = 2097152;   //最大不超过2M的数据包
 
+    /**
+     * 启用长连接
+     * @var bool
+     */
+    protected $keep_connection = false;
+
     const OK = 0;
     const TYPE_ASYNC        = 1;
     const TYPE_SYNC         = 2;
     public $re_connect      = true;    //重新connect
+
+    protected static $_instance;
+
+    function __construct()
+    {
+        if (self::$_instance)
+        {
+            throw new \Exception("cannot to create two soa client.");
+        }
+        self::$_instance = $this;
+    }
+
+    /**
+     * 获取SOA服务实例
+     * @return SOA
+     */
+    static function getInstance()
+    {
+        if (!self::$_instance)
+        {
+            self::$_instance = new self;
+        }
+        return self::$_instance;
+    }
 
     /**
      * 发送请求
      * @param $type
      * @param $send
      * @param $retObj
+     * @return bool
      */
     protected function request($type, $send, $retObj)
     {
@@ -67,7 +98,7 @@ class SOA
             $retObj->code = SOA_Result::ERR_UNPACK;
         }
         //调用成功
-        elseif($retData['errno'] === self::OK)
+        elseif ($retData['errno'] === self::OK)
         {
             $retObj->code = self::OK;
             $retObj->data = $retData['data'];
@@ -75,8 +106,8 @@ class SOA
         //服务器返回失败
         else
         {
-            $retObj->code = SOA_Result::ERR_SERVER;
-            $retObj->data = '';
+            $retObj->code = $retData['errno'];
+            $retObj->data = null;
         }
         if ($retObj->type != self::TYPE_ASYNC)
         {
@@ -120,7 +151,6 @@ class SOA
         list($svr['host'], $svr['port']) = explode(':', $_svr, 2);
         return $svr;
     }
-
 
     /**
      * RPC调用
@@ -295,4 +325,13 @@ class SOA_Result
     const ERR_TOOBIG     = 8008; //超过最大允许的长度
     const ERR_CLOSED     = 8009; //连接被关闭
 
+    function getResult($timeout = 0.5)
+    {
+        if ($this->code == self::ERR_NO_READY)
+        {
+            $soaclient = SOA::getInstance();
+            $soaclient->wait($timeout);
+        }
+        return $this->data;
+    }
 }

@@ -185,17 +185,17 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
     {
         if (empty($request['call']))
         {
-            return array('errno'=>self::ERR_PARAMS);
+            return array('errno' => self::ERR_PARAMS);
         }
         if (!is_callable($request['call']))
         {
-            return array('errno'=>self::ERR_NOFUNC);
+            return array('errno' => self::ERR_NOFUNC);
         }
-        $ret = call_user_func($request['call'], $request['params']);
+        $ret = call_user_func_array($request['call'], $request['params']);
         if ($ret === false)
         {
-            return array('errno'=>self::ERR_CALL);
+            return array('errno' => self::ERR_CALL);
         }
-        return array('errno'=>0, 'data' => $ret);
+        return array('errno' => 0, 'data' => $ret);
     }
 }

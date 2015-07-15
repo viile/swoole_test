@@ -4,7 +4,7 @@ define('WEBPATH', dirname(__DIR__));
 require __DIR__ . '/../libs/lib_config.php';
 //require __DIR__ . '/../vendor/autoload.php';
 
-$cloud = new Swoole\Client\SOA;
+$cloud = Swoole\Client\SOA::getInstance();
 $cloud->addServers(array('127.0.0.1:8888'));
 
 $s = microtime(true);

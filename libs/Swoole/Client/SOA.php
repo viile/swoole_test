@@ -61,6 +61,7 @@ class SOA
 
         $svr = $this->getServer();
         //异步connect
+        //TODO 如果连接失败，需要上报机器存活状态
         $ret = $socket->connect($svr['host'], $svr['port'], $this->timeout);
         //使用SOCKET的编号作为ID
         $retObj->id = (int)$socket->get_socket();
@@ -280,6 +281,7 @@ class SOA
             {
                 foreach($this->wait_list as $obj)
                 {
+                    //TODO 如果请求超时了，需要上报服务器负载
                     $obj->code = ($obj->socket->connected) ? SOA_Result::ERR_TIMEOUT : SOA_Result::ERR_CONNECT;
                 }
                 //清空当前列表

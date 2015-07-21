@@ -170,6 +170,10 @@ class Swoole
         $this->router(array($this, 'urlRoute'));
     }
 
+    /**
+     * 初始化
+     * @return Swoole
+     */
     static function getInstance()
     {
         if (!self::$php)
@@ -181,7 +185,7 @@ class Swoole
 
     /**
      * 获取资源消耗
-     * @return unknown_type
+     * @return array
      */
     function runtime()
     {
@@ -195,7 +199,7 @@ class Swoole
     }
     /**
      * 压缩内容
-     * @return unknown_type
+     * @return null
      */
     function gzip()
     {
@@ -203,12 +207,19 @@ class Swoole
         //ob_end_clean();
         ob_start("ob_gzhandler");
         #是否开启压缩
-        if(function_exists('ob_gzhandler')) ob_start('ob_gzhandler');
-        else ob_start();
+        if (function_exists('ob_gzhandler'))
+        {
+            ob_start('ob_gzhandler');
+        }
+        else
+        {
+            ob_start();
+        }
     }
+
     /**
      * 初始化环境
-     * @return unknown_type
+     * @return null
      */
     function __init()
     {
@@ -230,11 +241,11 @@ class Swoole
      */
     protected function callHook($type)
     {
-        if(isset($this->hooks[$type]))
+        if (isset($this->hooks[$type]))
         {
-            foreach($this->hooks[$type] as $f)
+            foreach ($this->hooks[$type] as $f)
             {
-                if(!is_callable($f))
+                if (!is_callable($f))
                 {
                     trigger_error("SwooleFramework: hook function[$f] is not callable.");
                     continue;

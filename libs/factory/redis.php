@@ -1,22 +1,10 @@
 <?php
 global $php;
 
-if ($php->factory_key == 'master')
+$config = $php->config['redis'][$php->factory_key];
+if (empty($config) or empty($config['host']))
 {
-    $config = $php->config['redis']['master'];
-
-    if (empty($config['host']))
-    {
-        $config['host'] = '127.0.0.1';
-    }
-}
-else
-{
-    $config = $php->config['redis'][$php->factory_key];
-    if (empty($config) or empty($config['host']))
-    {
-        throw new Exception("redis require server host ip.");
-    }
+    throw new Exception("require redis[$php->factory_key] config.");
 }
 
 if (empty($config['port']))

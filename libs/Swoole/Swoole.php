@@ -110,7 +110,7 @@ class Swoole
     /**
      * 传给factory
      */
-    public $factory_key;
+    public $factory_key = 'master';
 
     /**
      * 发生错误时的回调函数

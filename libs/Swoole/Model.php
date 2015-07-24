@@ -119,15 +119,21 @@ class Model
 	 * @param $data Array 必须是键值（表的字段对应值）对应
 	 * @return int
 	 */
-	public final function put($data)
-	{
-		if (empty($data) or !is_array($data))
-		{
-			return false;
-		}
-		$this->db->insert($data, $this->table);
-		return $this->db->lastInsertId();
-	}
+    public final function put($data)
+    {
+        if (empty($data) or !is_array($data))
+        {
+            return false;
+        }
+        if ($this->db->insert($data, $this->table))
+        {
+            return $this->db->lastInsertId();
+        }
+        else
+        {
+            return false;
+        }
+    }
 
 	/**
 	 * 更新ID为$id的记录,值为$data关联数组

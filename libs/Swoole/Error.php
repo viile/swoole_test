@@ -25,6 +25,7 @@ class Error extends \Exception
 	static public $error_code;
     static public $stop = true;
     static $echo_html = false;
+    static public $display = true;
 
     /**
 	 * 错误对象
@@ -73,7 +74,7 @@ class Error extends \Exception
 	 */
     static function info($msg, $content)
 	{
-        if (!defined('DEBUG') or DEBUG == 'off')
+        if (!defined('DEBUG') or DEBUG == 'off' or self::$display == false)
         {
             return false;
         }

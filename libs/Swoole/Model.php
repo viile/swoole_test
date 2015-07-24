@@ -1,5 +1,6 @@
 <?php
 namespace Swoole;
+
 /**
  * Model类，ORM基础类，提供对某个数据库表的接口
  * @author Administrator
@@ -39,29 +40,33 @@ class Model
 
 	public $if_cache = false;
 
-	function __construct(\Swoole $swoole, $db_key = 'master')
-	{
-		$this->db = $swoole->db($db_key);
-		$this->dbs = new \Swoole\SelectDB($swoole->db);
-		$this->swoole = $swoole;
-	}
+    /**
+     * 构造函数
+     * @param \Swoole $swoole
+     * @param string $db_key 选择哪个数据库
+     */
+    function __construct(\Swoole $swoole, $db_key = 'master')
+    {
+        $this->db = $swoole->db($db_key);
+        $this->dbs = new SelectDB($swoole->db);
+        $this->swoole = $swoole;
+    }
 
-	/**
-	 * 按ID切分表
-	 *
-	 * @param $id
-	 *
-	 * @return null
-	 */
-	function shard_table($id)
-	{
-		if (empty($this->_table_before_shard))
-		{
-			$this->_table_before_shard = $this->table;
-		}
-		$table_id = intval($id / $this->tablesize);
-		$this->table = $this->_table_before_shard . '_' . $table_id;
-	}
+    /**
+     * 按ID切分表
+     *
+     * @param $id
+     * @return null
+     */
+    function shard_table($id)
+    {
+        if (empty($this->_table_before_shard))
+        {
+            $this->_table_before_shard = $this->table;
+        }
+        $table_id = intval($id / $this->tablesize);
+        $this->table = $this->_table_before_shard . '_' . $table_id;
+    }
 
 	/**
 	 * 获取主键$primary_key为$object_id的一条记录对象(Record Object)
@@ -79,7 +84,8 @@ class Model
 	 * 获取表的一段数据，查询的参数由$params指定
 	 * @param $params
      * @param $pager Pager
-	 * @return Array
+     * @throws \Exception
+	 * @return array
 	 */
 	public final function gets($params, &$pager=null)
 	{
@@ -107,6 +113,7 @@ class Model
 
 		return $selectdb->getall();
 	}
+
 	/**
 	 * 插入一条新的记录到表
 	 * @param $data Array 必须是键值（表的字段对应值）对应
@@ -121,18 +128,23 @@ class Model
 		$this->db->insert($data, $this->table);
 		return $this->db->lastInsertId();
 	}
+
 	/**
 	 * 更新ID为$id的记录,值为$data关联数组
 	 * @param $id
 	 * @param $data
-	 * @param $where 指定匹配字段，默认为主键
-	 * @return true/false
+	 * @param $where string 指定匹配字段，默认为主键
+	 * @return bool
 	 */
-	public final function set($id, $data, $where='')
-	{
-		if(empty($where)) $where=$this->primary;
-		return $this->db->update($id,$data,$this->table,$where);
-	}
+    public final function set($id, $data, $where = '')
+    {
+        if (empty($where))
+        {
+            $where = $this->primary;
+        }
+        return $this->db->update($id, $data, $this->table, $where);
+    }
+
 	/**
 	 * 更新一组数据
 	 * @param array $data 更新的数据

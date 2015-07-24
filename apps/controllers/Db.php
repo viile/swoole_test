@@ -55,12 +55,15 @@ class Db extends Swoole\Controller
 
     function gets()
     {
+        /**
+         * @var $model \App\Model\User
+         */
         $model = Model('User');
         //level = 5
         $gets['level'] = 5;
 
         //仅获取数据
-        //var_dump($model->gets($gets));
+        var_dump($model->gets($gets));
 
         //分页
         $gets['page'] = empty($_GET['page'])?1:intval($_GET['page']);

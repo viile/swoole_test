@@ -4,6 +4,8 @@ require_once __DIR__ . '/Loader.php';
 require_once __DIR__ . '/ModelLoader.php';
 require_once __DIR__ . '/PluginLoader.php';
 
+use Swoole\Exception\NotFound;
+
 /**
  * Swoole系统核心类，外部使用全局变量$php引用
  * Swoole框架系统的核心类，提供一个swoole对象引用树和基础的调用功能
@@ -276,8 +278,10 @@ class Swoole
 
     function __get($lib_name)
     {
-        if (isset(self::$modules[$lib_name]) and empty($this->$lib_name))
+        //如果不存在此对象，从工厂中创建一个
+        if (empty($this->$lib_name))
         {
+            //载入组件
             $this->$lib_name = $this->loadModule($lib_name);
         }
         return $this->$lib_name;
@@ -295,7 +299,23 @@ class Swoole
         if (empty($this->objects[$object_id]))
         {
             $this->factory_key = $key;
-            $object = require LIBPATH . '/factory/' . $module . '.php';
+            $user_factory_file = self::$app_path . '/factory/' . $module . '.php';
+            //尝试从用户工厂构建对象
+            if (is_file($user_factory_file))
+            {
+                $object = require $user_factory_file;
+            }
+            //系统默认
+            else
+            {
+                $system_factory_file = LIBPATH . '/factory/' . $module . '.php';
+                //组件不存在，抛出异常
+                if (!is_file($system_factory_file))
+                {
+                    throw new NotFound("module [$module] not found.");
+                }
+                $object = require $system_factory_file;
+            }
             $this->objects[$object_id] = $object;
         }
         return $this->objects[$object_id];

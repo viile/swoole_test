@@ -1,5 +1,6 @@
 <?php
 namespace Swoole;
+use Swoole\Exception\NotFound;
 
 /**
  * Class Factory
@@ -14,15 +15,10 @@ class Factory
         $resource_type = strtolower(substr($func, 3));
         if (empty(\Swoole::$php->config[$resource_type][$resource_id]))
         {
-            throw new FactoryException(__CLASS__.": resource[{$resource_type}/{$resource_id}] not found.");
+            throw new NotFound(__CLASS__.": resource[{$resource_type}/{$resource_id}] not found.");
         }
         $config = \Swoole::$php->config[$resource_type][$resource_id];
         $class = '\\Swoole\\'.ucfirst($resource_type).'\\' . $config['type'];
         return new $class($config);
     }
-}
-
-class FactoryException extends \Exception
-{
-
 }

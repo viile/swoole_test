@@ -26,6 +26,7 @@ use Swoole\Exception\NotFound;
  * @property \Swoole\Log         $log
  * @property \Swoole\Auth        $user
  * @property \Swoole\URL         $url
+ * @property \Swoole\Limit       $limit
  * @method \Swoole\Database      db
  * @method \MongoClient          mongo
  * @method \redis                redis
@@ -75,6 +76,7 @@ class Swoole
         'session' => true, //session
         'http' => true, //http
         'url' => true, //urllib
+        'limit' => true, //频率限制组件
     );
 
     /**

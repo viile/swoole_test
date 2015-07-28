@@ -19,7 +19,7 @@ class Limit
      */
     function __construct($config)
     {
-        if (!empty($config['redis_id']))
+        if (empty($config['redis_id']))
         {
             $config['redis_id'] = 'master';
         }
@@ -54,18 +54,18 @@ class Limit
      * @param $limit
      * @return bool
      */
-    function check($key, $limit)
+    function exceed($key, $limit)
     {
-        $key = self::PREFIX.$key;
+        $key = self::PREFIX . $key;
         $count = $this->redis->get($key);
 
         if (!empty($count) and $count > $limit)
         {
-            return false;
+            return true;
         }
         else
         {
-            return true;
+            return false;
         }
     }
 

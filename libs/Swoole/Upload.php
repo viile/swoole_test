@@ -105,6 +105,13 @@ class Upload
         }
     }
 
+    /**
+     * 保存上传的图片
+     * @param $name
+     * @param null $filename
+     * @param null $allow
+     * @return bool
+     */
     function save($name, $filename = null, $allow = null)
     {
         //检查请求中是否存在上传的文件

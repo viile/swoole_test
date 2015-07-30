@@ -89,6 +89,7 @@ class Swoole
         'mongo' => true,
         'redis' => true,
         'url' => true,
+        'log' => true,
     );
 
     static $default_controller = array('controller' => 'page', 'view' => 'index');

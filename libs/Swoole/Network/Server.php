@@ -71,6 +71,15 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
             file_put_contents($this->pid_file,$serv->master_pid);
         }
     }
+
+
+    function onMasterStop($serv)
+    {
+        if (!empty($this->runtimeSetting['pid_file']))
+        {
+            unlink($this->pid_file);
+        }
+    }
     
     function onManagerStop()
     {
@@ -109,12 +118,14 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
         //1.7.0
         if ($version[1] >= 7)
         {
-            $this->sw->on('ManagerStart', function($serv) {
+            $this->sw->on('ManagerStart', function ($serv)
+            {
                 global $argv;
-                Swoole\Console::setProcessName('php '.$argv[0].': manager');
+                Swoole\Console::setProcessName('php ' . $argv[0] . ': manager');
             });
         }
         $this->sw->on('Start', array($this, 'onMasterStart'));
+        $this->sw->on('Shutdown', array($this, 'onMasterStop'));
         $this->sw->on('ManagerStop', array($this, 'onManagerStop'));
         $this->sw->on('WorkerStart', array($this, 'onWorkerStart'));
         $this->sw->on('Connect', array($this->protocol, 'onConnect'));

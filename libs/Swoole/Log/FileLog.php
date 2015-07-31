@@ -72,7 +72,7 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
         $this->fp = fopen($this->log_file, 'a+');
         if (!$this->fp)
         {
-            throw new \Exception(__CLASS__.": can not open log_file[$this->log_file]");
+            throw new \Exception(__CLASS__.": can not open log_file[{$this->log_file}].");
         }
     }
 

@@ -377,6 +377,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         {
             $request->meta['path'] .= $this->config['request']['default_page'];
         }
+
         if ($this->doStaticRequest($request, $response))
         {
              //pass
@@ -427,7 +428,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         if (is_file($path))
         {
             $read_file = true;
-            if($this->expire)
+            if ($this->expire)
             {
                 $expire = intval($this->config['server']['expire_time']);
                 $fstat = stat($path);

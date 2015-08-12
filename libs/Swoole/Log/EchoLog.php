@@ -6,12 +6,13 @@ class EchoLog extends Swoole\Log implements Swoole\IFace\Log
 {
     protected $display = true;
 
-    function __construct($conf)
+    function __construct($config)
     {
-        if (isset($conf['display']) and $conf['display'] == false)
+        if (isset($config['display']) and $config['display'] == false)
         {
             $this->display = false;
         }
+        parent::__construct($config);
     }
 
     function put($msg, $level = self::INFO)

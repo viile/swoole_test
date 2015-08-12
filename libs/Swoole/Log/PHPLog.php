@@ -9,12 +9,19 @@ class PHPLog extends \Swoole\Log implements \Swoole\IFace\Log
 {
     protected $logput;
     protected $type;
-    protected $put_type = array('file'=>3, 'sys'=>0, 'email'=>1);
+    protected $put_type = array('file' => 3, 'sys' => 0, 'email' => 1);
 
-    function __construct($params)
+    function __construct($config)
     {
-        if(isset($params['logput'])) $this->logput = $params['logput'];
-        if(isset($params['type'])) $this->type = $this->put_type[$params['type']];
+        if (isset($config['logput']))
+        {
+            $this->logput = $config['logput'];
+        }
+        if (isset($config['type']))
+        {
+            $this->type = $this->put_type[$config['type']];
+        }
+        parent::__construct($config);
     }
 
     function put($msg, $level = self::INFO)

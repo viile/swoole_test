@@ -1,5 +1,6 @@
 <?php
 namespace Swoole\Log;
+
 /**
  * 数据库日志记录类
  * @author Tianfeng.Han
@@ -12,10 +13,22 @@ class DBLog extends \Swoole\Log implements \Swoole\IFace\Log
     protected $db;
     protected $table;
 
-    function __construct($params)
+    function __construct($config)
     {
-        $this->table = $params['table'];
-        $this->db = $params['db'];
+        if (empty($config['table']))
+        {
+            throw new \Exception(__CLASS__ . ": require \$config['table']");
+        }
+        $this->table = $config['table'];
+        if (isset($config['db']))
+        {
+            $this->db = \Swoole::$php->db($config['db']);
+        }
+        else
+        {
+            $this->db = \Swoole::$php->db('master');
+        }
+        parent::__construct($config);
     }
 
     function put($msg, $level = self::INFO)
@@ -32,10 +45,10 @@ class DBLog extends \Swoole\Log implements \Swoole\IFace\Log
     function create()
     {
         return $this->db->query("CREATE TABLE `{$this->table}` (
-`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
-`addtime` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
-`logtype` TINYINT NOT NULL ,
-`msg` VARCHAR(255) NOT NULL
-)");
+            `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+            `addtime` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+            `logtype` TINYINT NOT NULL ,
+            `msg` VARCHAR(255) NOT NULL
+            )");
     }
 }

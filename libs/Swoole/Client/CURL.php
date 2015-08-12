@@ -167,19 +167,18 @@ class CURL
         //set method to post
         curl_setopt($this->ch, CURLOPT_POST, true);
 
-
         //generate post string
         $post_array = array();
-        if(is_array($postdata))
+        if (is_array($postdata))
         {
-            foreach($postdata as $key=>$value)
+            foreach ($postdata as $key => $value)
             {
                 $post_array[] = urlencode($key) . "=" . urlencode($value);
             }
 
-            $post_string = implode("&",$post_array);
+            $post_string = implode("&", $post_array);
 
-            if($this->debug)
+            if ($this->debug)
             {
                 echo "Url: $url\nPost String: $post_string\n";
             }

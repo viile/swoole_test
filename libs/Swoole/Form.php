@@ -304,7 +304,7 @@ class Form
     	$form = '';
         if(!empty($value))
             $form = " <a href='$value' target='_blank'>查看文件</a><br />\n重新上传";
-        return $form."<input type='file' name='$name' id='{$name}' size='{$size}' {$attrStr} />";
+        return $form."<input type='file' name='$name' id='{$name}' {$attrStr} />";
     }
     /**
      * 单行文本输入框

@@ -166,6 +166,15 @@ class MySQL implements \Swoole\IDatabase
     {
         mysql_close($this->conn);
     }
+
+    /**
+     * 获取错误码
+     * @return int
+     */
+    function errno()
+    {
+        return mysql_errno($this->conn);
+    }
 }
 
 class MySQLRecord implements \Swoole\IDbRecord

@@ -57,7 +57,7 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
                 $n = 0;
                 foreach($this->_buffer as $k=>$v)
                 {
-                    $this->server->close($k, $this->_fdfrom[$k]);
+                    $this->close($this->_fdfrom[$k]);
                     $n++;
                     $this->log("clear buffer");
                     //清理完毕
@@ -66,11 +66,10 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
             }
             //解析包头
             $header = unpack(self::HEADER_STRUCT, substr($data, 0, self::HEADER_SIZE));
-
             //错误的包头
             if ($header === false)
             {
-                $this->server->close($fd);
+                $this->close($fd);
             }
             $this->_headers[$fd] = $header;
             //长度错误
@@ -197,5 +196,11 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
             return array('errno' => self::ERR_CALL);
         }
         return array('errno' => 0, 'data' => $ret);
+    }
+
+    protected function close($fd)
+    {
+        $this->server->close($fd);
+        $this->onClose($this->server, $fd, 0);
     }
 }

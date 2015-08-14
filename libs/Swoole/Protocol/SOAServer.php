@@ -16,7 +16,7 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
 
     public $packet_maxlen       = 2465792; //2M默认最大长度
     protected $buffer_maxlen    = 10240; //最大待处理区排队长度, 超过后将丢弃最早入队数据
-    protected $buffer_clear_num = 100; //超过最大长度后，清理100个数据
+    protected $buffer_clear_num = 128; //超过最大长度后，清理100个数据
 
     const ERR_HEADER            = 9001;   //错误的包头
     const ERR_TOOBIG            = 9002;   //请求包体长度超过允许的范围
@@ -58,10 +58,13 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
                 {
                     $this->close($k);
                     $n++;
-                    $this->log("clear buffer");
                     //清理完毕
-                    if($n >= $this->buffer_clear_num) break;
+                    if ($n >= $this->buffer_clear_num)
+                    {
+                        break;
+                    }
                 }
+                $this->log("clear $n buffer");
             }
             //解析包头
             $header = unpack(self::HEADER_STRUCT, substr($data, 0, self::HEADER_SIZE));
@@ -103,8 +106,7 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
             $this->server->send($fd, self::encode($response, $this->_headers[$fd]['type']));
         }
         //清理缓存
-        $this->_buffer[$fd] = '';
-        unset($this->_headers[$fd]);
+        unset($this->_buffer[$fd], $this->_headers[$fd]);
         return true;
     }
 

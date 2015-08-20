@@ -138,6 +138,14 @@ class PdoDB extends \PDO
         }
     }
 
+    /**
+     * 获取错误码
+     */
+    function errno()
+    {
+        $this->errorCode();
+    }
+
 	/**
 	 * 关闭连接，释放资源
 	 * @return null

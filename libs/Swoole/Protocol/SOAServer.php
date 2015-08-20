@@ -10,14 +10,13 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
 {
     protected $_buffer  = array(); //buffer区
     protected $_headers = array(); //保存头
-    protected $_fdfrom; //保存fd对应的from_id
 
     protected $errCode;
     protected $errMsg;
 
     public $packet_maxlen       = 2465792; //2M默认最大长度
     protected $buffer_maxlen    = 10240; //最大待处理区排队长度, 超过后将丢弃最早入队数据
-    protected $buffer_clear_num = 100; //超过最大长度后，清理100个数据
+    protected $buffer_clear_num = 128; //超过最大长度后，清理100个数据
 
     const ERR_HEADER            = 9001;   //错误的包头
     const ERR_TOOBIG            = 9002;   //请求包体长度超过允许的范围
@@ -55,22 +54,24 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
             if (count($this->_buffer) >= $this->buffer_maxlen)
             {
                 $n = 0;
-                foreach($this->_buffer as $k=>$v)
+                foreach ($this->_buffer as $k => $v)
                 {
-                    $this->server->close($k, $this->_fdfrom[$k]);
+                    $this->close($k);
                     $n++;
-                    $this->log("clear buffer");
                     //清理完毕
-                    if($n >= $this->buffer_clear_num) break;
+                    if ($n >= $this->buffer_clear_num)
+                    {
+                        break;
+                    }
                 }
+                $this->log("clear $n buffer");
             }
             //解析包头
             $header = unpack(self::HEADER_STRUCT, substr($data, 0, self::HEADER_SIZE));
-
             //错误的包头
             if ($header === false)
             {
-                $this->server->close($fd);
+                $this->close($fd);
             }
             $this->_headers[$fd] = $header;
             //长度错误
@@ -105,8 +106,7 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
             $this->server->send($fd, self::encode($response, $this->_headers[$fd]['type']));
         }
         //清理缓存
-        $this->_buffer[$fd] = '';
-        unset($this->_headers[$fd]);
+        unset($this->_buffer[$fd], $this->_headers[$fd]);
         return true;
     }
 
@@ -156,13 +156,14 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
         }
     }
 
-    function onConnect($serv, $fd, $from_id)
-    {
-        $this->_fdfrom[$fd] = $from_id;
-    }
+    /**
+     * @param $serv
+     * @param int $fd
+     * @param $from_id
+     */
     function onClose($serv, $fd, $from_id)
     {
-        unset($this->_buffer[$fd], $this->_fdfrom[$fd]);
+        unset($this->_buffer[$fd]);
     }
 
     /**
@@ -174,7 +175,7 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
      */
     function addNameSpace($name, $path)
     {
-        if(!is_dir($path))
+        if (!is_dir($path))
         {
             throw new \Exception("$path is not real path.");
         }
@@ -197,5 +198,15 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
             return array('errno' => self::ERR_CALL);
         }
         return array('errno' => 0, 'data' => $ret);
+    }
+
+    /**
+     * 关闭连接
+     * @param $fd
+     */
+    protected function close($fd)
+    {
+        $this->server->close($fd);
+        unset($this->_buffer[$fd], $this->_headers[$fd]);
     }
 }

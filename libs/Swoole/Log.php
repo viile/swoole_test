@@ -13,6 +13,8 @@ namespace Swoole;
 abstract class Log
 {
     protected $level_line;
+    protected $config;
+
     const TRACE   = 0;
     const INFO    = 1;
     const NOTICE  = 2;
@@ -54,6 +56,15 @@ abstract class Log
     function setLevel($level = self::TRACE)
     {
         $this->level_line = $level;
+    }
+
+    function __construct($config)
+    {
+        if (isset($config['level']))
+        {
+            $this->setLevel(intval($config['level']));
+        }
+        $this->config = $config;
     }
 
     function format($msg, $level)

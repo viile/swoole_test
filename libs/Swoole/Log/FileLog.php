@@ -19,40 +19,40 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
     protected $enable_cache = true;
     protected $date;
 
-    function __construct($conf)
+    function __construct($config)
     {
-        if (is_string($conf))
+        if (is_string($config))
         {
-            $file = $conf;
-            $conf = array('file' => $file);
+            $file = $config;
+            $config = array('file' => $file);
         }
 
-        $this->archive = isset($conf['date']) && $conf['date'] == true;
-        $this->enable_cache = isset($conf['enable_cache']) ? (bool) $conf['enable_cache'] : true;
+        $this->archive = isset($config['date']) && $config['date'] == true;
+        $this->enable_cache = isset($config['enable_cache']) ? (bool) $config['enable_cache'] : true;
 
         //按日期存储日志
         if ($this->archive)
         {
-            if (isset($conf['dir']))
+            if (isset($config['dir']))
             {
                 $this->date = date('Ymd');
-                $this->log_dir = rtrim($conf['dir'], '/');
+                $this->log_dir = rtrim($config['dir'], '/');
                 $this->log_file = $this->log_dir.'/'.$this->date.'.log';
             }
             else
             {
-                throw new \Exception(__CLASS__.": require \$conf['dir']");
+                throw new \Exception(__CLASS__.": require \$config['dir']");
             }
         }
         else
         {
-            if (isset($conf['file']))
+            if (isset($config['file']))
             {
-                $this->log_file = $conf['file'];
+                $this->log_file = $config['file'];
             }
             else
             {
-                throw new \Exception(__CLASS__.": require \$conf[file]");
+                throw new \Exception(__CLASS__.": require \$config[file]");
             }
         }
 
@@ -75,6 +75,7 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
         {
             throw new \Exception(__CLASS__.": can not open log_file[{$this->log_file}].");
         }
+        parent::__construct($config);
     }
 
     function format($msg, $level, &$date = null)

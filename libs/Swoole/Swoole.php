@@ -43,6 +43,10 @@ class Swoole
      */
     public $server;
     public $protocol;
+
+    /**
+     * @var Swoole\Request
+     */
     public $request;
 
     public $config;

@@ -33,4 +33,9 @@ class LAMP implements \Swoole\IFace\Http
     {
         setcookie($name, $value, $expire, $path, $domain, $secure, $httponly);
     }
+
+    function getRequestBody()
+    {
+        return file_get_contents('php://input');
+    }
 }

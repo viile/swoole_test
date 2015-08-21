@@ -63,6 +63,11 @@ class ExtServer implements Swoole\IFace\Http
         throw new Swoole\ResponseException;
     }
 
+    function getRequestBody()
+    {
+        return $this->request->rawContent();
+    }
+
     function setcookie($name, $value = null, $expire = null, $path = '/', $domain = null, $secure = null, $httponly = null)
     {
         $this->response->cookie($name, $value, $expire, $path, $domain, $secure, $httponly);

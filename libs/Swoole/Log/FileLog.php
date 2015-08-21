@@ -16,7 +16,7 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
     protected $queue = array();
     //是否记录更详细的信息（目前记多了文件名、行号）
     protected $verbose = true;
-    protected $cache_enable = true;
+    protected $enable_cache = true;
     protected $date;
 
     function __construct($config)
@@ -28,6 +28,7 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
         }
 
         $this->archive = isset($config['date']) && $config['date'] == true;
+        $this->enable_cache = isset($config['enable_cache']) ? (bool) $config['enable_cache'] : true;
 
         //按日期存储日志
         if ($this->archive)
@@ -40,7 +41,7 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
             }
             else
             {
-                throw new \Exception(__CLASS__.": require \$conf['dir']");
+                throw new \Exception(__CLASS__.": require \$config['dir']");
             }
         }
         else
@@ -51,7 +52,7 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
             }
             else
             {
-                throw new \Exception(__CLASS__.": require \$conf[file]");
+                throw new \Exception(__CLASS__.": require \$config[file]");
             }
         }
 
@@ -124,7 +125,7 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
         // 如果没有开启缓存，直接将缓冲区的内容写入文件
         // 如果缓冲区内容日志条数达到一定程度，写入文件
         if (count($this->queue,  COUNT_RECURSIVE) >= 11
-            || $this->cache_enable == false)
+            || $this->enable_cache == false)
         {
             $this->flush();
         }
@@ -161,6 +162,8 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
                 rename($this->log_file, $this->log_file.'.'.date('His'));
             }
         }
+
+        $this->queue = array();
     }
 
     function __destruct()

@@ -10,8 +10,9 @@ class Home extends Swoole\Controller
         Swoole::$php->session->start();
         Swoole\Auth::login_require();
     }
+
     function index()
     {
-
+        echo __METHOD__;
     }
 }

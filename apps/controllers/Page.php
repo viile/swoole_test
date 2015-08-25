@@ -175,4 +175,10 @@ class Page extends Swoole\Controller
             echo "Bad Request\n";
         }
     }
+
+    function user_factory()
+    {
+        //对应apps/factory/user1.php
+        $this->user1->hello();
+    }
 }

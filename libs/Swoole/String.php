@@ -85,21 +85,28 @@ class String
      * @param $version1
      * @param $version2
      * @return int
+     * @throws \Exception
      */
     static function versionCompare($version1, $version2)
     {
+        if (!Validate::isVersion($version1) or !Validate::isVersion($version2))
+        {
+            throw new \Exception("[$version1] or [$version2] is not a version string.");
+        }
         $v1 = explode('.', $version1);
         $v2 = explode('.', $version2);
 
         for($i = 0; $i < 3; $i++)
         {
+            $_v1 = intval($v1[$i]);
+            $_v2 = intval($v2[$i]);
             //版本1高
-            if ($v1[$i] > $v2[$i])
+            if ($_v1 > $_v2)
             {
                 return 1;
             }
             //版本2高
-            elseif ($v1[$i] < $v2[$i])
+            elseif ($_v1 < $_v2)
             {
                 return -1;
             }

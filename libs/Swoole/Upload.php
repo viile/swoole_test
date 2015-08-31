@@ -158,6 +158,9 @@ class Upload
             }
         }
 
+        //过滤危险字符
+        $_FILES[$name]['name'] = Filter::escape($_FILES[$name]['name']);
+
         //MIME格式
         $mime = $_FILES[$name]['type'];
         $filetype = $this->getMimeType($mime);

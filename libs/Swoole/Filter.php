@@ -126,6 +126,7 @@ class Filter
             exit('Client input param error!');
         }
     }
+
     /**
      * 过滤$_GET $_POST $_REQUEST $_COOKIE
      */
@@ -136,10 +137,10 @@ class Filter
         self::$origin_request = $_REQUEST;
         self::$origin_cookie = $_COOKIE;
 
-        $_POST = Filter::filter_array($_POST);
-        $_GET = Filter::filter_array($_GET);
-        $_REQUEST = Filter::filter_array($_REQUEST);
-        $_COOKIE = Filter::filter_array($_COOKIE);
+        $_POST = Filter::filterArray($_POST);
+        $_GET = Filter::filterArray($_GET);
+        $_REQUEST = Filter::filterArray($_REQUEST);
+        $_COOKIE = Filter::filterArray($_COOKIE);
     }
 
     static function safe(&$content)
@@ -147,7 +148,14 @@ class Filter
         $content = stripslashes($content);
         $content = html_entity_decode($content, ENT_QUOTES, \Swoole::$charset);
     }
-    public static function filter_var($var,$type)
+
+    /**
+     * 类型转换
+     * @param $var
+     * @param $type
+     * @return bool|float|int|string
+     */
+    public static function filterVar($var, $type)
     {
         switch($type)
         {
@@ -167,7 +175,7 @@ class Filter
      * @param $array
      * @return array
      */
-    public static function filter_array($array)
+    public static function filterArray($array)
     {
         if (!is_array($array))
         {
@@ -175,25 +183,16 @@ class Filter
         }
 
         $clean = array();
-        $magic_quote = get_magic_quotes_gpc();
-
         foreach ($array as $key => $string)
         {
             if (is_array($string))
             {
-                self::filter_array($string);
+                self::filterArray($string);
             }
             else
             {
-                if ($magic_quote)
-                {
-                    $string = stripslashes($string);
-                }
-                else
-                {
-                    $string = self::escape($string);
-                    $key = self::escape($key);
-                }
+                $string = self::escape($string);
+                $key = self::escape($key);
             }
             $clean[$key] = $string;
         }
@@ -211,28 +210,13 @@ class Filter
         {
             return $string;
         }
+        //HTML转义
         $string = htmlspecialchars($string, ENT_QUOTES, \Swoole::$charset);
-        $string = self::addslash($string);
+        //启用了magic_quotes
+        if (!get_magic_quotes_gpc())
+        {
+            $string = addslashes($string);
+        }
         return $string;
-    }
-
-    /**
-     * 过滤危险字符
-     * @param $string
-     * @return string
-     */
-    public static function addslash($string)
-    {
-        return addslashes($string);
-    }
-
-    /**
-     * 移除反斜杠过滤
-     * @param $string
-     * @return string
-     */
-    public static function deslash($string)
-    {
-        return stripslashes($string);
     }
 }

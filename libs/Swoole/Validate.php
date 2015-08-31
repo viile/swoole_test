@@ -37,11 +37,12 @@ class Validate
     //utf-8中文字符串
         'chinese'=>'/^[\x{4e00}-\x{9fa5}]+$/u',
     /*---------常用类型 --------------*/
-        'english'=>'/^[a-z0-9_\.]+$/i', //英文
-        'nickname'=>'/^[\x{4e00}-\x{9fa5}a-z_\.]+$/ui', //昵称，可以带英文字符和数字
-        'realname'=>'/^[\x{4e00}-\x{9fa5}]+$/u', //真实姓名
-        'password'=>'/^[a-z0-9]{6,32}$/i', //密码
-        'area'=>'^0\d{2,3}$' //区号
+        'english' => '/^[a-z0-9_\.]+$/i', //英文
+        'nickname' => '/^[\x{4e00}-\x{9fa5}a-z_\.]+$/ui', //昵称，可以带英文字符和数字
+        'realname' => '/^[\x{4e00}-\x{9fa5}]+$/u', //真实姓名
+        'password' => '/^[a-z0-9]{6,32}$/i', //密码
+        'area' => '^0\d{2,3}$', //区号
+        'version' => '^^\d+\.\d+.\d+',       //版本号
     );
     /**
      * 正则验证
@@ -60,6 +61,11 @@ class Validate
         {
             return $match[0];
         }
+    }
+
+    static function isVersion($ver)
+    {
+        return self::check('version', $ver);
     }
 
     static function check($ctype, $input)
@@ -196,4 +202,5 @@ class Validate
         if(empty($value)) return $default;
         else return $value;
     }
+
 }

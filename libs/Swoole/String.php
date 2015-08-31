@@ -79,4 +79,37 @@ class String
     {
         return new ArrayObject(str_split($this->string, $splitLength));
     }
+
+    /**
+     * 比较2个版本号，如1.0.1
+     * @param $version1
+     * @param $version2
+     * @return int
+     */
+    static function versionCompare($version1, $version2)
+    {
+        $v1 = explode('.', $version1);
+        $v2 = explode('.', $version2);
+
+        for($i = 0; $i < 3; $i++)
+        {
+            //版本1高
+            if ($v1[$i] > $v2[$i])
+            {
+                return 1;
+            }
+            //版本2高
+            elseif ($v1[$i] < $v2[$i])
+            {
+                return -1;
+            }
+            //版本相同，继续向下比较
+            else
+            {
+                continue;
+            }
+        }
+        //如果3个版本全部一致，返回0
+        return 0;
+    }
 }

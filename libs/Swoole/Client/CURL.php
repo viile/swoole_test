@@ -273,10 +273,10 @@ class CURL
      * @return boolean true on success false othervise
      * @access public
      */
-    function download($url, $fp, $ip=null, $timeout = 5)
+    function download($url, $fp, $ip = null, $timeout = 5)
     {
         // set url to post to
-        curl_setopt($this->ch, CURLOPT_URL,$url);
+        curl_setopt($this->ch, CURLOPT_URL, $url);
         //set method to get
         curl_setopt($this->ch, CURLOPT_HTTPGET, true);
         // store data into file rather than displaying it
@@ -285,7 +285,7 @@ class CURL
         //bind to specific ip address if it is sent trough arguments
         if ($ip)
         {
-            if($this->debug)
+            if ($this->debug)
             {
                 echo "Binding to ip $ip\n";
             }

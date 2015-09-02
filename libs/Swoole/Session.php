@@ -187,24 +187,24 @@ class Session
     function initSess()
     {
         //不使用 GET/POST 变量方式
-        ini_set('session.use_trans_sid',0);
+        ini_set('session.use_trans_sid', 0);
         //设置垃圾回收最大生存时间
-        ini_set('session.gc_maxlifetime',self::$cache_life);
+        ini_set('session.gc_maxlifetime', self::$cache_lifetime);
         //使用 COOKIE 保存 SESSION ID 的方式
-        ini_set('session.use_cookies',1);
-        ini_set('session.cookie_path','/');
+        ini_set('session.use_cookies', 1);
+        ini_set('session.cookie_path', '/');
         //多主机共享保存 SESSION ID 的 COOKIE
         ini_set('session.cookie_domain', self::$sess_domain);
         //将 session.save_handler 设置为 user，而不是默认的 files
         session_module_name('user');
         //定义 SESSION 各项操作所对应的方法名
         session_set_save_handler(
-                array($this, 'open'),
-                array($this, 'close'),
-                array($this, 'get'),
-                array($this, 'set'),
-                array($this, 'delete'),
-                array($this, 'gc'));
+            array($this, 'open'),
+            array($this, 'close'),
+            array($this, 'get'),
+            array($this, 'set'),
+            array($this, 'delete'),
+            array($this, 'gc'));
         session_start();
         return true;
     }

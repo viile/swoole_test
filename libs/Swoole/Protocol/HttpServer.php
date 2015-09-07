@@ -50,7 +50,8 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         $this->swoole_server = $serv;
         Swoole::$php->server = $this;
         $this->log(self::SOFTWARE . "[#{$worker_id}]. running. on {$this->server->host}:{$this->server->port}");
-        register_shutdown_function(array($this, 'onError'));
+        set_error_handler(array($this, 'onErrorHandle'), E_USER_ERROR);
+        register_shutdown_function(array($this, 'onErrorShutDown'));
     }
 
     /**
@@ -332,9 +333,9 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
     }
 
     /**
-     * 捕获错误
+     * 捕获register_shutdown_function错误
      */
-    function onError()
+    function onErrorShutDown()
     {
         $error = error_get_last();
         if (!isset($error['type'])) return;
@@ -349,6 +350,28 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
             default:
                 return;
         }
+        $this->errorResponse($error);
+    }
+
+    /**
+     * 捕获set_error_handle错误
+     */
+    function onErrorHandle($errno, $errstr, $errfile, $errline)
+    {
+        $error = array(
+            'message' => $errstr,
+            'file' => $errfile,
+            'line' => $errline,
+        );
+        $this->errorResponse($error);
+    }
+
+    /**
+     * 错误显示
+     * @param $error
+     */
+    private function errorResponse($error)
+    {
         $errorMsg = "{$error['message']} ({$error['file']}:{$error['line']})";
         $message = Swoole\Error::info(self::SOFTWARE." Application Error", $errorMsg);
         if (empty($this->currentResponse))
@@ -357,6 +380,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         }
         $this->currentResponse->setHttpStatus(500);
         $this->currentResponse->body = $message;
+        $this->currentResponse->body = (defined('DEBUG') && DEBUG == 'on') ? $message : '';
         $this->response($this->currentRequest, $this->currentResponse);
     }
 

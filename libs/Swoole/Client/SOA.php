@@ -86,6 +86,11 @@ class SOA
         return true;
     }
 
+    function setClientInfo()
+    {
+
+    }
+
     /**
      * 完成请求
      * @param $retData

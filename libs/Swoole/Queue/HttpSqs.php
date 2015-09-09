@@ -1,4 +1,5 @@
 <?php
+
 class HttpQueue implements Swoole\IFace\Queue
 {
     public $host = 'localhost';
@@ -13,20 +14,32 @@ class HttpQueue implements Swoole\IFace\Queue
 
     function __construct($config)
     {
-        if(!empty($config['server_url'])) $this->server_url = $config['server_url'];
-        if(!empty($config['name'])) $this->name = $config['name'];
-        if(!empty($config['charset'])) $this->charset = $config['charset'];
-        if(!empty($config['debug'])) $this->debug = $config['debug'];
+        if (!empty($config['server_url']))
+        {
+            $this->server_url = $config['server_url'];
+        }
+        if (!empty($config['name']))
+        {
+            $this->name = $config['name'];
+        }
+        if (!empty($config['charset']))
+        {
+            $this->charset = $config['charset'];
+        }
+        if (!empty($config['debug']))
+        {
+            $this->debug = $config['debug'];
+        }
 
         $this->base = "{$this->server_url}/?charset={$this->charset}&name={$this->name}";
 
-        if(!extension_loaded('curl'))
+        if (!extension_loaded('curl'))
         {
             $header[] = "Connection: keep-alive";
             $header[] = "Keep-Alive: 300";
             $this->client_type = 'curl';
-            $this->http = new \Swoole\Network\CURL($this->debug);
-            $this->http->set_header($header);
+            $this->http = new \Swoole\Client\CURL($this->debug);
+            $this->http->addHeaders($header);
         }
         else
         {
@@ -34,42 +47,76 @@ class HttpQueue implements Swoole\IFace\Queue
         }
     }
 
-    function http_get($opt)
+    protected function doGet($opt)
     {
-        $url = $this->base.'&opt='.$opt;
-        if($this->client_type=='curl') return $this->http->get($url);
-        else return Swoole\Client\Http::quickGet($url);
+        $url = $this->base . '&opt=' . $opt;
+        if ($this->client_type == 'curl')
+        {
+            return $this->http->get($url);
+        }
+        else
+        {
+            return Swoole\Client\Http::quickGet($url);
+        }
     }
 
-    function http_post($opt,$data)
+    protected function doPost($opt, $data)
     {
-        $url = $this->base.'&opt='.$opt;
-        if($this->client_type=='curl') return $this->http->post($url,$data);
-        else return Swoole\Client\Http::quickPost($url,$data);
+        $url = $this->base . '&opt=' . $opt;
+        if ($this->client_type == 'curl')
+        {
+            return $this->http->post($url, $data);
+        }
+        else
+        {
+            return Swoole\Client\Http::quickPost($url, $data);
+        }
     }
 
     function push($data)
     {
-        $result = $this->http_post("put",$data);
-        if ($result == "HTTPSQS_PUT_OK") return true;
-        else if($result== "HTTPSQS_PUT_END") return $result;
-        else return false;
+        $result = $this->doPost("put", $data);
+        if ($result == "HTTPSQS_PUT_OK")
+        {
+            return true;
+        }
+        else
+        {
+            if ($result == "HTTPSQS_PUT_END")
+            {
+                return $result;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 
     function pop()
     {
-        $result = $this->http_get("get");
-        if ($result == false || $result== "HTTPSQS_ERROR" || $result== false) return false;
+        $result = $this->doGet("get");
+        if ($result == false || $result == "HTTPSQS_ERROR" || $result == false)
+        {
+            return false;
+        }
         else
         {
-            parse_str($result,$res);
+            parse_str($result, $res);
             return $res;
         }
     }
+
     function status()
     {
-        $result = $this->http_get("status");
-        if ($result == false || $result == "HTTPSQS_ERROR" || $result== false) return false;
-        else return $result;
+        $result = $this->doGet("status");
+        if ($result == false || $result == "HTTPSQS_ERROR" || $result == false)
+        {
+            return false;
+        }
+        else
+        {
+            return $result;
+        }
     }
 }

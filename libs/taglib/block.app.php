@@ -4,7 +4,7 @@ function smarty_block_app($params, $body, &$smarty)
 	if (empty($body)) return;
 
 	global $php;
-	$app = $php->createModel('App');
+	$app = model('App');
 	if(array_key_exists('name',$params))
 	{
 		$app_config = $app->getConfig($params['name']);

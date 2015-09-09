@@ -68,15 +68,19 @@ class Auth
      * @param $set
      * @return unknown_type
      */
-    function updateStatus($set=null)
+    function updateStatus($set = null)
     {
-        if(empty($set)) $set = array(self::$lastlogin=>date('Y-m-d H:i:s'),self::$lastip=>Swoole_client::getIP());
-        $this->db->update($this->user['id'],$set,$this->login_table);
+        if (empty($set))
+        {
+            $set = array(self::$lastlogin => date('Y-m-d H:i:s'), self::$lastip => Client::getIP());
+        }
+        $this->db->update($this->user['id'], $set, $this->login_table);
     }
+
     function setSession($key)
     {
         $_SESSION[$key] = $this->user[$key];
-        $_SESSION[self::$session_prefix.'save_key'][] = self::$session_prefix.$key;
+        $_SESSION[self::$session_prefix . 'save_key'][] = self::$session_prefix . $key;
     }
 
     /**
@@ -92,7 +96,7 @@ class Auth
      * 获取登录用户的信息
      * @return unknown_type
      */
-    function getUserInfo($key='userinfo')
+    function getUserInfo($key = 'userinfo')
     {
         return $this->user;
     }

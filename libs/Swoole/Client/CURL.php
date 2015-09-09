@@ -421,6 +421,11 @@ class CURL
         $this->reqHeader[$k] = $v;
     }
 
+    function addHeaders(array $header)
+    {
+        $this->reqHeader = array_merge($this->reqHeader, $header);
+    }
+
     /**
      * Set custom cookie
      * @param string cookie

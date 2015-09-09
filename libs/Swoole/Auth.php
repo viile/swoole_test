@@ -29,12 +29,22 @@ class Auth
     static $session_prefix = '';
     static $mk_password = 'username,password';
     static $password_hash = 'sha1';
+
+    static $password_cost = 10;
+    static $password_salt_size = 22;
+
     static $cookie_life = 2592000;
     static $session_destroy = false;
 
     protected $config;
     protected $login_table = '';
     protected $profile_table = '';
+
+    const ERR_NO_EXIST = 1;
+    const ERR_PASSWORD = 2;
+
+    const HASH_SHA1 = 'sha1';
+    const HASH_CRYPT = 'crypt';
 
     function __construct($config)
     {
@@ -100,12 +110,13 @@ class Auth
         $this->user = $this->db->query('select ' . $this->select . ' from ' . $this->login_table . " where " . self::$username . "='$username' limit 1")->fetch();
         if (empty($this->user))
         {
+            $this->errCode = self::ERR_NO_EXIST;
             return false;
         }
         else
         {
-            $pwd_hash = self::mkpasswd($username, $password);
-            if ($this->user[self::$password] == $pwd_hash)
+            //验证密码是否正确
+            if (self::verifyPassword($username, $password, $this->user[self::$password]))
             {
                 $_SESSION[self::$session_prefix . 'isLogin'] = true;
                 $_SESSION[self::$session_prefix . 'user_id'] = $this->user['id'];
@@ -117,6 +128,7 @@ class Auth
             }
             else
             {
+                $this->errCode = self::ERR_PASSWORD;
                 return false;
             }
         }
@@ -171,7 +183,7 @@ class Auth
         }
 
         $user = $_res[0];
-        if ($user[self::$password] != self::mkpasswd($user[self::$username], $old_pwd))
+        if ($user[self::$password] != self::makePasswordHash($user[self::$username], $old_pwd))
         {
             $this->errMessage = '原密码不正确';
             $this->errCode = 2;
@@ -179,7 +191,7 @@ class Auth
         }
         else
         {
-            $table->set($uid, array(self::$password => self::mkpasswd($user[self::$username], $new_pwd)), self::$userid);
+            $table->set($uid, array(self::$password => self::makePasswordHash($user[self::$username], $new_pwd)), self::$userid);
             return true;
         }
     }
@@ -224,17 +236,57 @@ class Auth
     }
 
     /**
+     * 验证密码
+     * @param $username
+     * @param $input_password
+     * @param $real_password
+     * @return bool
+     * @throws \Exception
+     */
+    public static function verifyPassword($username, $input_password, $real_password)
+    {
+        //使用PHP内置的password
+        if (self::$password_hash == 'crypt')
+        {
+            if (!function_exists('password_verify'))
+            {
+                throw new \Exception("require password_verify function.");
+            }
+            return password_verify($input_password, $real_password);
+        }
+        else
+        {
+            $pwd_hash = self::makePasswordHash($username, $input_password);
+            return $real_password == $pwd_hash;
+        }
+    }
+
+    /**
      * 产生一个密码串，连接用户名和密码，并使用sha1产生散列
      * @param $username
      * @param $password
+     * @throws \Exception
      * @return string
      */
-    public static function mkpasswd($username, $password)
+    public static function makePasswordHash($username, $password)
     {
         //sha1 用户名+密码
         if (self::$password_hash == 'sha1')
         {
             return sha1($username . $password);
+        }
+        //使用PHP内置的password
+        elseif(self::$password_hash == 'crypt')
+        {
+            if (!function_exists('password_hash'))
+            {
+                throw new \Exception("require password_hash function.");
+            }
+            $options = [
+                'cost' => self::$password_cost,
+                'salt' => mcrypt_create_iv(self::$password_salt_size, MCRYPT_DEV_URANDOM),
+            ];
+            return password_hash($password, PASSWORD_BCRYPT, $options);
         }
         //md5 用户名+密码
         elseif (self::$password_hash == 'md5')
@@ -261,7 +313,8 @@ class Auth
         $user = \Swoole::$php->user;
         if (!$user->isLogin())
         {
-            \Swoole::$php->http->redirect($user->config['login_url'].'?refer='.urlencode($_SERVER["REQUEST_URI"]));
+            $login_url = $user->config['login_url'] . '?refer=' . urlencode($_SERVER["REQUEST_URI"]);
+            \Swoole::$php->http->redirect($login_url);
             return false;
         }
         return true;

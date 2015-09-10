@@ -9,11 +9,78 @@ use Swoole;
 class Server extends Swoole\Server implements Swoole\Server\Driver
 {
     static $sw_mode = SWOOLE_PROCESS;
+    static $pidFile;
     /**
      * @var \swoole_server
      */
     protected $sw;
     protected $pid_file;
+
+    /**
+     * 设置PID文件
+     * @param $pidFile
+     */
+    static function setPidFile($pidFile)
+    {
+        self::$pidFile = $pidFile;
+    }
+
+    /**
+     * 显示命令行指令
+     */
+    static function start($startFunction)
+    {
+        if (empty(self::$pidFile))
+        {
+            throw new \Exception("require pidFile.");
+        }
+        $pid_file = self::$pidFile;
+        if (is_file($pid_file))
+        {
+            $server_pid = file_get_contents($pid_file);
+        }
+        else
+        {
+            $server_pid = 0;
+        }
+        global $argv;
+        if (empty($argv[1]))
+        {
+            goto usage;
+        }
+        elseif ($argv[1] == 'reload')
+        {
+            if (empty($server_pid))
+            {
+                exit("Server is not running");
+            }
+            posix_kill($server_pid, SIGUSR1);
+            exit;
+        }
+        elseif ($argv[1] == 'stop')
+        {
+            if (empty($server_pid))
+            {
+                exit("Server is not running\n");
+            }
+            posix_kill($server_pid, SIGTERM);
+            exit;
+        }
+        elseif ($argv[1] == 'start')
+        {
+            //已存在ServerPID，并且进程存在
+            if (!empty($server_pid) and posix_kill($server_pid, 0))
+            {
+                exit("Server is already running.\n");
+            }
+        }
+        else
+        {
+            usage:
+            exit("Usage: php {$argv[0]} start|stop|reload\n");
+        }
+        $startFunction();
+    }
 
     /**
      * 自动推断扩展支持
@@ -68,7 +135,7 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
         
         if (!empty($this->runtimeSetting['pid_file']))
         {
-            file_put_contents($this->pid_file,$serv->master_pid);
+            file_put_contents(self::$pidFile, $serv->master_pid);
         }
     }
 
@@ -77,18 +144,15 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
     {
         if (!empty($this->runtimeSetting['pid_file']))
         {
-            unlink($this->pid_file);
+            unlink(self::$pidFile);
         }
     }
-    
+
     function onManagerStop()
     {
-        if (!empty($this->runtimeSetting['pid_file']))
-        {
-            unlink($this->pid_file);
-        }
+
     }
-    
+
     function onWorkerStart($serv, $worker_id)
     {
         global $argv;
@@ -109,9 +173,9 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
     function run($setting = array())
     {
         $this->runtimeSetting = array_merge($this->runtimeSetting, $setting);
-        if (!empty($this->runtimeSetting['pid_file']))
+        if (self::$pidFile)
         {
-            $this->pid_file = $this->runtimeSetting['pid_file'];
+            $this->runtimeSetting['pid_file'] = self::$pidFile;
         }
         $this->sw->set($this->runtimeSetting);
         $version = explode('.', SWOOLE_VERSION);

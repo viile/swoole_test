@@ -78,7 +78,7 @@ class CURL
      * @param string pass
      * @access public
      */
-    function setCredentials($username,$password)
+    function setCredentials($username, $password)
     {
         curl_setopt($this->ch, CURLOPT_USERPWD, "$username:$password");
     }

@@ -4,3 +4,4 @@
 /cache/
 /examples/websocket.log
 /logs/
+*.pid

@@ -85,6 +85,7 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
             {
                 $this->close($fd);
             }
+            $header['fd'] = $fd;
             $this->_headers[$fd] = $header;
             //长度错误
             if ($header['length'] - self::HEADER_SIZE > $this->packet_maxlen or strlen($data) > $this->packet_maxlen)
@@ -226,23 +227,21 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
         {
             return array('errno' => self::ERR_PARAMS);
         }
+        //函数不存在
         if (!is_callable($request['call']))
         {
             return array('errno' => self::ERR_NOFUNC);
         }
-
         //调用端环境变量
         if (!empty($request['env']))
         {
             self::$clientEnv = $request['env'];
         }
-        else
-        {
-            self::$clientEnv = array();
-        }
 
         //请求头
         self::$requestHeader = $header;
+        //socket信息
+        self::$clientEnv['_socket'] = $this->server->connection_info($header['fd']);
 
         $ret = call_user_func_array($request['call'], $request['params']);
         if ($ret === false)

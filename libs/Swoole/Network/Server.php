@@ -123,9 +123,15 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
             //'log_file' => '/tmp/swoole.log',
         );
     }
+
     function daemonize()
     {
         $this->runtimeSetting['daemonize'] = 1;
+    }
+
+    function connection_info($fd)
+    {
+        return $this->sw->connection_info($fd);
     }
 
     function onMasterStart($serv)

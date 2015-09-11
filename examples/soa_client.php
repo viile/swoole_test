@@ -2,10 +2,15 @@
 define('DEBUG', 'on');
 define('WEBPATH', dirname(__DIR__));
 require __DIR__ . '/../libs/lib_config.php';
-//require __DIR__ . '/../vendor/autoload.php';
 
 $cloud = Swoole\Client\SOA::getInstance();
+$cloud->putEnv('app', 'test');
+$cloud->putEnv('appKey', 'test1234');
 $cloud->addServers(array('127.0.0.1:8888'));
+
+$ret2 = $cloud->task("BL\\Test::test1", ["hello"]);
+var_dump($ret2->getResult());exit;
+
 
 $s = microtime(true);
 $ok = $err = 0;

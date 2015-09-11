@@ -46,11 +46,17 @@ class SOA
         return self::$_instance;
     }
 
+    static function getRequestId()
+    {
+        list($us) = explode(' ', microtime());
+        return intval(strval($us * 1000 * 1000) . rand(100000, 999999));
+    }
+
     /**
      * 发送请求
      * @param $type
      * @param $send
-     * @param $retObj
+     * @param SOA_result $retObj
      * @return bool
      */
     protected function request($type, $send, $retObj)
@@ -72,8 +78,10 @@ class SOA
             unset($retObj->socket);
             return false;
         }
+        //请求串号
+        $retObj->requestId = self::getRequestId();
         //发送失败了
-        if ($retObj->socket->send(SOAServer::encode($retObj->send)) === false)
+        if ($retObj->socket->send(SOAServer::encode($retObj->send, SOAServer::DECODE_PHP, 0, $retObj->requestId)) === false)
         {
             $retObj->code = SOA_Result::ERR_SEND;
             unset($retObj->socket);
@@ -266,6 +274,10 @@ class SOA
                 foreach($read as $sock)
                 {
                     $id = (int)$sock;
+
+                    /**
+                     * @var $retObj SOA_Result
+                     */
                     $retObj = $this->wait_list[$id];
                     $data = $retObj->socket->recv();
                     //socket被关闭了
@@ -303,6 +315,7 @@ class SOA
                     //达到规定的长度
                     if (strlen($buffer[$id]) == $header[$id]['length'])
                     {
+                        $retObj->responseId = $header[$id]['serid'];
                         //成功处理
                         $this->finish(SOAServer::decode($buffer[$id], $header[$id]['type']), $retObj);
                         $success_num++;
@@ -338,6 +351,16 @@ class SOA_Result
     public $data = null;
     public $send;  //要发送的数据
     public $type;
+
+    /**
+     * 请求串号
+     */
+    public $requestId;
+
+    /**
+     * 响应串号
+     */
+    public $responseId;
 
     /**
      * 回调函数

@@ -9,7 +9,8 @@ $cloud->putEnv('appKey', 'test1234');
 $cloud->addServers(array('127.0.0.1:8888'));
 
 $ret2 = $cloud->task("BL\\Test::test1", ["hello"]);
-var_dump($ret2->getResult());exit;
+var_dump($ret2->getResult(), $ret2->responseId);
+exit;
 
 
 $s = microtime(true);

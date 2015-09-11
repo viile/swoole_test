@@ -14,6 +14,18 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
     protected $errCode;
     protected $errMsg;
 
+    /**
+     * 客户端环境变量
+     * @var array
+     */
+    static $clientEnv;
+
+    /**
+     * 请求头
+     * @var array
+     */
+    static $requestHeader;
+
     public $packet_maxlen       = 2465792; //2M默认最大长度
     protected $buffer_maxlen    = 10240; //最大待处理区排队长度, 超过后将丢弃最早入队数据
     protected $buffer_clear_num = 128; //超过最大长度后，清理100个数据
@@ -94,7 +106,7 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
         }
 
         //数据解包
-        $request = self::decode($this->_buffer[$fd],  $this->_headers[$fd]['type']);
+        $request = self::decode($this->_buffer[$fd], $this->_headers[$fd]['type']);
         if ($request === false)
         {
             $this->sendErrorMessage($fd, self::ERR_UNPACK);
@@ -102,12 +114,33 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
         //执行远程调用
         else
         {
-            $response = $this->call($request);
-            $this->server->send($fd, self::encode($response, $this->_headers[$fd]['type']));
+            //当前请求的头
+            $_header = $this->_headers[$fd];
+            $response = $this->call($request, $_header);
+            //发送响应
+            $this->server->send($fd, self::encode($response, $_header['type'], $_header['uid'], $_header['serid']));
         }
         //清理缓存
         unset($this->_buffer[$fd], $this->_headers[$fd]);
         return true;
+    }
+
+    /**
+     * 获取客户端环境信息
+     * @return array
+     */
+    static function getClientEnv()
+    {
+        return self::$clientEnv;
+    }
+
+    /**
+     * 获取请求头信息，包括UID、Serid串号等
+     * @return array
+     */
+    static function getRequestHeader()
+    {
+        return self::$requestHeader;
     }
 
     function sendErrorMessage($fd, $errno)
@@ -182,7 +215,12 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
         Swoole\Loader::addNameSpace($name, $path);
     }
 
-    protected function call($request)
+    /**
+     * 调用远程函数
+     * @param $request
+     * @return array
+     */
+    protected function call($request, $header)
     {
         if (empty($request['call']))
         {
@@ -192,6 +230,20 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
         {
             return array('errno' => self::ERR_NOFUNC);
         }
+
+        //调用端环境变量
+        if (!empty($request['env']))
+        {
+            self::$clientEnv = $request['env'];
+        }
+        else
+        {
+            self::$clientEnv = array();
+        }
+
+        //请求头
+        self::$requestHeader = $header;
+
         $ret = call_user_func_array($request['call'], $request['params']);
         if ($ret === false)
         {

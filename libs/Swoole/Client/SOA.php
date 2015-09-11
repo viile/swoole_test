@@ -5,6 +5,7 @@ use Swoole\Protocol\SOAServer;
 class SOA
 {
     protected $servers = array();
+    protected $env = array();
 
     protected $wait_list = array();
     protected $timeout = 0.5;
@@ -86,9 +87,32 @@ class SOA
         return true;
     }
 
-    function setClientInfo()
+    /**
+     * 设置环境变量
+     * @return array
+     */
+    public function getEnv()
     {
+        return $this->env;
+    }
 
+    /**
+     * 获取环境变量
+     * @param array $env
+     */
+    public function setEnv($env)
+    {
+        $this->env = $env;
+    }
+
+    /**
+     * 设置一项环境变量
+     * @param $k
+     * @param $v
+     */
+    public function putEnv($k, $v)
+    {
+        $this->env[$k] = $v;
     }
 
     /**
@@ -170,6 +194,11 @@ class SOA
     {
         $retObj = new SOA_Result();
         $send = array('call' => $function, 'params' => $params);
+        if (count($this->env) > 0)
+        {
+            //调用端环境变量
+            $send['env'] = $this->env;
+        }
         $this->request(self::TYPE_SYNC, $send, $retObj);
         $retObj->callback = $callback;
         return $retObj;

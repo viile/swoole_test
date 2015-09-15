@@ -124,7 +124,7 @@ class WebSocket
         {
             throw new \Exception("data is empty");
         }
-        $this->socket->send($this->hybi10Encode($data, $type, $masked));
+        return $this->socket->send($this->hybi10Encode($data, $type, $masked));
     }
 
     /**
@@ -134,7 +134,7 @@ class WebSocket
      */
     function sendJson($data, $masked = true)
     {
-        $this->send(json_encode($data), 'text', $masked);
+        return $this->send(json_encode($data), 'text', $masked);
     }
 
     /**

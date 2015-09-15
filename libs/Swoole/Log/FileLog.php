@@ -15,7 +15,7 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
     //待写入文件的日志队列（缓冲区）
     protected $queue = array();
     //是否记录更详细的信息（目前记多了文件名、行号）
-    protected $verbose = true;
+    protected $verbose = false;
     protected $enable_cache = true;
     protected $date;
 

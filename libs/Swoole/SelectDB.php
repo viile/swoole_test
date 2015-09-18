@@ -605,24 +605,32 @@ class SelectDB
         if($field==='') return $record;
         return $record[$field];
     }
+
+    protected function _execute()
+    {
+        if ($this->is_execute == 0)
+        {
+            $this->exeucte();
+        }
+        return $this->result->fetchall();
+    }
+
     /**
      * 获取所有记录
      * @return array | bool
      */
     function getall()
     {
+        //启用了Cache
         if ($this->cache_lifetime)
         {
             $this->getsql(false);
             $cache_key = $this->cache_prefix . '_all_' . md5($this->sql);
             $data = \Swoole::$php->cache->get($cache_key);
+            //Cache数据为空，从DB中拉取
             if (empty($data))
             {
-                if ($this->is_execute == 0)
-                {
-                    $this->exeucte();
-                }
-                $data = $this->result->fetchall();
+                $data = $this->_execute();
                 \Swoole::$php->cache->set($cache_key, $data, $this->cache_lifetime);
                 return $data;
             }
@@ -633,11 +641,7 @@ class SelectDB
         }
         else
         {
-            if ($this->is_execute == 0)
-            {
-                $this->exeucte();
-            }
-            return $this->result->fetchall();
+            return $this->_execute();
         }
     }
 
@@ -713,11 +717,15 @@ class SelectDB
     function update($data)
     {
         $update = "";
-        foreach ($data as $key => $value) {
+        foreach ($data as $key => $value)
+        {
             $value = $this->db->quote($value);
-            if ($value != '' and $value{0} == '`') {
+            if ($value != '' and $value{0} == '`')
+            {
                 $update = $update . "`$key`=$value,";
-            } else {
+            }
+            else
+            {
                 $update = $update . "`$key`='$value',";
             }
         }
@@ -732,5 +740,14 @@ class SelectDB
     function delete()
     {
         return $this->db->query("delete from {$this->table} {$this->where} {$this->limit}");
+    }
+
+    /**
+     * 获取受影响的行数
+     * @return int
+     */
+    function rowCount()
+    {
+        return $this->db->getAffectedRows();
     }
 }

@@ -3,7 +3,7 @@ namespace Swoole;
 
 /**
  * Model类，ORM基础类，提供对某个数据库表的接口
- * @author Administrator
+ * @author Tianfeng Han
  * @package SwooleSystem
  * @subpackage Model
  * @link http://www.swoole.com/
@@ -627,6 +627,7 @@ class Record implements \ArrayAccess
         unset($this->_data[$key]);
     }
 }
+
 /**
  * 数据结果集，由Record组成
  * 通过foreach遍历，可以产生单条的Record对象，对每条数据进行操作
@@ -648,7 +649,7 @@ class RecordSet implements \Iterator
 
     public $_current_id = 0;
 
-    function __construct($db,$table,$primary,$select)
+    function __construct($db, $table, $primary, $select)
 	{
         $this->table = $table;
         $this->primary = $primary;
@@ -696,7 +697,7 @@ class RecordSet implements \Iterator
 	}
 	/**
 	 * 过滤器语法，参数为SQL SelectDB的orwhere语句
-	 * @param unknown_type $params
+	 * @param $params
 	 */
 	function orfilter($where)
 	{
@@ -711,52 +712,61 @@ class RecordSet implements \Iterator
 	{
 		return $this->db_select->getone($field);
 	}
-	/**
-	 * 获取全部数据
-	 */
-	function fetchall()
-	{
-		return $this->db_select->getall();
-	}
+
+    /**
+     * 获取全部数据
+     */
+    function fetchall()
+    {
+        return $this->db_select->getall();
+    }
 
     function __set($key, $v)
     {
         $this->db_select->$key = $v;
     }
 
-	function __call($method,$argv)
-	{
-		return call_user_func_array(array($this->db_select,$method),$argv);
-	}
+    function __call($method, $argv)
+    {
+        return call_user_func_array(array($this->db_select, $method), $argv);
+    }
 
-	public function rewind()
-	{
-		if(empty($this->_list)) $this->_list = $this->db_select->getall();
-		$this->_current_id=0;
-	}
+    public function rewind()
+    {
+        if (empty($this->_list))
+        {
+            $this->_list = $this->db_select->getall();
+        }
+        $this->_current_id = 0;
+    }
 
 	public function key()
 	{
 		return $this->_current_id;
 	}
 
-	public function current()
-	{
-		$record = new Record(0,$this->db,$this->table,$this->primary);
-		$record->put($this->_list[$this->_current_id]);
-		$record->_current_id = $this->_list[$this->_current_id][$this->primary];
-		return $record;
-	}
+    public function current()
+    {
+        $record = new Record(0, $this->db, $this->table, $this->primary);
+        $record->put($this->_list[$this->_current_id]);
+        $record->_current_id = $this->_list[$this->_current_id][$this->primary];
+        return $record;
+    }
 
-	public function next()
-	{
-		$this->_current_id++;
-	}
+    public function next()
+    {
+        $this->_current_id++;
+    }
 
-	public function valid()
-	{
-		if(isset($this->_list[$this->_current_id])) return true;
-		else return false;
-	}
+    public function valid()
+    {
+        if (isset($this->_list[$this->_current_id]))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 }
-?>

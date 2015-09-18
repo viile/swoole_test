@@ -8,7 +8,7 @@ use Swoole;
  * @author  Tianfeng.Han
  *
  */
-class MySQLi extends \mysqli implements \Swoole\IDatabase
+class MySQLi extends \mysqli implements Swoole\IDatabase
 {
     const DEFAULT_PORT = 3306;
 
@@ -157,6 +157,15 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
     }
 
     /**
+     * 获取受影响的行数
+     * @return int
+     */
+    function getAffectedRows()
+    {
+        return $this->affected_rows;
+    }
+
+    /**
      * 返回上一个Insert语句的自增主键ID
      * @return int
      */
@@ -166,7 +175,7 @@ class MySQLi extends \mysqli implements \Swoole\IDatabase
     }
 }
 
-class MySQLiRecord implements \Swoole\IDbRecord
+class MySQLiRecord implements Swoole\IDbRecord
 {
     /**
      * @var \mysqli_result

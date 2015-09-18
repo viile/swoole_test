@@ -1,15 +1,21 @@
 <?php
 namespace Swoole\Database;
+use Swoole;
 /**
  * PDO数据库封装类
  * @package SwooleExtend
  * @author Tianfeng.Han
  *
  */
-class PdoDB extends \PDO
+class PdoDB extends \PDO implements Swoole\IDatabase
 {
 	public $debug = false;
     protected $config;
+
+    /**
+     * @var \PDOStatement
+     */
+    protected $lastStatement;
 
 	function __construct($db_config)
 	{
@@ -43,8 +49,8 @@ class PdoDB extends \PDO
 	 * @param string $sql 执行的SQL语句
      * @return \PDOStatement
      */
-	public final function query($sql)
-	{
+    public final function query($sql)
+    {
         if ($this->debug)
         {
             echo "$sql<br />\n<hr />";
@@ -53,8 +59,9 @@ class PdoDB extends \PDO
             "SQL Error",
             implode(", ", $this->errorInfo()) . "<hr />$sql"
         );
+        $this->lastStatement = $res;
         return $res;
-	}
+    }
 
     /**
      * 执行一个参数化SQL语句,并返回一行结果
@@ -146,7 +153,16 @@ class PdoDB extends \PDO
         $this->errorCode();
     }
 
-	/**
+    /**
+     * 获取受影响的行数
+     * @return int
+     */
+    function getAffectedRows()
+    {
+        return $this->lastStatement ? $this->lastStatement->rowCount() : false;
+    }
+
+    /**
 	 * 关闭连接，释放资源
 	 * @return null
 	 */

@@ -20,6 +20,8 @@ interface IDatabase
 	function connect();
 	function close();
 	function lastInsertId();
+    function getAffectedRows();
+    function errno();
 }
 /**
  * Database Driver接口
@@ -45,6 +47,10 @@ class Database
 	public $debug = false;
 	public $read_times = 0;
 	public $write_times = 0;
+
+    /**
+     * @var IDatabase
+     */
 	public $_db = null;
     /**
      * @var \Swoole\SelectDB
@@ -70,19 +76,20 @@ class Database
                 $this->_db = new Database\PdoDB($db_config);
                 break;
         }
-        $this->db_apt = new \Swoole\SelectDB($this);
+        $this->db_apt = new SelectDB($this);
     }
-	/**
-	 * 初始化参数
-	 * @return unknown_type
-	 */
-	function __init()
-	{
-		$this->check_status();
-		$this->db_apt->init();
-		$this->read_times = 0;
-		$this->write_times = 0;
-	}
+
+    /**
+     * 初始化参数
+     */
+    function __init()
+    {
+        $this->check_status();
+        $this->db_apt->init();
+        $this->read_times = 0;
+        $this->write_times = 0;
+    }
+
 	/**
 	 * 检查连接状态，如果连接断开，则重新连接
 	 */

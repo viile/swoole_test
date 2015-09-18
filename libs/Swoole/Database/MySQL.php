@@ -168,6 +168,15 @@ class MySQL implements \Swoole\IDatabase
     }
 
     /**
+     * 获取受影响的行数
+     * @return int
+     */
+    function getAffectedRows()
+    {
+        return mysql_affected_rows($this->conn);
+    }
+
+    /**
      * 获取错误码
      * @return int
      */

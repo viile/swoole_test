@@ -31,13 +31,16 @@ class TCP extends Socket
             {
                 return false;
             }
-            if ($n === false) //反过来
+            if ($n === false)
             {
                 $errno = socket_last_error($this->sock);
                 //判断错误信息，EAGAIN EINTR，重写一次
-                if ($errno == 11 or $errno == 4) {
+                if ($errno == 11 or $errno == 4)
+                {
                     continue;
-                } else {
+                }
+                else
+                {
                     return false;
                 }
             }

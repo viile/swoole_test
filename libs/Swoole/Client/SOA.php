@@ -46,6 +46,20 @@ class SOA
         return self::$_instance;
     }
 
+    protected function beforeRequest($retObj)
+    {
+
+    }
+
+    protected function afterRequest($retObj)
+    {
+
+    }
+
+    /**
+     * 生成请求串号
+     * @return int
+     */
     static function getRequestId()
     {
         list($us) = explode(' ', microtime());
@@ -61,12 +75,16 @@ class SOA
      */
     protected function request($type, $send, $retObj)
     {
-        $socket = new \Swoole\Client\TCP;
+        $svr = $this->getServer();
+        $socket = new TCP;
+
         $retObj->socket = $socket;
         $retObj->type = $type;
         $retObj->send = $send;
+        $retObj->server_host = $svr['host'];
+        $retObj->server_port = $svr['port'];
 
-        $svr = $this->getServer();
+        $this->beforeRequest($retObj);
         //异步connect
         //TODO 如果连接失败，需要上报机器存活状态
         $ret = $socket->connect($svr['host'], $svr['port'], $this->timeout);
@@ -151,6 +169,9 @@ class SOA
         {
             unset($this->wait_list[$retObj->id]);
         }
+        //执行after钩子函数
+        $this->afterRequest($retObj);
+        //执行回调函数
         if ($retObj->callback)
         {
             call_user_func($retObj->callback, $retObj);
@@ -330,6 +351,8 @@ class SOA
                 {
                     //TODO 如果请求超时了，需要上报服务器负载
                     $obj->code = ($obj->socket->connected) ? SOA_Result::ERR_TIMEOUT : SOA_Result::ERR_CONNECT;
+                    //执行after钩子函数
+                    $this->afterRequest($obj);
                 }
                 //清空当前列表
                 $this->wait_list = array();
@@ -343,6 +366,11 @@ class SOA
 
 }
 
+/**
+ * SOA服务请求结果对象
+ * Class SOA_Result
+ * @package Swoole\Client
+ */
 class SOA_Result
 {
     public $id;
@@ -372,6 +400,18 @@ class SOA_Result
      * @var \Swoole\Client\TCP
      */
     public $socket = null;
+
+    /**
+     * SOA服务器的IP地址
+     * @var string
+     */
+    public $server_host;
+
+    /**
+     * SOA服务器的端口
+     * @var int
+     */
+    public $server_port;
 
     const ERR_NO_READY   = 8001; //未就绪
     const ERR_CONNECT    = 8002; //连接服务器失败

@@ -274,9 +274,16 @@ class WebSocket
 
         switch ($type)
         {
+            //文本内容
             case 'text':
                 // first byte indicates FIN, Text-Frame (10000001):
                 $frameHead[0] = 129;
+                break;
+
+            //二进制内容
+            case 'bin':
+                // first byte indicates FIN, Text-Frame (10000010):
+                $frameHead[0] = 130;
                 break;
 
             case 'close':

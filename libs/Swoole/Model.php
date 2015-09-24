@@ -48,7 +48,7 @@ class Model
     function __construct(\Swoole $swoole, $db_key = 'master')
     {
         $this->db = $swoole->db($db_key);
-        $this->dbs = new SelectDB($swoole->db);
+        $this->dbs = new SelectDB($this->db);
         $this->swoole = $swoole;
     }
 

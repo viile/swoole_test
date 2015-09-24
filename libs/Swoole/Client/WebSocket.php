@@ -117,6 +117,7 @@ class WebSocket
      * @param string $type
      * @param bool $masked
      * @throws \Exception
+     * @return bool
      */
     public function send($data, $type = 'text', $masked = true)
     {
@@ -131,6 +132,7 @@ class WebSocket
      * send json object
      * @param $data
      * @param bool $masked
+     * @return bool
      */
     function sendJson($data, $masked = true)
     {
@@ -281,6 +283,7 @@ class WebSocket
                 break;
 
             //二进制内容
+            case 'binary':
             case 'bin':
                 // first byte indicates FIN, Text-Frame (10000010):
                 $frameHead[0] = 130;
@@ -375,26 +378,40 @@ class WebSocket
         $masked = ($secondByte[0] == '1') ? true : false;
         $dataLength = ($masked === true) ? ord($bytes[1]) & 127 : ord($bytes[1]);
 
-        if ($masked === true) {
-            if ($dataLength === 126) {
+        if ($masked === true)
+        {
+            if ($dataLength === 126)
+            {
                 $mask = substr($bytes, 4, 4);
                 $coded_data = substr($bytes, 8);
-            } elseif ($dataLength === 127) {
+            }
+            elseif ($dataLength === 127)
+            {
                 $mask = substr($bytes, 10, 4);
                 $coded_data = substr($bytes, 14);
-            } else {
+            }
+            else
+            {
                 $mask = substr($bytes, 2, 4);
                 $coded_data = substr($bytes, 6);
             }
-            for ($i = 0; $i < strlen($coded_data); $i++) {
+            for ($i = 0; $i < strlen($coded_data); $i++)
+            {
                 $decodedData .= $coded_data[$i] ^ $mask[$i % 4];
             }
-        } else {
-            if ($dataLength === 126) {
+        }
+        else
+        {
+            if ($dataLength === 126)
+            {
                 $decodedData = substr($bytes, 4);
-            } elseif ($dataLength === 127) {
+            }
+            elseif ($dataLength === 127)
+            {
                 $decodedData = substr($bytes, 10);
-            } else {
+            }
+            else
+            {
                 $decodedData = substr($bytes, 2);
             }
         }

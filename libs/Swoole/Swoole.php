@@ -641,7 +641,7 @@ function swoole_urlrouter_mvc(&$uri)
     {
         $array['view'] = $_GET["v"];
     }
-    if (empty($uri) or substr($uri, -8) == 'index.php')
+    if (empty($uri) or substr($uri, -9) == 'index.php')
     {
         return $array;
     }

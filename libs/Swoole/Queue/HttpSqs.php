@@ -1,4 +1,7 @@
 <?php
+namespace Swoole\Queue;
+
+use Swoole;
 
 class HttpQueue implements Swoole\IFace\Queue
 {

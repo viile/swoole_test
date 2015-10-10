@@ -1,8 +1,11 @@
 <?php
+namespace Swoole\Queue;
+use Swoole;
+
 /**
  * 这里没办法保证原子性，请线上服务使用redis，httpsqs或系统的ipcs消息队列
  */
-class CacheQueue implements IQueue
+class CacheQueue implements Swoole\IFace\Queue
 {
 	private $swoole;
 	private $cache;

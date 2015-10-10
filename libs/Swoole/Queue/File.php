@@ -1,5 +1,12 @@
 <?php
-class FileQueue implements IQueue
+namespace Swoole\Queue;
+use Swoole;
+
+/**
+ * 文件存储的队列
+ * @package Swoole\Queue
+ */
+class File implements Swoole\IFace\Queue
 {
     private $data;
     public $file;

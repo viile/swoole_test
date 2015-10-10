@@ -1,32 +1,9 @@
 <?php
-if (!defined('EVENT_MODE') or EVENT_MODE == 'sync')
-{
-    $event = new SwooleEvent('sync');
-}
-else
-{
-    $queue_url = '';
-    $queue_type = 'CacheQueue';
+global $php;
 
-    if (defined('EVENT_QUEUE'))
-    {
-        $queue_url = EVENT_QUEUE;
-    }
-    if (defined('EVENT_QUEUE_TYPE'))
-    {
-        $queue_type = EVENT_QUEUE_TYPE;
-    }
-    $event = new SwooleEvent('async', $queue_url, $queue_type);
-}
-
-if (defined('EVENT_HANDLE'))
+$config = $php->config['event'][$php->factory_key];
+if (empty($config) or empty($config['type']))
 {
-    require EVENT_HANDLE;
-    if (empty($handle))
-    {
-        Swoole\Error::info('SwooleEvent Error', 'Event handles not be empty!');
-    }
-    $event->set_listens($handle);
+    throw new Exception("require event[$php->factory_key] config.");
 }
-
-return $event;
+return new Swoole\Event($config);

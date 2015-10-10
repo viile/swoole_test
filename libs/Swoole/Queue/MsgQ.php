@@ -19,7 +19,7 @@ class MsgQ implements \Swoole\IFace\Queue
         }
         else
         {
-            $this->msgid = ftok(__FILE__, __CLASS__);
+            $this->msgid = ftok(__FILE__, 0);
         }
 
         if (!empty($config['msgtype']))

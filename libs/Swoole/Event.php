@@ -1,97 +1,100 @@
 <?php
 namespace Swoole;
 
+use Swoole\Network\Server;
+
 class Event
 {
-	private $_queue;
-	private $_handles = array();
-	public $mode;
+    /**
+     * @var IFace\Queue
+     */
+	protected $_queue;
+    protected $_handles = array();
+    protected $config;
+    protected $async = false;
 
-	function __construct($mode,$queue_url='',$queue_type='')
+    function __construct($config)
+    {
+        $this->config = $config;
+        //同步模式，直接执行函数
+        if (isset($config['async']) and $config['async'])
+        {
+            $class = $config['type'];
+            if (!class_exists($class))
+            {
+                throw new Exception\NotFound("class $class not found.");
+            }
+            $this->_queue = new $class($config);
+            $this->async = true;
+        }
+    }
+
+    /**
+     * 投递事件
+     * @return mixed
+     * @throws Exception\NotFound
+     */
+	function dispatch()
 	{
-		$this->mode = $mode;
-		if($queue_url and $mode=='async')
-		{
-			$this->_queue = new Queue(array('server_url'=>$queue_url,'name'=>'swoole_event'),$queue_type);
-		}
-	}
-	/**
-	 * 引发一个事件
-	 * @param $event_type 事件类型
-	 * @return NULL
-	 */
-	function raise()
-	{
-		$params = func_get_args();
+        $_args = func_get_args();
+        $function = $_args[0];
 		/**
 		 * 同步，直接在引发事件时处理
-		 */
-        if($this->mode=='sync')
+         */
+        if (!$this->async)
         {
-        	if(!isset($this->_handles[$params[0]]) or !function_exists($this->_handles[$params[0]]))
-        	{
-        		if(empty($handle)) Error::info('SwooleEvent Error','Event handle not found!');
-        	}
-        	return call_user_func_array($this->_handles[$params[0]],array_slice($params,1));
+            if (!is_callable($function))
+            {
+                throw new Exception\NotFound("function $function not found.");
+            }
+            return call_user_func_array($function, array_slice($_args, 1));
         }
         /**
          * 异步，将事件压入队列
          */
         else
         {
-            $this->_queue->put($params);
+            return $this->_queue->push($_args);
         }
 	}
-    /**
-     * 增加对一种事件的监听
-     * @param $event_type 事件类型
-     * @param $call_back  发生时间后的回调程序
-     * @return NULL
-     */
-	function addListener($event_type,$call_back)
-	{
-		$this->_handles[$event_type] = $call_back;
-	}
 
-	function run_server($time=1,$log_file=null)
-	{
-		$filelog = new FileLog($log_file);
-		while(true)
-		{
-		    $event = $this->_queue->get();
-			if($event and !isset($event['HTTPSQS_GET_END']))
-			{
-			    if(!isset($this->_handles[$event[0]]))
-			    {
-			        $filelog->info('SwooleEvent Error: empty event!');
-			    }
-			    $func = $this->_handles[$event[0]];
-
-			    if(!function_exists($func))
-			    {
-			        $filelog->info('SwooleEvent Error: event handle function not exists!');
-			    }
-	            else
-	            {
-	                $parmas = array_slice($event,1);
-	            	call_user_func_array($func,$parmas);
-                    $filelog->info('SwooleEvent Info: process success!event type '.$func.',params('.implode(',',$parmas).')');
-	            }
-			}
-		    else
-		    {
-		    	usleep($time*1000);
-		    	//echo 'sleep',NL;
-		    }
-		}
-	}
     /**
-     * 设置监听列表
-     * @param $listens
-     * @return unknown_type
+     * 运行工作进程
      */
-	function set_listens($listens)
-	{
-		$this->_handles = array_merge($this->_handles,$listens);
+	function runWorker($worker_num = 1)
+    {
+        if (empty($this->config['logger']))
+        {
+            $logger = new Log\EchoLog(array('display' => true));
+        }
+        else
+        {
+            /**
+             * Swoole\Log
+             */
+            $logger = \Swoole::$php->log($this->config['logger']);
+        }
+
+        while (true)
+        {
+            $event = $this->_queue->pop();
+            if ($event)
+            {
+                $function = $event[0];
+                if (!is_callable($function))
+                {
+                    $logger->info('function [' . $function . '] not found.');
+                }
+                else
+                {
+                    $params = array_slice($event, 1);
+                    call_user_func_array($function, $params);
+                }
+            }
+            else
+            {
+                usleep(100000);
+            }
+        }
 	}
 }
